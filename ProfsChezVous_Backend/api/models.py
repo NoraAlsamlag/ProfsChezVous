@@ -1,41 +1,7 @@
 from django.db import models
-from django.contrib.auth.models import User
+from user.models import User,Admin,Professeur,Parent
 
 # Create your models here.
-
-
-
-
-from django.db import models
-from django.contrib.auth.models import User
-
-class Parent(models.Model):
-    nom = models.CharField(max_length=100)
-    prenom = models.CharField(max_length=100)
-    numero_telephone = models.CharField(max_length=20)
-    adresse = models.CharField(max_length=200)
-    cree_le = models.DateTimeField(auto_now_add=True)
-    modifie_le = models.DateTimeField(auto_now=True)
-    utilisateur = models.OneToOneField(User, on_delete=models.CASCADE, related_name='parent')
-
-    def __str__(self):
-        return f"{self.prenom} {self.nom}"
-
-class Professeur(models.Model):
-    nom = models.CharField(max_length=100)
-    prenom = models.CharField(max_length=100)
-    cree_le = models.DateTimeField(auto_now_add=True)
-    modifie_le = models.DateTimeField(auto_now=True)
-    utilisateur = models.OneToOneField(User, on_delete=models.CASCADE, related_name='professeur')
-
-    def __str__(self):
-        return f"{self.prenom} {self.nom}"
-
-class Admin(models.Model):
-    utilisateur = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin')
-
-    def __str__(self):
-        return f"Admin {self.utilisateur.username}"
 
 class Matiere(models.Model):
     nom = models.CharField(max_length=100)
@@ -98,3 +64,23 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message : {self.contenu[:50]}..."
+    
+class Activite(models.Model):
+    nom = models.CharField(max_length=100)
+    description = models.TextField(max_length=200)
+    date_debut = models.DateField()
+    date_fin = models.DateField()
+    lieu = models.CharField(max_length=200)
+    participants = models.ManyToManyField(User, related_name='activites')
+
+    def __str__(self):
+        return self.nom
+    
+class ActiviteBloquee(models.Model):
+    activite = models.ForeignKey('Activite', on_delete=models.CASCADE)
+    raison = models.CharField(max_length=200)
+    date_debut = models.DateField()
+    date_fin = models.DateField()
+
+    def __str__(self):
+        return f"{self.activite} - {self.raison}"

@@ -6,11 +6,11 @@ import 'package:profschezvousfrontend/components/square_tile.dart';
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
 
-  // text editing controllers
+  // contrôleurs de champs de texte
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
 
-  // sign user in method
+  // méthode de connexion de l'utilisateur
   void signUserIn() {}
 
   @override
@@ -32,9 +32,9 @@ class LoginPage extends StatelessWidget {
 
               const SizedBox(height: 50),
 
-              // welcome back, you've been missed!
+              // bienvenue, vous nous avez manqué !
               Text(
-                'Welcome back you\'ve been missed!',
+                'Bienvenue, vous nous avez manqué !',
                 style: TextStyle(
                   color: Colors.grey[700],
                   fontSize: 16,
@@ -43,32 +43,32 @@ class LoginPage extends StatelessWidget {
 
               const SizedBox(height: 25),
 
-              // username textfield
+              // champ de texte pour le nom d'utilisateur
               MyTextField(
                 controller: usernameController,
-                hintText: 'Username',
+                hintText: 'Nom d\'utilisateur',
                 obscureText: false,
               ),
 
               const SizedBox(height: 10),
 
-              // password textfield
+              // champ de texte pour le mot de passe
               MyTextField(
                 controller: passwordController,
-                hintText: 'Password',
+                hintText: 'Mot de passe',
                 obscureText: true,
               ),
 
               const SizedBox(height: 10),
 
-              // forgot password?
+              // mot de passe oublié ?
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 25.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
-                      'Forgot Password?',
+                      'Mot de passe oublié ?',
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                   ],
@@ -77,14 +77,14 @@ class LoginPage extends StatelessWidget {
 
               const SizedBox(height: 25),
 
-              // sign in button
+              // bouton de connexion
               MyButton(
                 onTap: signUserIn,
               ),
 
               const SizedBox(height: 50),
 
-              // or continue with
+              // ou continuer avec
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 25.0),
                 child: Row(
@@ -98,7 +98,7 @@ class LoginPage extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10.0),
                       child: Text(
-                        'Or continue with',
+                        'Ou continuer avec',
                         style: TextStyle(color: Colors.grey[700]),
                       ),
                     ),
@@ -114,33 +114,33 @@ class LoginPage extends StatelessWidget {
 
               const SizedBox(height: 50),
 
-              // google + apple sign in buttons
-              Row(
+              // boutons de connexion Google + Apple
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  // google button
-                  SquareTile(imagePath: 'lib/images/google.png'),
+                children: [
+                  // bouton Google
+                  const SquareTile(imagePath: 'lib/images/google.png'),
 
-                  SizedBox(width: 25),
+                  const SizedBox(width: 25),
 
-                  // apple button
-                  SquareTile(imagePath: 'lib/images/apple.png')
+                  // bouton Apple
+                  const SquareTile(imagePath: 'lib/images/apple.png')
                 ],
               ),
 
               const SizedBox(height: 50),
 
-              // not a member? register now
+              // pas encore membre ? inscrivez-vous maintenant
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Not a member?',
+                    'Pas encore membre ?',
                     style: TextStyle(color: Colors.grey[700]),
                   ),
                   const SizedBox(width: 4),
                   const Text(
-                    'Register now',
+                    'Inscrivez-vous maintenant',
                     style: TextStyle(
                       color: Colors.blue,
                       fontWeight: FontWeight.bold,
