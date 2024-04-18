@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
 
 
-    'corsheaders',
+    # 'corsheaders',
 ]
 
 
@@ -144,9 +144,40 @@ STATIC_URL = "static/"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+# DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CORS_ALLOW_ALL_ORIGINS = True 
+# CORS_ALLOW_ALL_ORIGINS = True 
 
 AUTH_USER_MODEL = "user.User"
 
+
+AUTHENTICATION_BACKENDS = (
+    # Needed to login by username in Django admin, regardless of `allauth`
+    "django.contrib.auth.backends.ModelBackend",
+
+    # `allauth` specific authentication methods, such as login by e-mail
+    "allauth.account.auth_backends.AuthenticationBackend",
+)
+
+
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = False
+USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = None
+ACCOUNT_CONFIRM_EMAIL_ON_GET = False
+# ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+
+REST_AUTH ={
+    "LOGIN_SERIALIZER":"user.serializers.CustomLoginSerializer",
+    'REGISTER_SERIALIZER': 'user.serializers.CustomRegisterSerializer',
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # 'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}

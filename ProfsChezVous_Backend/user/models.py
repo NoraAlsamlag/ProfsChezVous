@@ -13,7 +13,7 @@ def upload_to(inst, nom_de_fichier ) :
 
 class User(AbstractUser):
     # Common fields for all user types
-    image_profil = ResizedImageField(upload_to='upload_to', null=True, blank=True)
+    image_profil = ResizedImageField(upload_to=upload_to, null=True, blank=True)
     cree_le = models.DateTimeField(auto_now_add=True)
     modifie_le = models.DateTimeField(auto_now=True)
     class Role(models.TextChoices) :
@@ -34,8 +34,6 @@ class User(AbstractUser):
 
 
 class Parent(User):
-    nom = models.CharField(max_length=100)
-    prenom = models.CharField(max_length=100)
     ville = models.CharField(max_length=100)
     adresse = models.CharField(max_length=200)
     numero_telephone = models.CharField(max_length=12)
@@ -51,8 +49,6 @@ class Parent(User):
         return f"{self.nom} {self.prenom} (Parent)"
 
 class Professeur(User):
-    nom = models.CharField(max_length=100)
-    prenom = models.CharField(max_length=100)
     ville = models.CharField(max_length=100)
     adresse = models.CharField(max_length=200)
     numero_telephone = models.CharField(max_length=12)
@@ -61,8 +57,6 @@ class Professeur(User):
         return f"{self.prenom} {self.nom}"
 
 class Eleve(User):
-    nom = models.CharField(max_length=100)
-    prenom = models.CharField(max_length=100)
     ville = models.CharField(max_length=100)
     adresse = models.CharField(max_length=200)
     numero_telephone = models.CharField(max_length=12)
