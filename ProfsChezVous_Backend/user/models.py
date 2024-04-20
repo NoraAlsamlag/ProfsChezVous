@@ -1,4 +1,5 @@
 from django.db import models
+# from api.models import Matiere
 from django.contrib.auth.models import User
 # from django.contrib.postgres.fields import ArrayField
 # from django.contrib.gis.db import models, GeometryField
@@ -60,8 +61,13 @@ class Professeur(models.Model):
     prenom = models.CharField(max_length=30)
     nom = models.CharField(max_length=50)
     adresse = models.CharField(max_length=200)
+    quartier_résidence = models.CharField(max_length=70)
     numero_telephone = models.CharField(max_length=12)
-    # date_naissance = models.DateField()
+    date_naissance = models.DateField()
+    # matiere_a_enseigner  = models.ManyToManyField(Matiere,related_name='matiere',on_delete=models.CASCADE)
+    niveau_etude  = models.CharField(max_length=50)
+
+
     # specialite = models.ForeignKey('Specialites', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
