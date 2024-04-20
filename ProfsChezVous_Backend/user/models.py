@@ -1,9 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import User
 # from django.contrib.postgres.fields import ArrayField
-# from django.contrib.gis.db import models
+# from django.contrib.gis.db import models, GeometryField
+
+from django.conf import Settings
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+from rest_framework.authtoken.models import Token
+
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django_resized import ResizedImageField
+
 
 # Create your models here.
 
@@ -13,19 +20,16 @@ def upload_to(inst, nom_de_fichier ) :
 
 class User(AbstractUser):
     # Common fields for all user types
+    is_admin  = models.BooleanField(default=False)
+    is_parent  = models.BooleanField(default=False)
+    is_eleve  = models.BooleanField(default=False)
+    is_professeur  = models.BooleanField(default=False)
     image_profil = ResizedImageField(upload_to=upload_to, null=True, blank=True)
     cree_le = models.DateTimeField(auto_now_add=True)
     modifie_le = models.DateTimeField(auto_now=True)
-    class Role(models.TextChoices) :
-        ADMIN = "ADMIN",'Admin'
-        PARENT = "PARENT",'Parent'
-        ELEVE = "Eleve",'Eleve'
-        PROFESSEUR = "PROFESSEUR" ,'Professeur'
-    role_de_base = Role.ADMIN
-
-    role = models.CharField(max_length=50,choices=Role.choices)
     
-
+    def  __str__(self):
+        return  self.username
     
 # class ParentManager(BaseUserManager) :
 #     def get_queryset(self, *args, **kwargs):
@@ -33,14 +37,16 @@ class User(AbstractUser):
 #         return results.filter( role=User.Role.PARENT)
 
 
-class Parent(User):
+class Parent(models.Model):
+    user  = models.OneToOneField(User , related_name='parent',on_delete=models.CASCADE)
     ville = models.CharField(max_length=100)
     adresse = models.CharField(max_length=200)
+    prenom = models.CharField(max_length=30)
+    nom = models.CharField(max_length=50)
     numero_telephone = models.CharField(max_length=12)
-    # eleves = ArrayField(models.CharField(max_length=100), blank=True)
+    # eleves =models.Model ArrayField(models.CharField(max_length=100), blank=True)
     quartier_résidence = models.CharField(max_length=70)
     # localisation = models.PointField(null=True, blank=True)
-    role_de_base = User.Role.PARENT
     # parent = ParentManager()
 
 
@@ -48,25 +54,67 @@ class Parent(User):
     def __str__(self):
         return f"{self.nom} {self.prenom} (Parent)"
 
-class Professeur(User):
+class Professeur(models.Model):
+    user  = models.OneToOneField(User , related_name='professeur',on_delete=models.CASCADE)
     ville = models.CharField(max_length=100)
+    prenom = models.CharField(max_length=30)
+    nom = models.CharField(max_length=50)
     adresse = models.CharField(max_length=200)
     numero_telephone = models.CharField(max_length=12)
-    role_de_base = User.Role.PROFESSEUR
-    def __str__(self):
-        return f"{self.prenom} {self.nom}"
+    # date_naissance = models.DateField()
+    # specialite = models.ForeignKey('Specialites', on_delete=models.SET_NULL, null=True, blank=True)
 
-class Eleve(User):
+    def __str__(self):
+        return f"{self.nom} {self.prenom} (Prof.)"
+
+
+    
+
+class Eleve(models.Model):
+    user  = models.OneToOneField(User , related_name='eleve',on_delete=models.CASCADE)
     ville = models.CharField(max_length=100)
     adresse = models.CharField(max_length=200)
+    prenom = models.CharField(max_length=30)
+    nom = models.CharField(max_length=50)
+    date_naissance = models.DateField()
+    GENRE_CHOICES = (
+        ('masculin', 'Masculin'),
+        ('feminin', 'Féminin'),
+        ('autre', 'Autre'),)
+    genre = models.CharField(max_length=60, choices=GENRE_CHOICES)
     numero_telephone = models.CharField(max_length=12)
-    role_de_base =  User.Role.ELEVE
+
+    
+
+    def __str__(self):
+        return f"{self.nom} {self.prenom}"
+
+# class Absence(models.Model):
+#     eleve = models.ForeignKey(Eleve, on_delete=models.CASCADE)
+#     date = models.DateTimeField(default=datetime.now())
+
+
+
+
+
+# class ClasseGeo(models.Model):
+#     nom = models.CharField(max_length=100)
+#     enseignant = models.ForeignKey(Professeur, on_delete=models.PROTECT)
+#     lieu = GeometryField(srid=4326)
+
+#     def __str__(self):
+#         return self.nom
+
+# class EleveGeo(models.Model):
+#     eleve = models.OneToOneField(Eleve, parent_link=True, on_delete=models.CASCADE)
+#     classegeo = models.ForeignKey(ClasseGeo, on_delete=models.PROTECT)
+
 
     def __str__(self):
         return f"{self.prenom} {self.nom}"
     
-class Admin(User):
-    role_de_base = User.Role.ADMIN
+class Admin(models.Model):
+    user  = models.OneToOneField(User , related_name='admin',on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Admin {User.nom}"
+        return self.user.username

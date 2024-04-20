@@ -171,7 +171,7 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET = False
 
 REST_AUTH ={
     "LOGIN_SERIALIZER":"user.serializers.CustomLoginSerializer",
-    'REGISTER_SERIALIZER': 'user.serializers.CustomRegisterSerializer',
+    'REGISTER_SERIALIZER': 'user.serializers.ParentRegisterSerializer',
 }
 
 REST_FRAMEWORK = {

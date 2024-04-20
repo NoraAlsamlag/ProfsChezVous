@@ -1,28 +1,23 @@
 from rest_framework.decorators import api_view
+from rest_framework import generics
 from rest_framework.response import Response
 from api.serializers import  *
 from .models import *
 
-@api_view(['GET'])
-def getRoutes(request):
-    routes = [
-        {
-            'Endpoint':'/api/get_all', 
-            'Method':"GET",
-            'body':None,
-            'Description':'Returns all available data in the database'
-        },
-        {
-            "Endpoint":"/api/add_data",
-            "Method": "POST",
-            "Body":{
-                "Title":"String, required",
-                "Content":"String, required"
-            },
-            "Description":"Add a new blog post to the database."
-        }
-    ]
-    return Response(routes)
+from dj_rest_auth.registration.views import RegisterView
+from user.serializers import ParentRegisterSerializer, ProfesseurRegisterSerializer, EleveRegisterSerializer, AdminRegisterSerializer
+
+class ParentRegisterView(RegisterView):
+    serializer_class = ParentRegisterSerializer
+
+class ProfesseurRegisterView(RegisterView):
+    serializer_class = ProfesseurRegisterSerializer
+
+class EleveRegisterView(RegisterView):
+    serializer_class = EleveRegisterSerializer
+
+class AdminRegisterView(RegisterView):
+    serializer_class = AdminRegisterSerializer
 
 @api_view(['GET'])
 def getParents(request):
