@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'dj_rest_auth.registration',
-
+    'debug_toolbar',
+ 
 
     # 'corsheaders',
 ]
@@ -71,6 +72,9 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     'allauth.account.middleware.AccountMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+ 
+    
 ]
 
 ROOT_URLCONF = "ProfsChezVous.urls"
@@ -91,8 +95,12 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "ProfsChezVous.wsgi.application"
+WSGI_APPLICATION = "ProfsChezVous.wsgi_Backend.application",
+#os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ProfsChezVous.settings')
 
+
+
+#application = get_wsgi_application()
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases

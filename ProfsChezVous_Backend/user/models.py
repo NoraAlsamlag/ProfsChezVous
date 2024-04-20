@@ -10,6 +10,7 @@ from rest_framework.authtoken.models import Token
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django_resized import ResizedImageField
+#from myapp.fields import ResizedImageField
 
 
 # Create your models here.
@@ -43,7 +44,9 @@ class Parent(models.Model):
     adresse = models.CharField(max_length=200)
     prenom = models.CharField(max_length=30)
     nom = models.CharField(max_length=50)
+    age = models.IntegerField()
     numero_telephone = models.CharField(max_length=12)
+    Eleve = models.ManyToManyField('Eleve')
     # eleves =models.Model ArrayField(models.CharField(max_length=100), blank=True)
     quartier_résidence = models.CharField(max_length=70)
     # localisation = models.PointField(null=True, blank=True)
@@ -61,7 +64,12 @@ class Professeur(models.Model):
     nom = models.CharField(max_length=50)
     adresse = models.CharField(max_length=200)
     numero_telephone = models.CharField(max_length=12)
-    # date_naissance = models.DateField()
+    experience_enseignement = models.CharField(max_length=100)
+    certifications = models.CharField(max_length=100)
+    tarif_horaire = models.DecimalField(max_digits=10, decimal_places=2)
+
+    #date_naissance = models.DateField()
+
     # specialite = models.ForeignKey('Specialites', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
@@ -77,6 +85,9 @@ class Eleve(models.Model):
     prenom = models.CharField(max_length=30)
     nom = models.CharField(max_length=50)
     date_naissance = models.DateField()
+    Etablissement = models.CharField(max_length=100) 
+    niveau_scolaire = models.CharField(max_length=100)
+   
     GENRE_CHOICES = (
         ('masculin', 'Masculin'),
         ('feminin', 'Féminin'),

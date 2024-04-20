@@ -42,6 +42,9 @@ class ProfesseurRegisterSerializer(RegisterSerializer):
     ville = serializers.CharField(max_length=30)
     adresse = serializers.CharField(max_length=30)
     numero_telephone = serializers.CharField(max_length=12)
+    experience_enseignement = serializers.CharField(max_length=100)
+    certifications = serializers.CharField(max_length=100)
+    tarif_horaire = serializers.DecimalField(max_digits=10, decimal_places=2)
 
     def get_cleaned_data(self):
         cleaned_data = super().get_cleaned_data()
@@ -69,6 +72,7 @@ class EleveRegisterSerializer(RegisterSerializer):
     ville = serializers.CharField(max_length=30)
     adresse = serializers.CharField(max_length=30)
     date_naissance = serializers.DateField()
+    Etablissement = serializers.CharField(max_length=100) 
     GENRE_CHOICES = (
         ('masculin', 'Masculin'),
         ('feminin', 'Féminin'),
@@ -94,6 +98,7 @@ class EleveRegisterSerializer(RegisterSerializer):
             'date_naissance': self.validated_data.get('date_naissance'),
             'genre': self.validated_data.get('genre'),
             'numero_telephone': self.validated_data.get('numero_telephone'),
+            'Etablissement': self.validated_data.get('Etablissement'),
         }
         Eleve.objects.create(**eleve_data)
         return user
