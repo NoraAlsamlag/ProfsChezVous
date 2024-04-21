@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-pn)gf4++a6gmuu$)d9r&r(gu*t=jktd3rvp##1z+bp*sz2#b66
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'dj_rest_auth.registration',
-
+    # 'debug_toolbar',
+ 
 
     # 'corsheaders',
 ]
@@ -71,6 +72,9 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     'allauth.account.middleware.AccountMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+ 
+    
 ]
 
 ROOT_URLCONF = "ProfsChezVous.urls"
@@ -91,8 +95,12 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "ProfsChezVous.wsgi.application"
+# WSGI_APPLICATION = "ProfsChezVous.wsgi_Backend.application",
+#os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ProfsChezVous.settings')
 
+
+
+#application = get_wsgi_application()
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases

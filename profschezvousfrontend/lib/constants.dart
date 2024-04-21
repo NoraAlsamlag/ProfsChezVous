@@ -1,1 +1,1 @@
-const tokenBox = "NOTEPADTOKEN";
+const tokenBox = "ProfsChezVousTOKEN";

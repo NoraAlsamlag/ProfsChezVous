@@ -3,14 +3,12 @@ from django.db import models
 from django.contrib.auth.models import User
 # from django.contrib.postgres.fields import ArrayField
 # from django.contrib.gis.db import models, GeometryField
-
 from django.conf import Settings
 from django.dispatch import receiver
 from django.db.models.signals import post_save
-from rest_framework.authtoken.models import Token
-
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django_resized import ResizedImageField
+#from myapp.fields import ResizedImageField
 
 
 # Create your models here.
@@ -20,7 +18,6 @@ def upload_to(inst, nom_de_fichier ) :
     return "/profil/" + str(nom_de_fichier)
 
 class User(AbstractUser):
-    # Common fields for all user types
     is_admin  = models.BooleanField(default=False)
     is_parent  = models.BooleanField(default=False)
     is_eleve  = models.BooleanField(default=False)
@@ -32,10 +29,6 @@ class User(AbstractUser):
     def  __str__(self):
         return  self.username
     
-# class ParentManager(BaseUserManager) :
-#     def get_queryset(self, *args, **kwargs):
-#         results = super().get_queryset(*args **kwargs)
-#         return results.filter( role=User.Role.PARENT)
 
 
 class Parent(models.Model):
@@ -44,11 +37,12 @@ class Parent(models.Model):
     adresse = models.CharField(max_length=200)
     prenom = models.CharField(max_length=30)
     nom = models.CharField(max_length=50)
+    date_naissance = models.DateField()
     numero_telephone = models.CharField(max_length=12)
-    # eleves =models.Model ArrayField(models.CharField(max_length=100), blank=True)
+    # Eleve = models.ManyToManyField('Eleve')
+    # eleves =ArrayField(models.CharField(max_length=100), blank=True)
     quartier_résidence = models.CharField(max_length=70)
     # localisation = models.PointField(null=True, blank=True)
-    # parent = ParentManager()
 
 
 
@@ -63,12 +57,12 @@ class Professeur(models.Model):
     adresse = models.CharField(max_length=200)
     quartier_résidence = models.CharField(max_length=70)
     numero_telephone = models.CharField(max_length=12)
+    experience_enseignement = models.CharField(max_length=100)
+    certifications = models.CharField(max_length=100)
+    tarif_horaire = models.DecimalField(max_digits=10, decimal_places=2)
     date_naissance = models.DateField()
     # matiere_a_enseigner  = models.ManyToManyField(Matiere,related_name='matiere',on_delete=models.CASCADE)
     niveau_etude  = models.CharField(max_length=50)
-
-
-    # specialite = models.ForeignKey('Specialites', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.nom} {self.prenom} (Prof.)"
@@ -83,6 +77,9 @@ class Eleve(models.Model):
     prenom = models.CharField(max_length=30)
     nom = models.CharField(max_length=50)
     date_naissance = models.DateField()
+    Etablissement = models.CharField(max_length=100) 
+    niveau_scolaire = models.CharField(max_length=100)
+   
     GENRE_CHOICES = (
         ('masculin', 'Masculin'),
         ('feminin', 'Féminin'),

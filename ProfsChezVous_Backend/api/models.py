@@ -23,6 +23,7 @@ class CommentaireCours(models.Model):
         return f"Commentaire de {self.professeur.utilisateur.username} pour {self.matiere.nom}"
 
 class Cours(models.Model):
+    
     nom = models.CharField(max_length=100)
     description = models.TextField()
     date_debut = models.DateTimeField()
@@ -30,6 +31,14 @@ class Cours(models.Model):
     est_annule = models.BooleanField(default=False)
     matiere = models.ForeignKey(Matiere, on_delete=models.CASCADE, related_name='cours')
     professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE, related_name='cours')
+    STATUT_CHOICES = (
+        ('R', 'Réservé'),
+        ('C', 'Confirmé'),
+        ('A', 'Annulé'),
+    )
+    statut = models.CharField(max_length=1, choices=STATUT_CHOICES, default='R')
+
+    
 
     def __str__(self):
         return self.nom
