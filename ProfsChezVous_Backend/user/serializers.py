@@ -9,6 +9,8 @@ from user.models import Parent, Professeur, Eleve, Admin
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
 from .models import Parent
+from .models import Enfant
+
 
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from io import BytesIO
@@ -21,7 +23,8 @@ class ParentRegisterSerializer(RegisterSerializer):
     adresse = serializers.CharField(max_length=200)
     numero_telephone = serializers.CharField(max_length=12)
     quartier_résidence = serializers.CharField(max_length=70)
-    image_profil =  serializers.ImageField(required=False)
+    # eleves = ArrayField(serializers.CharField(max_length=100), blank=True)
+    
 
     def get_cleaned_data(self):
         cleaned_data = super().get_cleaned_data()
@@ -172,3 +175,8 @@ class ProfesseurSerializer(serializers.ModelSerializer):
 
 class CustomLoginSerializer(LoginSerializer):
     pass
+
+class EnfantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Enfant
+        fields = '__all__'

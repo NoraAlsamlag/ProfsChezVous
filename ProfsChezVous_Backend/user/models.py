@@ -8,6 +8,14 @@ from django.dispatch import receiver
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django_resized import ResizedImageField
 #from myapp.fields import ResizedImageField
+from django import forms
+#from .models.enfant import Enfant
+from .forms import InscrireEnfantForm
+from .forms import InscrireEnfantForm
+#from .utils.forms import InscrireEnfantForm
+
+
+
 
 
 # Create your models here.
@@ -48,6 +56,27 @@ class Parent(models.Model):
     # Eleve = models.ManyToManyField('Eleve')
     # eleves =ArrayField(models.CharField(max_length=100), blank=True)
     quartier_résidence = models.CharField(max_length=70)
+
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+   
+def inscrire_enfant(self, data):
+    form = InscrireEnfantForm(data)
+    if form.is_valid():
+        enfant = Enfant(
+            prenom=form.cleaned_data['prenom'],
+            nom=form.cleaned_data['nom'],
+            date_naissance=form.cleaned_data['date_naissance'],
+            annee_scolaire=form.cleaned_data['annee_scolaire'],
+            etablissement=form.cleaned_data['etablissement'],
+            parent=self
+        )
+        enfant.save()
+        return enfant
+    else:
+        raise ValueError("Formulaire invalide")
+
+
     # localisation = models.PointField(null=True, blank=True)
 
 
@@ -127,3 +156,25 @@ class Admin(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+
+class InscrireEnfantForm(forms.Form):
+    prenom = forms.CharField(max_length=30)
+    nom = forms.CharField(max_length=50)
+    date_naissance = forms.DateField()
+    annee_scolaire = forms.CharField(max_length=100)
+    etablissement = forms.CharField(max_length=100)
+
+class Enfant(models.Model):
+    prenom = models.CharField(max_length=30)
+    nom = models.CharField(max_length=50)
+    date_naissance = models.DateField()
+    annee_scolaire = models.CharField(max_length=100)
+    etablissement = models.CharField(max_length=100)
+    parent = models.ForeignKey('Parent', on_delete=models.CASCADE, related_name='enfants')
+
+    # Autres champs spécifiques aux enfants
+
+    def __str__(self):
+        return f"{self.prenom} {self.nom}"
