@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../theme.dart';
 
-class CustomField extends StatelessWidget {
+class ChampPersonnalise extends StatelessWidget {
   final String iconUrl;
   final String hint;
   TextEditingController? controller;
 
-  CustomField({
+  ChampPersonnalise({
     this.controller,
     this.iconUrl = '',
     this.hint = '',

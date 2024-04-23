@@ -8,7 +8,7 @@ import '../../constants.dart';
 
 const baseUrl = "http://10.0.2.2:8000";
 
-Future<dynamic> userAuth(String email, String password) async {
+Future<dynamic> authentificationUtilisateur(String email, String password) async {
   Map body = {
     // "username": "",
     "email": email,
@@ -42,7 +42,7 @@ Future<dynamic> userAuth(String email, String password) async {
 }
 
 Future<User?> getUser(String token) async {
-  var url = Uri.parse("$baseUrl/user/auth/user/");
+  var url = Uri.parse("$baseUrl/user/info");
   var res = await http.get(url, headers: {
     'Authorization': 'Token ${token}',
   });

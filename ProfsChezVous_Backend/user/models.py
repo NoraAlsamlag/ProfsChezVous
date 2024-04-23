@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 # from django.contrib.gis.db import models, GeometryField
 from django.conf import Settings
 from django.dispatch import receiver
-from django.db.models.signals import post_save
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django_resized import ResizedImageField
 #from myapp.fields import ResizedImageField
@@ -14,8 +13,15 @@ from django_resized import ResizedImageField
 # Create your models here.
 
 
-def upload_to(inst, nom_de_fichier ) :
-    return "/profil/" + str(nom_de_fichier)
+import os
+
+def upload_to(inst, nom_de_fichier):
+    # Assurez-vous que nom_de_fichier est un nom de fichier sécurisé
+    filename = f"{inst.pk}_{nom_de_fichier}"
+    # Joignez le nom de fichier sécurisé avec le répertoire 'profil'
+    return os.path.join('profil', filename)
+
+
 
 class User(AbstractUser):
     is_admin  = models.BooleanField(default=False)
@@ -27,7 +33,7 @@ class User(AbstractUser):
     modifie_le = models.DateTimeField(auto_now=True)
     
     def  __str__(self):
-        return  self.username
+        return  self.email
     
 
 

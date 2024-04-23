@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../theme.dart';
 
-class CustomTextButton extends StatelessWidget {
+class BoutonTextePersonnalise extends StatelessWidget {
   final String title;
   final EdgeInsets margin;
   VoidCallback? onTap;
-  CustomTextButton({
+  BoutonTextePersonnalise({
     super.key,
     this.title = '',
     this.margin = EdgeInsets.zero,

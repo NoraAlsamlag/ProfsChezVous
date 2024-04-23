@@ -57,6 +57,10 @@ INSTALLED_APPS = [
     # 'corsheaders',
 ]
 
+import os
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 SITE_ID = 1
 

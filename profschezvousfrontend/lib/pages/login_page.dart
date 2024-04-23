@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:profschezvousfrontend/main.dart';
 import 'package:profschezvousfrontend/models/user_models.dart';
+import 'package:profschezvousfrontend/pages/EcranPrincipal.dart';
 import 'package:profschezvousfrontend/pages/home/home.dart';
 
 import '../api/auth/auth_api.dart';
@@ -12,26 +12,26 @@ import '../widgets/texxt_button.dart';
 import 'forget_pass.dart';
 import 'register_page.dart';
 
-class SignInPage extends StatefulWidget {
-  const SignInPage({Key? key}) : super(key: key);
+class PageConnexion extends StatefulWidget {
+  const PageConnexion({Key? key}) : super(key: key);
 
   @override
-  State<SignInPage> createState() => _SignInPageState();
+  State<PageConnexion> createState() => _PageConnexionState();
 }
 
-class _SignInPageState extends State<SignInPage> {
+class _PageConnexionState extends State<PageConnexion> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
   @override
   void initState() {
-    // TODO: implement initState
+    // TODO: implémenter initState
     super.initState();
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    // TODO: implémenter dispose
     super.dispose();
   }
 
@@ -53,15 +53,15 @@ class _SignInPageState extends State<SignInPage> {
           SizedBox(
             height: 155,
           ),
-          CustomField(
+          ChampPersonnalise(
             controller: emailController,
             iconUrl: 'assets/icon_email.png',
             hint: 'Email',
           ),
-          CustomField(
+          ChampPersonnalise(
             controller: passwordController,
             iconUrl: 'assets/icon_password.png',
-            hint: 'Password',
+            hint: 'Mot de passe',
           ),
           Align(
             alignment: Alignment.centerRight,
@@ -70,11 +70,12 @@ class _SignInPageState extends State<SignInPage> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => ForgotPassPage()),
+                    MaterialPageRoute(
+                        builder: (context) => PageMotDePasseOublie()),
                   );
                 },
                 child: Text(
-                  "Lupa Password?",
+                  "Mot de passe oublié ?",
                   style: whiteTextStyle.copyWith(
                     fontSize: 16,
                     fontWeight: semiBold,
@@ -83,11 +84,11 @@ class _SignInPageState extends State<SignInPage> {
               ),
             ),
           ),
-          // Login
-          CustomTextButton(
+          // Connexion
+          BoutonTextePersonnalise(
             onTap: () async {
               var authRes =
-                  await userAuth(emailController.text, passwordController.text);
+                  await authentificationUtilisateur(emailController.text, passwordController.text);
               if (authRes.runtimeType == String) {
                 showDialog(
                   context: context,
@@ -103,16 +104,16 @@ class _SignInPageState extends State<SignInPage> {
                   },
                 );
               } else if (authRes.runtimeType == User) {
-                User user = authRes;
-                context.read<UserCubit>().emit(user);
+                User utilisateur = authRes;
+                context.read<UserCubit>().emit(utilisateur);
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (context) {
-                    return HomePage();
+                    return EcranPrincipal();
                   },
                 ));
               }
             },
-            title: 'Login',
+            title: 'Connexion',
             margin: EdgeInsets.only(top: 50),
           ),
           //
@@ -128,11 +129,12 @@ class _SignInPageState extends State<SignInPage> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => SignUpPage()),
+                      MaterialPageRoute(
+                          builder: (context) => PageInscription()),
                     );
                   },
                   child: Text(
-                    "Belum punya akun? Daftar",
+                    "Pas encore de compte ? Inscrivez-vous",
                     style: whiteTextStyle.copyWith(
                       fontSize: 16,
                       fontWeight: semiBold,

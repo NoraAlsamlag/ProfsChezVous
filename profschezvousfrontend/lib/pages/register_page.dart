@@ -5,8 +5,8 @@ import 'package:profschezvousfrontend/widgets/texxt_button.dart';
 import '../theme.dart';
 import 'login_page.dart';
 
-class SignUpPage extends StatelessWidget {
-  const SignUpPage({Key? key}) : super(key: key);
+class PageInscription extends StatelessWidget {
+  const PageInscription({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class SignUpPage extends StatelessWidget {
           Container(
             margin: EdgeInsets.only(top: 100),
             child: Text(
-              "Buruan Daftar!\n Daftar sekarang untuk bisa akses ke semua fitur",
+              "Inscrivez-vous maintenant !\n Inscrivez-vous dès maintenant pour accéder à toutes les fonctionnalités",
               style: whiteTextStyle.copyWith(
                 fontSize: 20,
                 fontWeight: semiBold,
@@ -31,24 +31,24 @@ class SignUpPage extends StatelessWidget {
           SizedBox(
             height: 5,
           ),
-          CustomField(
+          ChampPersonnalise(
             iconUrl: 'assets/icon_name.png',
-            hint: 'Nama Lengkap',
+            hint: 'Nom Complet',
           ),
-          CustomField(
+          ChampPersonnalise(
             iconUrl: 'assets/icon_email.png',
             hint: 'Email',
           ),
-          CustomField(
+          ChampPersonnalise(
             iconUrl: 'assets/icon_password.png',
-            hint: 'Password',
+            hint: 'Mot de passe',
           ),
-          CustomField(
+          ChampPersonnalise(
             iconUrl: 'assets/icon_password.png',
-            hint: 'Konfirmasi Password',
+            hint: 'Confirmer le Mot de passe',
           ),
-          CustomTextButton(
-            title: 'Register',
+          BoutonTextePersonnalise(
+            title: 'Inscription',
             margin: EdgeInsets.only(top: 50),
           ),
           Container(
@@ -63,11 +63,11 @@ class SignUpPage extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => SignInPage()),
+                      MaterialPageRoute(builder: (context) => PageConnexion()),
                     );
                   },
                   child: Text(
-                    "Sudah punya akun? Masuk",
+                    "Vous avez déjà un compte ? Connectez-vous",
                     style: whiteTextStyle.copyWith(
                       fontSize: 16,
                       fontWeight: semiBold,

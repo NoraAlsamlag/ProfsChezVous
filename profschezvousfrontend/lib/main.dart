@@ -5,7 +5,6 @@ import 'package:profschezvousfrontend/models/user_cubit.dart';
 
 import 'models/user_models.dart';
 import 'pages/login_page.dart';
-import 'pages/register_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +28,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: const SignInPage(),
+        home: const PageConnexion(),
       ),
     );
   }

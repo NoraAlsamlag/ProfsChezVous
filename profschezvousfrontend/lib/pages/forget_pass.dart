@@ -5,8 +5,8 @@ import '../theme.dart';
 import '../widgets/texxt_button.dart';
 import 'login_page.dart';
 
-class ForgotPassPage extends StatelessWidget {
-  const ForgotPassPage({Key? key}) : super(key: key);
+class PageMotDePasseOublie extends StatelessWidget {
+  const PageMotDePasseOublie({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +27,11 @@ class ForgotPassPage extends StatelessWidget {
             SizedBox(
               height: 20,
             ),
-            CustomField(
+            ChampPersonnalise(
               iconUrl: 'assets/icon_email.png',
               hint: 'Email',
             ),
-            CustomTextButton(
+            BoutonTextePersonnalise(
               title: 'Reset Password',
               margin: EdgeInsets.only(top: 50),
             ),
@@ -47,7 +47,7 @@ class ForgotPassPage extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => SignInPage()),
+                        MaterialPageRoute(builder: (context) => PageConnexion()),
                       );
                     },
                     child: Text(
