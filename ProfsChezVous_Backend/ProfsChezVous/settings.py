@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'dj_rest_auth.registration',
     # 'debug_toolbar',
- 
+    
+    #GOOGLE_MAPS_API_KEY = 'your_api_key_here'
 
     # 'corsheaders',
 ]
@@ -189,3 +190,4 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ]
 }
+GOOGLE_MAPS_API_KEY = 'your_api_key_here'

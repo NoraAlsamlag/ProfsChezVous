@@ -8,6 +8,8 @@ from user.models import Parent, Professeur, Eleve, Admin
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
 from .models import Parent
+from .models import Enfant
+
 
 class ParentRegisterSerializer(RegisterSerializer):
     nom = serializers.CharField(max_length=50)
@@ -17,6 +19,15 @@ class ParentRegisterSerializer(RegisterSerializer):
     adresse = serializers.CharField(max_length=200)
     numero_telephone = serializers.CharField(max_length=12)
     quartier_résidence = serializers.CharField(max_length=70)
+    class Meta:
+     fields = ['id', 'nom', 'email', 'latitude', 'longitude']
+     model = Parent
+     fields = ['id', 'nom', 'email', 'adresse', 'ville', 'pays', 'latitude', 'longitude', 'password']
+     extra_kwargs = {'password': {'write_only': True}}  # Pour ne pas inclure le mot de passe dans les réponses
+
+    def create(self, validated_data):
+        # Créer et retourner un nouvel objet Parent
+        return Parent.objects.create_user(**validated_data)
     # eleves = ArrayField(serializers.CharField(max_length=100), blank=True)
     
 
@@ -130,3 +141,8 @@ class AdminRegisterSerializer(RegisterSerializer):
 
 class CustomLoginSerializer(LoginSerializer):
     pass
+
+class EnfantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Enfant
+        fields = '__all__'
