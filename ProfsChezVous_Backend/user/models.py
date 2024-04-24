@@ -14,7 +14,8 @@ from .forms import InscrireEnfantForm
 from .forms import InscrireEnfantForm
 #from .utils.forms import InscrireEnfantForm
 
-
+#from .models import Transaction
+from user.models import User
 
 
 
@@ -166,6 +167,8 @@ class InscrireEnfantForm(forms.Form):
     annee_scolaire = forms.CharField(max_length=100)
     etablissement = forms.CharField(max_length=100)
 
+from django.db import models
+
 class Enfant(models.Model):
     prenom = models.CharField(max_length=30)
     nom = models.CharField(max_length=50)
@@ -174,7 +177,20 @@ class Enfant(models.Model):
     etablissement = models.CharField(max_length=100)
     parent = models.ForeignKey('Parent', on_delete=models.CASCADE, related_name='enfants')
 
-    # Autres champs spécifiques aux enfants
-
     def __str__(self):
         return f"{self.prenom} {self.nom}"
+
+    class Meta:
+        db_table = 'user_enfant'
+
+
+
+class Transaction(models.Model):
+    date = models.DateTimeField(auto_now_add=True)
+    montant = models.DecimalField(max_digits=10, decimal_places=2)
+    emetteur = models.ForeignKey(User, related_name='transactions_envoyees', on_delete=models.CASCADE)
+    destinataire = models.ForeignKey(User, related_name='transactions_recues', on_delete=models.CASCADE)
+    pourcentage_intermediaire = models.DecimalField(max_digits=5, decimal_places=2)
+
+    def __str__(self):
+        return f"Transaction de {self.emetteur} à {self.destinataire} : {self.montant} €"

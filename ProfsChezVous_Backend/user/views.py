@@ -1,4 +1,6 @@
 from rest_framework.response import Response
+from rest_framework import viewsets
+
 from api.serializers import  *
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -16,8 +18,19 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from .models import Enfant
 from .serializers import *
+from django.shortcuts import get_object_or_404
+
+#from user.models import User
+
+
+from .models import Transaction
+from .serializers import TransactionSerializer
+
 
 from dj_rest_auth.registration.views import RegisterView
+
+from .serializers import EnfantSerializer
+
 
 class ParentRegisterView(RegisterView):
     serializer_class = ParentRegisterSerializer
@@ -171,10 +184,24 @@ def geocode_parent_address(parent):
         return False
     
     
+
+
+    
 class EnfantListCreateAPIView(generics.ListCreateAPIView):
     queryset = Enfant.objects.all()
     serializer_class = EnfantSerializer
 
 class EnfantRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Enfant.objects.all()
-    serializer_class = EnfantSerializer
+    serializer_class = EnfantSerializer 
+
+class TransactionCreateAPIView(APIView):
+    def post(self, request):
+        serializer = TransactionSerializer(data=request.data)
+        if serializer.is_valid():
+            # Calcul des pourcentages à retenir par l'intermédiaire
+            pourcentage_intermediaire = ... # Calcul du pourcentage
+            # Enregistrement de la transaction
+            serializer.save(pourcentage_intermediaire=pourcentage_intermediaire)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
