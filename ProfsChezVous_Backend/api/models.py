@@ -2,8 +2,10 @@ from django.db import models
 from user.models import User, Admin, Professeur, Parent
 from django.utils import timezone
 from rest_framework import serializers
-
-from rest_framework import viewsets
+from django.db import models
+#from .models import Cours_Package
+# Dans un fichier où vous avez besoin de Cours_Package
+#from api.models import Cours_Package
 
 
 class Matiere(models.Model):
@@ -12,6 +14,15 @@ class Matiere(models.Model):
 
     def __str__(self):
         return f"{self.nom_complet} - {self.symbole}"
+
+
+
+
+
+
+
+
+
 
 class CommentaireCours(models.Model):
     contenu = models.TextField()
@@ -24,6 +35,7 @@ class CommentaireCours(models.Model):
 
     def __str__(self):
         return f"Commentaire de {self.professeur.nom} {self.professeur.prenom} pour {self.matiere.nom_complet}"
+
 
 class Cours_Unite(models.Model):
     sujet = models.TextField(max_length=100)
@@ -86,7 +98,8 @@ class Cours_Package(models.Model):
         (6, '6 semaines'),
         (7, '7 semaines'),
         (8, '8 semaines'),
-    )
+    
+     )
     nombre_semaines = models.PositiveIntegerField(choices=SEMAINES_CHOICES, help_text="Nombre de semaines")
     nombre_eleves = models.PositiveIntegerField(choices=(
         (1, '1 élève'),
@@ -109,6 +122,8 @@ class Cours_Package(models.Model):
 
     def __str__(self):
         return f"{self.description} ({self.duree} jours), Début: {self.date_debut}, Fin: {self.date_fin}"
+    
+
 
 class DiscussionParentAdmin(models.Model):
     sujet = models.CharField(max_length=200)

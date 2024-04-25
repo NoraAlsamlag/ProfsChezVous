@@ -1,10 +1,19 @@
 from rest_framework import serializers
-from .models import CommentaireCours, Cours_Unite, Cours_Package, Matiere, DiscussionParentAdmin, DiscussionProfAdmin, Message, Activite, ActiviteBloquee
+from .models import Matiere
+from .models import CommentaireCours
+from .models import Cours_Unite 
+from .models import Cours_Package
+#from .serializers import CoursPackageSerializer
+from .models import DiscussionParentAdmin
+
+
+
 
 class MatiereSerializer(serializers.ModelSerializer):
     class Meta:
         model = Matiere
         fields = '__all__'
+
 
 class CommentaireCoursSerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,38 +23,14 @@ class CommentaireCoursSerializer(serializers.ModelSerializer):
 class CoursUniteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cours_Unite
-        fields = '__all__'
+        fields = '__all__' 
 
 class CoursPackageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cours_Package
-        fields = '__all__'
+        fields = '__all__' 
 
 class DiscussionParentAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiscussionParentAdmin
         fields = '__all__'
-
-class DiscussionProfAdminSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DiscussionProfAdmin
-        fields = '__all__'
-
-class MessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Message
-        fields = '__all__'
-
-class ActiviteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Activite
-        fields = '__all__'
-
-class ActiviteBloqueeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ActiviteBloquee
-        fields = '__all__'
-class CoursPackageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Cours_Package
-        fields = ['id', 'description', 'duree', 'date_debut', 'date_fin', 'est_actif', 'nombre_semaines', 'nombre_eleves', 'heures_par_semaine', 'matiere', 'prix']
