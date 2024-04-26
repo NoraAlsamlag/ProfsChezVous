@@ -1,7 +1,6 @@
 from django.urls import path, include
 from . import views
 from .views import geocode_parent_address
-from user.views import ParentRegisterView, ProfesseurRegisterView, EleveRegisterView, AdminRegisterView
 from user.views import *
 urlpatterns = [
     path('register/parent/', ParentRegisterView.as_view(), name='parent_register'),

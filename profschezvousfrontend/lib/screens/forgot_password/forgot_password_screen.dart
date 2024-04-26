@@ -10,7 +10,7 @@ class ForgotPasswordScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Forgot Password"),
+        title: const Text("Mot de passe oublié"),
       ),
       body: const SizedBox(
         width: double.infinity,
@@ -21,7 +21,7 @@ class ForgotPasswordScreen extends StatelessWidget {
               children: [
                 SizedBox(height: 16),
                 Text(
-                  "Forgot Password",
+                  "Mot de passe oublié",
                   style: TextStyle(
                     fontSize: 24,
                     color: Colors.black,
@@ -29,7 +29,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "Please enter your email and we will send \nyou a link to return to your account",
+                  "Veuillez entrer votre adresse e-mail et nous vous enverrons un lien pour revenir à votre compte.",
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 32),

@@ -64,7 +64,7 @@ class _SignUpFormState extends State<SignUpForm> {
               return null;
             },
             decoration: const InputDecoration(
-              labelText: "Email",
+              labelText: "E-mail",
               hintText: "Entrez votre adresse e-mail",
               // If  you are using latest version of flutter then lable text and hint text shown like this
               // if you r using flutter less then 1.20.* then maybe this is not working properly

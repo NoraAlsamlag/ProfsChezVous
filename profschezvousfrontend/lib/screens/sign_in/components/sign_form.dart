@@ -41,7 +41,7 @@ class _SignFormState extends State<SignForm> {
     }
   }
 
-Future<void> authenticateUser() async {
+  Future<void> authenticateUser() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
@@ -99,9 +99,9 @@ Future<void> authenticateUser() async {
               }
               return null;
             },
-            decoration: InputDecoration(
-              labelText: "Email",
-              hintText: "Enter your email",
+            decoration: const InputDecoration(
+              labelText: "E-mail",
+              hintText: "Entrez votre adresse e-mail",
               floatingLabelBehavior: FloatingLabelBehavior.always,
               suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Mail.svg"),
             ),
@@ -127,9 +127,9 @@ Future<void> authenticateUser() async {
               }
               return null;
             },
-            decoration: InputDecoration(
-              labelText: "Password",
-              hintText: "Enter your password",
+            decoration: const InputDecoration(
+              labelText: "Mot de passe",
+              hintText: "Entrez votre mot de passe",
               floatingLabelBehavior: FloatingLabelBehavior.always,
               suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Lock.svg"),
             ),
@@ -146,13 +146,13 @@ Future<void> authenticateUser() async {
                   });
                 },
               ),
-              const Text("Remember me"),
+              const Text("Se souvenir de moi"),
               const Spacer(),
               GestureDetector(
-                onTap: () =>
-                    Navigator.pushNamed(context, ForgotPasswordScreen.routeName),
+                onTap: () => Navigator.pushNamed(
+                    context, ForgotPasswordScreen.routeName),
                 child: const Text(
-                  "Forgot Password",
+                  "Mot de passe oublié",
                   style: TextStyle(decoration: TextDecoration.underline),
                 ),
               )
