@@ -1,4 +1,6 @@
 from rest_framework.response import Response
+from rest_framework import viewsets
+
 from api.serializers import  *
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -16,10 +18,21 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from .models import Enfant
 from .serializers import *
+from django.shortcuts import get_object_or_404
+
+#from user.models import User
+
+
+from .models import Transaction
+from .serializers import TransactionSerializer
+
 from rest_framework import viewsets
 from .serializers import EleveSerializer, ProfesseurSerializer
 
 from dj_rest_auth.registration.views import RegisterView
+
+from .serializers import EnfantSerializer
+
 
 class ParentRegisterView(RegisterView):
     serializer_class = ParentRegisterSerializer
@@ -170,6 +183,9 @@ def geocode_parent_address(parent):
         return False
     
     
+
+
+    
 class EnfantListCreateAPIView(generics.ListCreateAPIView):
     queryset = Enfant.objects.all()
     serializer_class = EnfantSerializer
@@ -177,34 +193,3 @@ class EnfantListCreateAPIView(generics.ListCreateAPIView):
 class EnfantRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Enfant.objects.all()
     serializer_class = EnfantSerializer
-
-
-@api_view(['POST'])
-def logout(request):
-    # Delete the user's token
-    request.user.auth_token.delete()
-    return Response({"detail": "Successfully logged out."})
-
-
-
-
-
-def get_user_info(request, user_pk):
-    try:
-        user = User.objects.get(pk=user_pk)
-        if user.is_parent:
-            parent = Parent.objects.get(user=user)
-            return JsonResponse({'user_type': 'parent', 'details': parent.to_json()}, status=200)
-        elif user.is_professeur:
-            professeur = Professeur.objects.get(user=user)
-            return JsonResponse({'user_type': 'professeur', 'details': professeur.to_json()}, status=200)
-        elif user.is_eleve:
-            eleve = Eleve.objects.get(user=user)
-            return JsonResponse({'user_type': 'eleve', 'details': eleve.to_json()}, status=200)
-        else:
-            return JsonResponse({'error': 'Type d\'utilisateur non valide'}, status=400)
-    except User.DoesNotExist:
-        return JsonResponse({'error': 'Utilisateur non trouvé'}, status=404)
-    except (Parent.DoesNotExist, Professeur.DoesNotExist, Eleve.DoesNotExist):
-        return JsonResponse({'error': 'Détails de l\'utilisateur non trouvés'}, status=404)
-

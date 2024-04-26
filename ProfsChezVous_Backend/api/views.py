@@ -1,32 +1,45 @@
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from .serializers import  *
-from .models import *
+from rest_framework import generics
+from .models import Matiere, CommentaireCours
+from .serializers import MatiereSerializer, CommentaireCoursSerializer
+from rest_framework import viewsets
+from .models import Cours_Unite
+from .serializers import CoursUniteSerializer
+from .models import Cours_Package
+from .serializers import CoursPackageSerializer
+from rest_framework import viewsets
+from .models import DiscussionParentAdmin
+from .serializers import DiscussionParentAdminSerializer
 
 
 
-    
 
 
 
 
-# @api_view(['GET'])
-# def getRoutes(request):
-#     routes = [
-#         {
-#             'Endpoint':'/api/get_all', 
-#             'Method':"GET",
-#             'body':None,
-#             'Description':'Returns all available data in the database'
-#         },
-#         {
-#             "Endpoint":"/api/add_data",
-#             "Method": "POST",
-#             "Body":{
-#                 "Title":"String, required",
-#                 "Content":"String, required"
-#             },
-#             "Description":"Add a new blog post to the database."
-#         }
-#     ]
-#     return Response(routes)
+class MatiereList(generics.ListCreateAPIView):
+    queryset = Matiere.objects.all()
+    serializer_class = MatiereSerializer
+
+class MatiereDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Matiere.objects.all()
+    serializer_class = MatiereSerializer
+
+class CommentaireCoursList(generics.ListCreateAPIView):
+    queryset = CommentaireCours.objects.all()
+    serializer_class = CommentaireCoursSerializer
+
+class CommentaireCoursDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = CommentaireCours.objects.all()
+    serializer_class = CommentaireCoursSerializer
+
+class CoursUniteViewSet(viewsets.ModelViewSet):
+    queryset = Cours_Unite.objects.all()
+    serializer_class = CoursUniteSerializer
+
+class CoursPackageViewSet(viewsets.ModelViewSet):
+    queryset = Cours_Package.objects.all()
+    serializer_class = CoursPackageSerializer 
+
+class DiscussionParentAdminViewSet(viewsets.ModelViewSet):
+    queryset = DiscussionParentAdmin.objects.all()
+    serializer_class = DiscussionParentAdminSerializer

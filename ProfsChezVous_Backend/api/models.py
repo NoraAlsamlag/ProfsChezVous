@@ -1,8 +1,12 @@
 from django.db import models
-from user.models import User,Professeur,Parent
+from user.models import User, Admin, Professeur, Parent
 from django.utils import timezone
+from rest_framework import serializers
+from django.db import models
+#from .models import Cours_Package
+# Dans un fichier où vous avez besoin de Cours_Package
+#from api.models import Cours_Package
 
-# Create your models here.
 
 class Matiere(models.Model):
     nom_complet = models.CharField(max_length=150, help_text="Nom complet de la matière")
@@ -11,18 +15,26 @@ class Matiere(models.Model):
     def __str__(self):
         return f"{self.nom_complet} - {self.symbole}"
 
+
+
+
+
+
+
+
+
+
 class CommentaireCours(models.Model):
     contenu = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
     professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE, related_name='commentaires_professeur')
     parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='commentaires_parent')
     matiere = models.ForeignKey(Matiere, on_delete=models.CASCADE, related_name='commentaires')
-    Cours_Unite = models.ForeignKey('Cours_Unite', on_delete=models.CASCADE, related_name='commentaires' ,null=True)
-    Cours_Package = models.ForeignKey('Cours_Package', on_delete=models.CASCADE, related_name='commentaires' ,null=True)
+    Cours_Unite = models.ForeignKey('Cours_Unite', on_delete=models.CASCADE, related_name='commentaires', null=True)
+    Cours_Package = models.ForeignKey('Cours_Package', on_delete=models.CASCADE, related_name='commentaires', null=True)
 
     def __str__(self):
-        return f"Commentaire de {self.professeur.nom} {self.professeur.prenomnom} pour {self.matiere.nom_complet}"
-
+        return f"Commentaire de {self.professeur.nom} {self.professeur.prenom} pour {self.matiere.nom_complet}"
 
 
 class Cours_Unite(models.Model):
@@ -36,7 +48,7 @@ class Cours_Unite(models.Model):
     )
     lieu_des_cours_CHOICES = (
         ('la_maison', 'La maison'),
-        ('a_distance', 'Á distance'),
+        ('a_distance', 'À distance'),
     )
     DURATION_CHOICES = (
         (60, '1 hour'),
@@ -45,9 +57,9 @@ class Cours_Unite(models.Model):
         (240, '4 hours'),
     )
     duree = models.PositiveIntegerField(choices=DURATION_CHOICES)
-    matière = models.ForeignKey(Matiere, on_delete=models.PROTECT,null=False)
+    matiere = models.ForeignKey(Matiere, on_delete=models.PROTECT, null=False)
     professeur = models.ForeignKey(Professeur, on_delete=models.SET_NULL, null=True, blank=True, related_name='cours_unite') 
-    prix = models.DecimalField(max_digits=10, decimal_places=2)
+
     statut = models.CharField(max_length=1, choices=STATUT_CHOICES, default='R')
     lieu_des_cours = models.CharField(max_length=50, choices=lieu_des_cours_CHOICES)
 
@@ -71,19 +83,13 @@ class Cours_Unite(models.Model):
     def __str__(self):
         return f"{self.sujet}, le {self.date}, de {self.heure_debut} à {self.heure_fine}"
 
-
 class Cours_Package(models.Model):
     description = models.TextField()
-    durée = models.PositiveIntegerField(help_text="Durée du forfait en jours")
+    duree = models.PositiveIntegerField(help_text="Durée du forfait en jours")
     date_debut = models.DateField(help_text="Date de début de la validité du forfait")
     date_fin = models.DateField(help_text="Date de fin de la validité du forfait")
     est_actif = models.BooleanField(default=True, help_text="Le forfait est-il actuellement actif ?")
-    STATUT_CHOICES = (
-    ('P', 'Planifié'),
-    ('E', 'En cours'),
-    ('T', 'Terminé'),
-    ('A', 'Annulé'),
-)
+    
     # Attributs supplémentaires pour les cours
     SEMAINES_CHOICES = (
         (1, '1 semaine'),
@@ -94,7 +100,8 @@ class Cours_Package(models.Model):
         (6, '6 semaines'),
         (7, '7 semaines'),
         (8, '8 semaines'),
-    )
+    
+     )
     nombre_semaines = models.PositiveIntegerField(choices=SEMAINES_CHOICES, help_text="Nombre de semaines")
     nombre_eleves = models.PositiveIntegerField(choices=(
         (1, '1 élève'),
@@ -113,12 +120,36 @@ class Cours_Package(models.Model):
         ('14h', '14 heures'),
     ), help_text="Nombre d'heures par semaine")
     matiere = models.ForeignKey(Matiere, on_delete=models.PROTECT,null=False,help_text="Matière du cours")
-    statut = models.CharField(max_length=1, choices=STATUT_CHOICES, default='P')
     prix = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return f"{self.description} ({self.durée} jours), Début: {self.date_debut}, Fin: {self.date_fin}, Max Cours: {self.max_cours}, Max Utilisateurs: {self.max_utilisateurs}"
 
+    
+
+    
+
+class DiscussionParentAdmin(models.Model):
+    sujet = models.CharField(max_length=200)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    derniere_activite = models.DateTimeField(auto_now=True)
+    parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='discussions_avec_admin')
+    admin = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='discussions_avec_parent')
+    messages = models.ManyToManyField('Message', related_name='messages_parent_admin')
+
+    def __str__(self):
+        return self.sujet
+
+class DiscussionProfAdmin(models.Model):
+    sujet = models.CharField(max_length=200)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    derniere_activite = models.DateTimeField(auto_now=True)
+    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE, related_name='discussions_avec_admin')
+    admin = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='discussions_avec_prof')
+    messages = models.ManyToManyField('Message', related_name='messages_prof_admin')
+
+    def __str__(self):
+        return self.sujet
 
 class Message(models.Model):
     expediteur = models.ForeignKey(User, related_name='messages_envoyes', on_delete=models.CASCADE)
@@ -129,4 +160,24 @@ class Message(models.Model):
     sujet = models.CharField(max_length=255)
 
     def __str__(self):
-        return f"De : {self.expediteur}, À : {self.destinataire}, Sujet : {self.sujet}, Envoyé le : {self.date_envoi}"
+        return f"Message : {self.contenu[:50]}..."
+    
+class Activite(models.Model):
+    nom = models.CharField(max_length=100)
+    description = models.TextField(max_length=200)
+    date_debut = models.DateField()
+    date_fin = models.DateField()
+    lieu = models.CharField(max_length=200)
+    participants = models.ManyToManyField(User, related_name='activites')
+
+    def __str__(self):
+        return self.nom
+    
+class ActiviteBloquee(models.Model):
+    activite = models.ForeignKey('Activite', on_delete=models.CASCADE)
+    raison = models.CharField(max_length=200)
+    date_debut = models.DateField()
+    date_fin = models.DateField()
+
+    def __str__(self):
+        return f"{self.activite} - {self.raison}"
