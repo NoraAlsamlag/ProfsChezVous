@@ -1,5 +1,5 @@
 from django.db import models
-from user.models import User,Admin,Professeur,Parent
+from user.models import User,Professeur,Parent
 from django.utils import timezone
 
 # Create your models here.
@@ -47,11 +47,11 @@ class Cours_Unite(models.Model):
     duree = models.PositiveIntegerField(choices=DURATION_CHOICES)
     matière = models.ForeignKey(Matiere, on_delete=models.PROTECT,null=False)
     professeur = models.ForeignKey(Professeur, on_delete=models.SET_NULL, null=True, blank=True, related_name='cours_unite') 
-
+    prix = models.DecimalField(max_digits=10, decimal_places=2)
     statut = models.CharField(max_length=1, choices=STATUT_CHOICES, default='R')
     lieu_des_cours = models.CharField(max_length=50, choices=lieu_des_cours_CHOICES)
 
-    def calculate_end_time(self):
+    def calculer_end_time(self):
         heure_debut = self.heure_debut
         duree = self.duree
         heure_debut_datetime = timezone.datetime.combine(timezone.now().date(), heure_debut)
@@ -61,7 +61,7 @@ class Cours_Unite(models.Model):
 
     @property
     def heure_fine(self):
-        return self.calculate_end_time()
+        return self.calculer_end_time()
 
     def get_duration(self):
         """Return the duration of the course in HH:MM format."""
@@ -78,7 +78,12 @@ class Cours_Package(models.Model):
     date_debut = models.DateField(help_text="Date de début de la validité du forfait")
     date_fin = models.DateField(help_text="Date de fin de la validité du forfait")
     est_actif = models.BooleanField(default=True, help_text="Le forfait est-il actuellement actif ?")
-    
+    STATUT_CHOICES = (
+    ('P', 'Planifié'),
+    ('E', 'En cours'),
+    ('T', 'Terminé'),
+    ('A', 'Annulé'),
+)
     # Attributs supplémentaires pour les cours
     SEMAINES_CHOICES = (
         (1, '1 semaine'),
@@ -108,62 +113,20 @@ class Cours_Package(models.Model):
         ('14h', '14 heures'),
     ), help_text="Nombre d'heures par semaine")
     matiere = models.ForeignKey(Matiere, on_delete=models.PROTECT,null=False,help_text="Matière du cours")
+    statut = models.CharField(max_length=1, choices=STATUT_CHOICES, default='P')
     prix = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return f"{self.description} ({self.durée} jours), Début: {self.date_debut}, Fin: {self.date_fin}, Max Cours: {self.max_cours}, Max Utilisateurs: {self.max_utilisateurs}"
 
-    
-
-    
-
-class DiscussionParentAdmin(models.Model):
-    sujet = models.CharField(max_length=200)
-    date_creation = models.DateTimeField(auto_now_add=True)
-    derniere_activite = models.DateTimeField(auto_now=True)
-    parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='discussions_avec_admin')
-    admin = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='discussions_avec_parent')
-    messages = models.ManyToManyField('Message', related_name='messages_parent_admin')
-
-    def __str__(self):
-        return self.sujet
-
-class DiscussionProfAdmin(models.Model):
-    sujet = models.CharField(max_length=200)
-    date_creation = models.DateTimeField(auto_now_add=True)
-    derniere_activite = models.DateTimeField(auto_now=True)
-    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE, related_name='discussions_avec_admin')
-    admin = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='discussions_avec_prof')
-    messages = models.ManyToManyField('Message', related_name='messages_prof_admin')
-
-    def __str__(self):
-        return self.sujet
 
 class Message(models.Model):
+    expediteur = models.ForeignKey(User, related_name='messages_envoyes', on_delete=models.CASCADE)
+    destinataire = models.ForeignKey(User, related_name='messages_recus', on_delete=models.CASCADE)
     contenu = models.TextField()
     date_envoi = models.DateTimeField(auto_now_add=True)
-    discussion_parent_admin = models.ForeignKey('DiscussionParentAdmin', on_delete=models.CASCADE, related_name='parent_discussion')
-    discussion_prof_admin = models.ForeignKey('DiscussionProfAdmin', on_delete=models.CASCADE, related_name='prof_discussion')
+    lu = models.BooleanField(default=False)
+    sujet = models.CharField(max_length=255)
 
     def __str__(self):
-        return f"Message : {self.contenu[:50]}..."
-    
-class Activite(models.Model):
-    nom = models.CharField(max_length=100)
-    description = models.TextField(max_length=200)
-    date_debut = models.DateField()
-    date_fin = models.DateField()
-    lieu = models.CharField(max_length=200)
-    participants = models.ManyToManyField(User, related_name='activites')
-
-    def __str__(self):
-        return self.nom
-    
-class ActiviteBloquee(models.Model):
-    activite = models.ForeignKey('Activite', on_delete=models.CASCADE)
-    raison = models.CharField(max_length=200)
-    date_debut = models.DateField()
-    date_fin = models.DateField()
-
-    def __str__(self):
-        return f"{self.activite} - {self.raison}"
+        return f"De : {self.expediteur}, À : {self.destinataire}, Sujet : {self.sujet}, Envoyé le : {self.date_envoi}"
