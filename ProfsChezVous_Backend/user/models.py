@@ -9,8 +9,8 @@ from .forms import InscrireEnfantForm
 #from .utils.forms import InscrireEnfantForm
 
 #from .models import Transaction
-from user.models import User
 
+#from user.models import Parent, Professeur
 
 
 # Create your models here.
@@ -204,12 +204,3 @@ class Enfant(models.Model):
 
 
 
-class Transaction(models.Model):
-    date = models.DateTimeField(auto_now_add=True)
-    montant = models.DecimalField(max_digits=10, decimal_places=2)
-    emetteur = models.ForeignKey(User, related_name='transactions_envoyees', on_delete=models.CASCADE)
-    destinataire = models.ForeignKey(User, related_name='transactions_recues', on_delete=models.CASCADE)
-    pourcentage_intermediaire = models.DecimalField(max_digits=5, decimal_places=2)
-
-    def __str__(self):
-        return f"Transaction de {self.emetteur} à {self.destinataire} : {self.montant} €"

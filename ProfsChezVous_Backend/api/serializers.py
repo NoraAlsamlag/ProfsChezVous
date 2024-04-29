@@ -4,8 +4,12 @@ from .models import CommentaireCours
 from .models import Cours_Unite 
 from .models import Cours_Package
 #from .serializers import CoursPackageSerializer
-from .models import DiscussionParentAdmin
+#from .models import DiscussionParentAdmin
+from .models import Message
 
+from .models import Transaction
+from rest_framework import serializers
+from .models import Evaluation
 
 
 
@@ -30,7 +34,24 @@ class CoursPackageSerializer(serializers.ModelSerializer):
         model = Cours_Package
         fields = '__all__' 
 
-class DiscussionParentAdminSerializer(serializers.ModelSerializer):
+#class DiscussionParentAdminSerializer(serializers.ModelSerializer):
+    #class Meta:
+        #model = DiscussionParentAdmin
+        #fields = '__all__'  
+
+class MessageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = DiscussionParentAdmin
-        fields = '__all__'
+        model = Message
+        fields = '__all__' 
+
+class TransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = '__all__' 
+
+
+
+class EvaluationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Evaluation
+        fields = '__all__' 

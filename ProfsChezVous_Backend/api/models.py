@@ -1,11 +1,12 @@
 from django.db import models
-from user.models import User, Admin, Professeur, Parent
+from user.models import User, Admin, Professeur, Parent , Eleve
 from django.utils import timezone
 from rest_framework import serializers
 from django.db import models
 #from .models import Cours_Package
 # Dans un fichier où vous avez besoin de Cours_Package
 #from api.models import Cours_Package
+timezone.now
 
 
 class Matiere(models.Model):
@@ -129,39 +130,20 @@ class Cours_Package(models.Model):
 
     
 
-class DiscussionParentAdmin(models.Model):
-    sujet = models.CharField(max_length=200)
-    date_creation = models.DateTimeField(auto_now_add=True)
-    derniere_activite = models.DateTimeField(auto_now=True)
-    parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='discussions_avec_admin')
-    admin = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='discussions_avec_parent')
-    messages = models.ManyToManyField('Message', related_name='messages_parent_admin')
 
-    def __str__(self):
-        return self.sujet
 
-class DiscussionProfAdmin(models.Model):
-    sujet = models.CharField(max_length=200)
-    date_creation = models.DateTimeField(auto_now_add=True)
-    derniere_activite = models.DateTimeField(auto_now=True)
-    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE, related_name='discussions_avec_admin')
-    admin = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='discussions_avec_prof')
-    messages = models.ManyToManyField('Message', related_name='messages_prof_admin')
-
-    def __str__(self):
-        return self.sujet
 
 class Message(models.Model):
-    expediteur = models.ForeignKey(User, related_name='messages_envoyes', on_delete=models.CASCADE)
-    destinataire = models.ForeignKey(User, related_name='messages_recus', on_delete=models.CASCADE)
+    expediteur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='messages_sent')
+    destinataire = models.ForeignKey(User, on_delete=models.CASCADE, related_name='messages_received')
     contenu = models.TextField()
     date_envoi = models.DateTimeField(auto_now_add=True)
-    lu = models.BooleanField(default=False)
-    sujet = models.CharField(max_length=255)
+    discussion_parent_admin = models.ForeignKey('DiscussionParentAdmin', on_delete=models.CASCADE, related_name='parent_discussion')
+    discussion_prof_admin = models.ForeignKey('DiscussionProfAdmin', on_delete=models.CASCADE, related_name='prof_discussion')
 
     def __str__(self):
         return f"Message : {self.contenu[:50]}..."
-    
+
 class Activite(models.Model):
     nom = models.CharField(max_length=100)
     description = models.TextField(max_length=200)
