@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:profschezvousfrontend/models/user_models.dart';
+import 'package:profschezvousfrontend/screens/splash/splash_screen.dart';
 import 'package:profschezvousfrontend/models/user_cubit.dart';
 
-import 'models/user_models.dart';
-import 'pages/login_page.dart';
+import 'routes.dart';
+import 'theme.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
-
+void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -24,11 +21,11 @@ class MyApp extends StatelessWidget {
         return UserCubit(User());
       },
       child: MaterialApp(
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home: const PageConnexion(),
+        debugShowCheckedModeBanner: false,
+        title: 'The Flutter Way - Template',
+        theme: AppTheme.lightTheme(context),
+        initialRoute: SplashScreen.routeName,
+        routes: routes,
       ),
     );
   }

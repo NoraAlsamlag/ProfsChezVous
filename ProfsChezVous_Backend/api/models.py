@@ -60,10 +60,11 @@ class Cours_Unite(models.Model):
     duree = models.PositiveIntegerField(choices=DURATION_CHOICES)
     matiere = models.ForeignKey(Matiere, on_delete=models.PROTECT, null=False)
     professeur = models.ForeignKey(Professeur, on_delete=models.SET_NULL, null=True, blank=True, related_name='cours_unite') 
+
     statut = models.CharField(max_length=1, choices=STATUT_CHOICES, default='R')
     lieu_des_cours = models.CharField(max_length=50, choices=lieu_des_cours_CHOICES)
 
-    def calculate_end_time(self):
+    def calculer_end_time(self):
         heure_debut = self.heure_debut
         duree = self.duree
         heure_debut_datetime = timezone.datetime.combine(timezone.now().date(), heure_debut)
@@ -73,7 +74,7 @@ class Cours_Unite(models.Model):
 
     @property
     def heure_fine(self):
-        return self.calculate_end_time()
+        return self.calculer_end_time()
 
     def get_duration(self):
         """Return the duration of the course in HH:MM format."""
@@ -90,6 +91,7 @@ class Cours_Package(models.Model):
     date_fin = models.DateField(help_text="Date de fin de la validité du forfait")
     est_actif = models.BooleanField(default=True, help_text="Le forfait est-il actuellement actif ?")
     
+    # Attributs supplémentaires pour les cours
     SEMAINES_CHOICES = (
         (1, '1 semaine'),
         (2, '2 semaines'),
@@ -118,13 +120,15 @@ class Cours_Package(models.Model):
         ('12h', '12 heures'),
         ('14h', '14 heures'),
     ), help_text="Nombre d'heures par semaine")
-    matiere = models.ForeignKey(Matiere, on_delete=models.PROTECT, null=False, help_text="Matière du cours")
+    matiere = models.ForeignKey(Matiere, on_delete=models.PROTECT,null=False,help_text="Matière du cours")
     prix = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"{self.description} ({self.duree} jours), Début: {self.date_debut}, Fin: {self.date_fin}"
+        return f"{self.description} ({self.durée} jours), Début: {self.date_debut}, Fin: {self.date_fin}, Max Cours: {self.max_cours}, Max Utilisateurs: {self.max_utilisateurs}"
+
     
 
+    
 
 
 
@@ -133,15 +137,12 @@ class Message(models.Model):
     expediteur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='messages_sent')
     destinataire = models.ForeignKey(User, on_delete=models.CASCADE, related_name='messages_received')
     contenu = models.TextField()
-    date_envoi = models.DateTimeField(auto_now_add=True)  # Modifiez cette ligne
-    lu = models.BooleanField(default=False)
-    sujet = models.CharField(max_length=255)
+    date_envoi = models.DateTimeField(auto_now_add=True)
+    discussion_parent_admin = models.ForeignKey('DiscussionParentAdmin', on_delete=models.CASCADE, related_name='parent_discussion')
+    discussion_prof_admin = models.ForeignKey('DiscussionProfAdmin', on_delete=models.CASCADE, related_name='prof_discussion')
 
     def __str__(self):
-        return f"Message from {self.expediteur} to {self.destinataire} on {self.date_envoi}"
-
-
-
+        return f"Message : {self.contenu[:50]}..."
 
 class Activite(models.Model):
     nom = models.CharField(max_length=100)
@@ -162,26 +163,3 @@ class ActiviteBloquee(models.Model):
 
     def __str__(self):
         return f"{self.activite} - {self.raison}"
-
-class Transaction(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_transactions')
-    parent = models.ForeignKey(Parent, on_delete=models.CASCADE)
-    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    percentage = models.DecimalField(max_digits=5, decimal_places=2)
-    date_time = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('success', 'Success'), ('failed', 'Failed')])
-
-    def __str__(self):
-        return f"Transaction of {self.amount} by {self.user.username} at {self.date_time}" 
-    
-
-class Evaluation(models.Model):
-    eleve = models.ForeignKey(Eleve, related_name='evaluations', on_delete=models.CASCADE)
-    professeur = models.ForeignKey(Professeur, related_name='evaluations', on_delete=models.CASCADE)
-    date = models.DateField()
-    matiere = models.CharField(max_length=100)
-    note = models.DecimalField(max_digits=5, decimal_places=2)
-
-    def __str__(self):
-        return f"Évaluation de {self.eleve} en {self.matiere} : {self.note}"

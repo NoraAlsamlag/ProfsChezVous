@@ -48,7 +48,7 @@ class ParentRegisterSerializer(RegisterSerializer):
         image_profil = self.validated_data.get('image_profil')
         if image_profil:
             user.image_profil = image_profil
-            user.save()
+        user.save()
         parent_data = {
             'user': user,
             'nom': self.validated_data.get('nom'),
@@ -90,6 +90,9 @@ class ProfesseurRegisterSerializer(RegisterSerializer):
             'date_naissance': self.validated_data.get('date_naissance'),
             'adresse': self.validated_data.get('adresse'),
             'numero_telephone': self.validated_data.get('numero_telephone'),
+            'experience_enseignement': self.validated_data.get('experience_enseignement'),
+            'certifications': self.validated_data.get('certifications'),
+            'tarif_horaire': self.validated_data.get('tarif_horaire'),
         }
         Professeur.objects.create(**professeur_data)
         return user

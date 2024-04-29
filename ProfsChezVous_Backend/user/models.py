@@ -1,16 +1,10 @@
 from django.db import models
-# from api.models import Matiere
 from django.contrib.auth.models import User
 # from django.contrib.postgres.fields import ArrayField
 # from django.contrib.gis.db import models, GeometryField
-from django.conf import Settings
-from django.dispatch import receiver
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django_resized import ResizedImageField
-#from myapp.fields import ResizedImageField
 from django import forms
-#from .models.enfant import Enfant
-from .forms import InscrireEnfantForm
 from .forms import InscrireEnfantForm
 #from .utils.forms import InscrireEnfantForm
 
@@ -60,22 +54,38 @@ class Parent(models.Model):
 
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
-   
-def inscrire_enfant(self, data):
-    form = InscrireEnfantForm(data)
-    if form.is_valid():
-        enfant = Enfant(
-            prenom=form.cleaned_data['prenom'],
-            nom=form.cleaned_data['nom'],
-            date_naissance=form.cleaned_data['date_naissance'],
-            annee_scolaire=form.cleaned_data['annee_scolaire'],
-            etablissement=form.cleaned_data['etablissement'],
-            parent=self
-        )
-        enfant.save()
-        return enfant
-    else:
-        raise ValueError("Formulaire invalide")
+    
+    def to_json(self):
+        return {
+            'user_id': self.user.id,
+            'ville': self.ville,
+            'adresse': self.adresse,
+            'prenom': self.prenom,
+            'nom': self.nom,
+            'date_naissance': self.date_naissance.strftime('%Y-%m-%d'),
+            'numero_telephone': self.numero_telephone,
+            'quartier_résidence': self.quartier_résidence,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+        }
+
+    def inscrire_enfant(self, data):
+        form = InscrireEnfantForm(data)
+        if form.is_valid():
+            enfant = Enfant(
+                prenom=form.cleaned_data['prenom'],
+                nom=form.cleaned_data['nom'],
+                date_naissance=form.cleaned_data['date_naissance'],
+                annee_scolaire=form.cleaned_data['annee_scolaire'],
+                etablissement=form.cleaned_data['etablissement'],
+                parent=self
+            )
+            enfant.save()
+            return enfant
+        else:
+            raise ValueError("Formulaire invalide")
+    
+
 
 
     # localisation = models.PointField(null=True, blank=True)
@@ -95,10 +105,27 @@ class Professeur(models.Model):
     numero_telephone = models.CharField(max_length=12)
     experience_enseignement = models.CharField(max_length=100)
     certifications = models.CharField(max_length=100)
-    tarif_horaire = models.DecimalField(max_digits=10, decimal_places=2)
+    tarif_horaire = models.CharField(max_length=50)
     date_naissance = models.DateField()
-    # matiere_a_enseigner  = models.ManyToManyField(Matiere,related_name='matiere',on_delete=models.CASCADE)
+    matiere_a_enseigner  = models.CharField(max_length=100)
     niveau_etude  = models.CharField(max_length=50)
+
+    def to_json(self):
+        return {
+            'ville': self.ville,
+            'prenom': self.prenom,
+            'nom': self.nom,
+            'adresse': self.adresse,
+            'quartier_residence': self.quartier_residence,
+            'numero_telephone': self.numero_telephone,
+            'experience_enseignement': self.experience_enseignement,
+            'certifications': self.certifications,
+            'niveau_etude': self.niveau_etude,
+            'tarif_horaire': str(self.tarif_horaire),
+            'date_naissance': self.date_naissance.strftime('%Y-%m-%d'),
+            # Ajoutez d'autres champs selon vos besoins
+        }
+
 
     def __str__(self):
         return f"{self.nom} {self.prenom} (Prof.)"
@@ -123,30 +150,22 @@ class Eleve(models.Model):
     genre = models.CharField(max_length=60, choices=GENRE_CHOICES)
     numero_telephone = models.CharField(max_length=12)
 
-    
+    def to_json(self):
+        return {
+            'ville': self.ville,
+            'adresse': self.adresse,
+            'prenom': self.prenom,
+            'nom': self.nom,
+            'date_naissance': self.date_naissance.strftime('%Y-%m-%d'),
+            'etablissement': self.Etablissement,
+            'niveau_scolaire': self.niveau_scolaire,
+            'genre': self.genre,
+            'numero_telephone': self.numero_telephone,
+            # Ajoutez d'autres champs selon vos besoins
+        }
 
     def __str__(self):
         return f"{self.nom} {self.prenom}"
-
-# class Absence(models.Model):
-#     eleve = models.ForeignKey(Eleve, on_delete=models.CASCADE)
-#     date = models.DateTimeField(default=datetime.now())
-
-
-
-
-
-# class ClasseGeo(models.Model):
-#     nom = models.CharField(max_length=100)
-#     enseignant = models.ForeignKey(Professeur, on_delete=models.PROTECT)
-#     lieu = GeometryField(srid=4326)
-
-#     def __str__(self):
-#         return self.nom
-
-# class EleveGeo(models.Model):
-#     eleve = models.OneToOneField(Eleve, parent_link=True, on_delete=models.CASCADE)
-#     classegeo = models.ForeignKey(ClasseGeo, on_delete=models.PROTECT)
 
 
     def __str__(self):

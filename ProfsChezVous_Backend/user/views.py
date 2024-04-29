@@ -78,10 +78,7 @@ class ParentViewSet(viewsets.ViewSet):
         else:
             return Response({"message": "L'utilisateur n'est pas un parent."}, status=status.HTTP_403_FORBIDDEN)
         
-from rest_framework import viewsets
-from rest_framework.response import Response
-from .models import Eleve, Professeur
-from .serializers import EleveSerializer, ProfesseurSerializer
+
 
 class EleveViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
@@ -108,47 +105,47 @@ class ProfesseurViewSet(viewsets.ViewSet):
             return Response({"message": "L'utilisateur n'est pas un professeur."}, status=403)
 
 
-@api_view(['GET'])
-def getParents(request):
-    parents= Parent.objects.all()
-    serializer = ParentSerializer(parents, many=True)
-    return  Response(serializer.data)
+# @api_view(['GET'])
+# def getParents(request):
+#     parents= Parent.objects.all()
+#     serializer = ParentSerializer(parents, many=True)
+#     return  Response(serializer.data)
 
-@api_view(['GET'])
-def getParent(request, pk):
-    parent= Parent.objects.get(id=pk) 
-    serializer = ParentSerializer(parent, many=False)
-    return  Response(serializer.data)
+# @api_view(['GET'])
+# def getParent(request, pk):
+#     parent= Parent.objects.get(id=pk) 
+#     serializer = ParentSerializer(parent, many=False)
+#     return  Response(serializer.data)
 
-@api_view(["POST"])
-def createParent(request):
-    serializer = ParentSerializer(data=request.data)
-    if serializer.is_valid():
-        parent = serializer.save()
-        return Response(serializer.data, status=201)
-    return Response(serializer.errors, status=400)
-
-
-@api_view(["PUT"])
-def updateParent(request, pk):
-    try:
-        parent = Parent.objects.get(id=pk)
-    except Parent.DoesNotExist:
-        return Response({"error": "Parent non trouvé"}, status=404)
-
-    serializer = ParentSerializer(parent, data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data)
-    return Response(serializer.errors, status=400)
+# @api_view(["POST"])
+# def createParent(request):
+#     serializer = ParentSerializer(data=request.data)
+#     if serializer.is_valid():
+#         parent = serializer.save()
+#         return Response(serializer.data, status=201)
+#     return Response(serializer.errors, status=400)
 
 
-@api_view(["DELETE"])
-def deleteParent(request, pk):
-    parent = Parent.objects.get(id=pk)
+# @api_view(["PUT"])
+# def updateParent(request, pk):
+#     try:
+#         parent = Parent.objects.get(id=pk)
+#     except Parent.DoesNotExist:
+#         return Response({"error": "Parent non trouvé"}, status=404)
 
-    parent.delete()
-    return Response("Parent supprimé")
+#     serializer = ParentSerializer(parent, data=request.data)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response(serializer.data)
+#     return Response(serializer.errors, status=400)
+
+
+# @api_view(["DELETE"])
+# def deleteParent(request, pk):
+#     parent = Parent.objects.get(id=pk)
+
+#     parent.delete()
+#     return Response("Parent supprimé")
 
 
 @api_view(['GET'])
@@ -198,21 +195,15 @@ class EnfantListCreateAPIView(generics.ListCreateAPIView):
 
 class EnfantRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Enfant.objects.all()
-    serializer_class = EnfantSerializer 
+    serializer_class = EnfantSerializer
 
-
-    
-
-#class TransactionListView(generics.ListCreateAPIView):
-    #queryset = Transaction.objects.all()
-   # serializer_class = TransactionSerializer
-   # permission_classes = [IsAuthenticated]
-
-#class TransactionDetailView(generics.RetrieveUpdateDestroyAPIView):
-  #  queryset = Transaction.objects.all()
-  #  serializer_class = TransactionSerializer
-    #permission_classes = [IsAuthenticated]
-
-# views.py
-
-
+class TransactionCreateAPIView(APIView):
+    def post(self, request):
+        serializer = TransactionSerializer(data=request.data)
+        if serializer.is_valid():
+            # Calcul des pourcentages à retenir par l'intermédiaire
+            pourcentage_intermediaire = ... # Calcul du pourcentage
+            # Enregistrement de la transaction
+            serializer.save(pourcentage_intermediaire=pourcentage_intermediaire)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

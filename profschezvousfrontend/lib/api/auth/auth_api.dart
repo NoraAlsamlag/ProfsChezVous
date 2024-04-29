@@ -3,14 +3,20 @@ import 'dart:convert';
 import 'package:hive_flutter/adapters.dart';
 import 'package:http/http.dart' as http;
 import 'package:profschezvousfrontend/models/user_models.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
 
 import '../../constants.dart';
 
 const baseUrl = "http://10.0.2.2:8000";
 
-Future<dynamic> authentificationUtilisateur(String email, String password) async {
+Future<dynamic> authentificationUtilisateur(String? email, String? password) async {
+
+// Initialize Hive
+  await Hive.initFlutter();
+  final appDocumentDir = await path_provider.getApplicationDocumentsDirectory();
+  Hive.init(appDocumentDir.path);
+
   Map body = {
-    // "username": "",
     "email": email,
     "password": password
   };
@@ -57,6 +63,43 @@ Future<User?> getUser(String token) async {
     return null;
   }
 }
+
+
+
+Future<void> deconnexion(String token) async {
+  var url = Uri.parse("$baseUrl/user/auth/deconnexion/"); // Replace with your deconnexion endpoint URL
+  var response = await http.post(
+    url,
+    headers: {
+      'Authorization': 'Token $token',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    // deconnexion successful, clear local token or any other cleanup
+    var box = await Hive.openBox(tokenBox);
+    await box.delete("token");
+  } else {
+    // deconnexion failed, handle error
+    print('Failed to deconnexion: ${response.statusCode}');
+  }
+}
+
+
+Future<Map<String, dynamic>> getUserInfo(int? userPk) async {
+  var url = Uri.parse('$baseUrl/user/get_user_info/$userPk/');
+  var response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    // Convertir le corps de la réponse en une map
+    Map<String, dynamic> donneesUtilisateur = jsonDecode(response.body);
+    return donneesUtilisateur;
+  } else {
+    // Gérer l'erreur
+    throw Exception('Échec du chargement des informations utilisateur');
+  }
+}
+
 
 
 
