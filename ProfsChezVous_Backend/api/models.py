@@ -144,22 +144,26 @@ class Message(models.Model):
     def __str__(self):
         return f"Message : {self.contenu[:50]}..."
 
-class Activite(models.Model):
-    nom = models.CharField(max_length=100)
-    description = models.TextField(max_length=200)
-    date_debut = models.DateField()
-    date_fin = models.DateField()
-    lieu = models.CharField(max_length=200)
-    participants = models.ManyToManyField(User, related_name='activites')
+
+
+class Evaluation(models.Model):
+    eleve = models.ForeignKey(Eleve, related_name='evaluations', on_delete=models.CASCADE)
+    professeur = models.ForeignKey(Professeur, related_name='evaluations', on_delete=models.CASCADE)
+    date = models.DateField()
+    matiere = models.CharField(max_length=100)
+    note = models.DecimalField(max_digits=5, decimal_places=2)
 
     def __str__(self):
-        return self.nom
+        return f"Évaluation de {self.eleve} en {self.matiere} : {self.note}" 
     
-class ActiviteBloquee(models.Model):
-    activite = models.ForeignKey('Activite', on_delete=models.CASCADE)
-    raison = models.CharField(max_length=200)
-    date_debut = models.DateField()
-    date_fin = models.DateField()
+class Transaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    parent = models.ForeignKey(Parent, on_delete=models.CASCADE)
+    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    date_time = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('success', 'Success'), ('failed', 'Failed')])
 
     def __str__(self):
-        return f"{self.activite} - {self.raison}"
+        return f"Transaction of {self.amount} by {self.user.username} at {self.date_time}"
