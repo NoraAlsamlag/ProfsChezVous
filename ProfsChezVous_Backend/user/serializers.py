@@ -26,6 +26,8 @@ class ParentRegisterSerializer(RegisterSerializer):
     adresse = serializers.CharField(max_length=200)
     numero_telephone = serializers.CharField(max_length=12)
     quartier_résidence = serializers.CharField(max_length=70)
+    latitude = serializers.FloatField()
+    longitude = serializers.FloatField()
     # eleves = ArrayField(serializers.CharField(max_length=100), blank=True)
     
 
@@ -55,6 +57,8 @@ class ParentRegisterSerializer(RegisterSerializer):
             'adresse': self.validated_data.get('adresse'),
             'numero_telephone': self.validated_data.get('numero_telephone'),
             'quartier_résidence': self.validated_data.get('quartier_résidence'),
+            'latitude': self.validated_data.get('latitude'),
+            'longitude': self.validated_data.get('longitude'),
         }
         Parent.objects.create(**parent_data)
         return user

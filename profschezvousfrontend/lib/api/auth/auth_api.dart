@@ -7,8 +7,6 @@ import 'package:path_provider/path_provider.dart' as path_provider;
 
 import '../../constants.dart';
 
-const baseUrl = "http://10.0.2.2:8000";
-
 Future<dynamic> authentificationUtilisateur(String? email, String? password) async {
 
 // Initialize Hive
@@ -20,7 +18,7 @@ Future<dynamic> authentificationUtilisateur(String? email, String? password) asy
     "email": email,
     "password": password
   };
-  var url = Uri.parse("$baseUrl/user/auth/login/");
+  var url = Uri.parse("$domaine/user/auth/login/");
   var res = await http.post(url, body: body);
 
   print(res.body);
@@ -48,7 +46,7 @@ Future<dynamic> authentificationUtilisateur(String? email, String? password) asy
 }
 
 Future<User?> getUser(String token) async {
-  var url = Uri.parse("$baseUrl/user/info");
+  var url = Uri.parse("$domaine/user/info");
   var res = await http.get(url, headers: {
     'Authorization': 'Token ${token}',
   });
@@ -67,7 +65,7 @@ Future<User?> getUser(String token) async {
 
 
 Future<void> deconnexion(String token) async {
-  var url = Uri.parse("$baseUrl/user/auth/deconnexion/"); // Replace with your deconnexion endpoint URL
+  var url = Uri.parse("$domaine/user/auth/deconnexion/"); // Replace with your deconnexion endpoint URL
   var response = await http.post(
     url,
     headers: {
@@ -87,7 +85,7 @@ Future<void> deconnexion(String token) async {
 
 
 Future<Map<String, dynamic>> getUserInfo(int? userPk) async {
-  var url = Uri.parse('$baseUrl/user/get_user_info/$userPk/');
+  var url = Uri.parse('$domaine/user/get_user_info/$userPk/');
   var response = await http.get(url);
 
   if (response.statusCode == 200) {

@@ -1,6 +1,5 @@
 from rest_framework.response import Response
 from rest_framework import viewsets
-
 from api.serializers import  *
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -194,6 +193,42 @@ def logout(request):
 
 
 
+def fetch_user(request):
+    # Fetch the user data
+
+    try:
+        user = User.objects.get(id=request.user.id)
+        if user.is_parent:
+            parent = Parent.objects.get(user=user)
+            return JsonResponse({'user_type': 'parent','email': user.email,
+        'image_profil': str(user.image_profil), 'details': parent.to_json()}, status=200)
+        elif user.is_professeur:
+            professeur = Professeur.objects.get(user=user)
+            return JsonResponse({'user_type': 'professeur','email': user.email,
+        'image_profil': str(user.image_profil), 'details': professeur.to_json()}, status=200)
+        elif user.is_eleve:
+            eleve = Eleve.objects.get(user=user)
+            return JsonResponse({'user_type': 'eleve','email': user.email,
+        'image_profil': str(user.image_profil), 'details': eleve.to_json()}, status=200)
+        elif user.is_admin:
+            user_data = {
+                'name': user.username,
+                'email': user.email,
+                'image_profil': str(user.image_profil),
+                # Add other user fields as needed
+            }
+            return JsonResponse(user_data, status=200)
+        else:
+            return JsonResponse({'error': 'Type d\'utilisateur non valide'}, status=400)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'Utilisateur non trouvé'}, status=404)
+    except (Parent.DoesNotExist, Professeur.DoesNotExist, Eleve.DoesNotExist):
+        return JsonResponse({'error': 'Détails de l\'utilisateur non trouvés'}, status=404)
+    user = User.objects.get(id=request.user.id)  # Assuming you have authentication in place
+
+    # Return the user data as JSON response
+    return JsonResponse(user_data)
+
 
 
 def get_user_info(request, user_pk):
@@ -214,3 +249,47 @@ def get_user_info(request, user_pk):
         return JsonResponse({'error': 'Utilisateur non trouvé'}, status=404)
     except (Parent.DoesNotExist, Professeur.DoesNotExist, Eleve.DoesNotExist):
         return JsonResponse({'error': 'Détails de l\'utilisateur non trouvés'}, status=404)
+    
+
+
+
+def obtenir_adresse_a_partir_des_coordonnees(request):
+    if request.method == 'GET':
+        latitude = request.GET.get('latitude')
+        longitude = request.GET.get('longitude')
+
+        if latitude and longitude:
+            # Utiliser un service de géocodage comme Google Maps ou Nominatim pour obtenir l'adresse
+            url = f"https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={latitude}&lon={longitude}"
+            response = requests.get(url)
+
+            if response.status_code == 200:
+                data = response.json()
+                adresse = data.get('display_name', 'Adresse introuvable')
+                return JsonResponse({'adresse': adresse})
+            else:
+                return JsonResponse({'erreur': 'Échec de l\'obtention de l\'adresse'}, status=response.status_code)
+        else:
+            return JsonResponse({'erreur': 'Latitude ou longitude manquante'}, status=400)
+    else:
+        return JsonResponse({'erreur': 'Méthode de requête invalide'}, status=405)
+    
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+
+@csrf_exempt
+def ajouter_ou_modifier_photo_profil(request,user_pk):
+    if request.method == 'POST':
+        utilisateur = User.objects.get(pk=user_pk)
+        image_profil = request.FILES.get('image_profil')
+
+        if image_profil:
+            # Mettre à jour le champ image_profil de l'utilisateur
+            utilisateur.image_profil = image_profil
+            utilisateur.save()
+
+            return JsonResponse({'message': 'Photo de profil mise à jour avec succès.'})
+
+    return JsonResponse({'error': 'Méthode de requête invalide.'}, status=405)

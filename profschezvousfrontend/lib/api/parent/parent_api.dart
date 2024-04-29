@@ -28,6 +28,8 @@ Future<void> registerParent({
   required String adresse,
   required String numeroTelephone,
   required String quartierResidence,
+  required String latitude,
+  required String longitude,
 }) async {
   // Définir le corps de la requête
   Map<String, dynamic> body = {
@@ -41,6 +43,8 @@ Future<void> registerParent({
     "adresse": adresse,
     "numero_telephone": numeroTelephone,
     "quartier_résidence": quartierResidence,
+    "latitude": latitude,
+    "longitude": longitude,
   };
 
   // Convertir le corps en JSON

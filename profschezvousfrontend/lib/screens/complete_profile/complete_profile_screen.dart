@@ -30,14 +30,14 @@ class CompleteProfileScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   const Text("Complete Profile", style: headingStyle),
                   const Text(
-                    "Complete your details or continue  \nwith social media",
+                    "Complétez vos informations ou continuez avec les médias sociaux.",
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
                   CompleteProfileForm(email: email,password: password,),
                   const SizedBox(height: 30),
                   Text(
-                    "By continuing your confirm that you agree \nwith our Term and Condition",
+                    "En continuant, vous confirmez que vous acceptez nos conditions générales.",
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
