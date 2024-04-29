@@ -23,13 +23,18 @@ from django.shortcuts import get_object_or_404
 #from user.models import User
 
 
-from .models import Transaction
-from .serializers import TransactionSerializer
+#from .models import Transaction
+#from .serializers import TransactionSerializer
 
 
 from dj_rest_auth.registration.views import RegisterView
 
-from .serializers import EnfantSerializer
+from .serializers import EnfantSerializer 
+
+
+
+
+
 
 
 class ParentRegisterView(RegisterView):
@@ -195,13 +200,19 @@ class EnfantRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Enfant.objects.all()
     serializer_class = EnfantSerializer 
 
-class TransactionCreateAPIView(APIView):
-    def post(self, request):
-        serializer = TransactionSerializer(data=request.data)
-        if serializer.is_valid():
-            # Calcul des pourcentages à retenir par l'intermédiaire
-            pourcentage_intermediaire = ... # Calcul du pourcentage
-            # Enregistrement de la transaction
-            serializer.save(pourcentage_intermediaire=pourcentage_intermediaire)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    
+
+#class TransactionListView(generics.ListCreateAPIView):
+    #queryset = Transaction.objects.all()
+   # serializer_class = TransactionSerializer
+   # permission_classes = [IsAuthenticated]
+
+#class TransactionDetailView(generics.RetrieveUpdateDestroyAPIView):
+  #  queryset = Transaction.objects.all()
+  #  serializer_class = TransactionSerializer
+    #permission_classes = [IsAuthenticated]
+
+# views.py
+
+

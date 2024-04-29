@@ -1,15 +1,9 @@
 from rest_framework import generics
-from .models import Matiere, CommentaireCours
-from .serializers import MatiereSerializer, CommentaireCoursSerializer
 from rest_framework import viewsets
-from .models import Cours_Unite
-from .serializers import CoursUniteSerializer
-from .models import Cours_Package
-from .serializers import CoursPackageSerializer
-from rest_framework import viewsets
-from .models import DiscussionParentAdmin
-from .serializers import DiscussionParentAdminSerializer
-
+#from .models import DiscussionParentAdmin
+#from .serializers import DiscussionParentAdminSerializer
+from .models import Transaction ,Evaluation,Message,CommentaireCours,Matiere,Cours_Package,Cours_Unite
+from .serializers import *
 
 
 
@@ -40,6 +34,25 @@ class CoursPackageViewSet(viewsets.ModelViewSet):
     queryset = Cours_Package.objects.all()
     serializer_class = CoursPackageSerializer 
 
-class DiscussionParentAdminViewSet(viewsets.ModelViewSet):
-    queryset = DiscussionParentAdmin.objects.all()
-    serializer_class = DiscussionParentAdminSerializer
+
+
+class MessageViewSet(viewsets.ModelViewSet):
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer 
+
+class TransactionListView(generics.ListCreateAPIView):
+    queryset = Transaction.objects.all()
+    serializer_class = TransactionSerializer
+
+class TransactionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Transaction.objects.all()
+    serializer_class = TransactionSerializer 
+
+
+class EvaluationListAPIView(generics.ListCreateAPIView):
+    queryset = Evaluation.objects.all()
+    serializer_class = EvaluationSerializer
+
+class EvaluationRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Evaluation.objects.all()
+    serializer_class = EvaluationSerializer

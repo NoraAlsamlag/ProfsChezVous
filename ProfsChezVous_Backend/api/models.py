@@ -1,11 +1,12 @@
 from django.db import models
-from user.models import User, Admin, Professeur, Parent
+from user.models import User, Admin, Professeur, Parent , Eleve
 from django.utils import timezone
 from rest_framework import serializers
 from django.db import models
 #from .models import Cours_Package
 # Dans un fichier où vous avez besoin de Cours_Package
 #from api.models import Cours_Package
+timezone.now
 
 
 class Matiere(models.Model):
@@ -125,36 +126,22 @@ class Cours_Package(models.Model):
     
 
 
-class DiscussionParentAdmin(models.Model):
-    sujet = models.CharField(max_length=200)
-    date_creation = models.DateTimeField(auto_now_add=True)
-    derniere_activite = models.DateTimeField(auto_now=True)
-    parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='discussions_avec_admin')
-    admin = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='discussions_avec_parent')
-    messages = models.ManyToManyField('Message', related_name='messages_parent_admin')
 
-    def __str__(self):
-        return self.sujet
 
-class DiscussionProfAdmin(models.Model):
-    sujet = models.CharField(max_length=200)
-    date_creation = models.DateTimeField(auto_now_add=True)
-    derniere_activite = models.DateTimeField(auto_now=True)
-    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE, related_name='discussions_avec_admin')
-    admin = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='discussions_avec_prof')
-    messages = models.ManyToManyField('Message', related_name='messages_prof_admin')
-
-    def __str__(self):
-        return self.sujet
 
 class Message(models.Model):
+    expediteur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='messages_sent')
+    destinataire = models.ForeignKey(User, on_delete=models.CASCADE, related_name='messages_received')
     contenu = models.TextField()
-    date_envoi = models.DateTimeField(auto_now_add=True)
-    discussion_parent_admin = models.ForeignKey('DiscussionParentAdmin', on_delete=models.CASCADE, related_name='parent_discussion')
-    discussion_prof_admin = models.ForeignKey('DiscussionProfAdmin', on_delete=models.CASCADE, related_name='prof_discussion')
+    date_envoi = models.DateTimeField(auto_now_add=True)  # Modifiez cette ligne
+    lu = models.BooleanField(default=False)
+    sujet = models.CharField(max_length=255)
 
     def __str__(self):
-        return f"Message : {self.contenu[:50]}..."
+        return f"Message from {self.expediteur} to {self.destinataire} on {self.date_envoi}"
+
+
+
 
 class Activite(models.Model):
     nom = models.CharField(max_length=100)
@@ -175,3 +162,26 @@ class ActiviteBloquee(models.Model):
 
     def __str__(self):
         return f"{self.activite} - {self.raison}"
+
+class Transaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_transactions')
+    parent = models.ForeignKey(Parent, on_delete=models.CASCADE)
+    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    date_time = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('success', 'Success'), ('failed', 'Failed')])
+
+    def __str__(self):
+        return f"Transaction of {self.amount} by {self.user.username} at {self.date_time}" 
+    
+
+class Evaluation(models.Model):
+    eleve = models.ForeignKey(Eleve, related_name='evaluations', on_delete=models.CASCADE)
+    professeur = models.ForeignKey(Professeur, related_name='evaluations', on_delete=models.CASCADE)
+    date = models.DateField()
+    matiere = models.CharField(max_length=100)
+    note = models.DecimalField(max_digits=5, decimal_places=2)
+
+    def __str__(self):
+        return f"Évaluation de {self.eleve} en {self.matiere} : {self.note}"

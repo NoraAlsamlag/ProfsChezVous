@@ -14,7 +14,10 @@ from rest_framework import serializers
 
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from io import BytesIO
-from .models import Transaction
+from rest_framework import serializers
+#from .models import Transaction
+
+
 
 
 
@@ -189,13 +192,10 @@ class EnfantSerializer(serializers.ModelSerializer):
         
 
 
-class TransactionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Transaction
-        fields = ['date', 'montant', 'emetteur', 'destinataire']
 
-    def create(self, validated_data):
-        # Calcul du pourcentage intermédiaire
-        pourcentage_intermediaire = ... # Calcul du pourcentage
-        validated_data['pourcentage_intermediaire'] = pourcentage_intermediaire
-        return super().create(validated_data)
+#class TransactionSerializer(serializers.ModelSerializer):
+  #  class Meta:
+    #    model = Transaction
+      #  fields = '__all__'
+# serializers.py
+
