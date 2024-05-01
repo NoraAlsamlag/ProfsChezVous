@@ -3,6 +3,7 @@ from .models import Matiere
 from .models import CommentaireCours
 from .models import Cours_Unite 
 from .models import Cours_Package
+
 #from .serializers import CoursPackageSerializer
 #from .models import DiscussionParentAdmin
 from .models import Message
@@ -10,6 +11,11 @@ from .models import Message
 from .models import Transaction
 from rest_framework import serializers
 from .models import Evaluation
+
+from .models import Diplome
+
+from .models import      Cours , SuiviProfesseur 
+
 
 
 
@@ -55,3 +61,19 @@ class EvaluationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evaluation
         fields = '__all__' 
+
+class DiplomeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Diplome
+        fields = '__all__' 
+
+class CoursSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cours
+        fields = '__all__'
+
+class SuiviProfesseurSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SuiviProfesseur
+        fields = '__all__' 
+

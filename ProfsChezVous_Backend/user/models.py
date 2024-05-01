@@ -52,8 +52,8 @@ class Parent(models.Model):
     # eleves =ArrayField(models.CharField(max_length=100), blank=True)
     quartier_résidence = models.CharField(max_length=70)
 
-    latitude = models.FloatField(blank=True, null=True)
-    longitude = models.FloatField(blank=True, null=True)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
     
     def to_json(self):
         return {

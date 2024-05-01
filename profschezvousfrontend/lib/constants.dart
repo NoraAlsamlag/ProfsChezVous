@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 const tokenBox = "ProfsChezVousTOKEN";
 
+const domaine = 'http://10.0.2.2:8000';
+
 const kPrimaryColor = Color(0xFFFF7643);
 const kPrimaryLightColor = Color(0xFFFFECDF);
 const kPrimaryGradientColor = LinearGradient(
@@ -32,7 +34,8 @@ const String kPassNullError = "Veuillez entrer votre mot de passe";
 const String kShortPassError = "Le mot de passe est trop court";
 const String kMatchPassError = "Les mots de passe ne correspondent pas";
 const String kNamelNullError = "Veuillez entrer votre nom";
-const String kPhoneNumberNullError = "Veuillez entrer votre numéro de téléphone";
+const String kPhoneNumberNullError =
+    "Veuillez entrer votre numéro de téléphone";
 const String kAddressNullError = "Veuillez entrer votre adresse";
 
 final otpInputDecoration = InputDecoration(

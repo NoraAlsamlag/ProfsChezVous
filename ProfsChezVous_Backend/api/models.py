@@ -31,8 +31,8 @@ class CommentaireCours(models.Model):
     professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE, related_name='commentaires_professeur')
     parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='commentaires_parent')
     matiere = models.ForeignKey(Matiere, on_delete=models.CASCADE, related_name='commentaires')
-    Cours_Unite = models.ForeignKey('Cours_Unite', on_delete=models.CASCADE, related_name='commentaires', null=True)
-    Cours_Package = models.ForeignKey('Cours_Package', on_delete=models.CASCADE, related_name='commentaires', null=True)
+    Cours_Unite = models.BooleanField()
+    Cours_Package = models.BooleanField()
 
     def __str__(self):
         return f"Commentaire de {self.professeur.nom} {self.professeur.prenom} pour {self.matiere.nom_complet}"
@@ -138,9 +138,6 @@ class Message(models.Model):
     destinataire = models.ForeignKey(User, on_delete=models.CASCADE, related_name='messages_received')
     contenu = models.TextField()
     date_envoi = models.DateTimeField(auto_now_add=True)
-    discussion_parent_admin = models.ForeignKey('DiscussionParentAdmin', on_delete=models.CASCADE, related_name='parent_discussion')
-    discussion_prof_admin = models.ForeignKey('DiscussionProfAdmin', on_delete=models.CASCADE, related_name='prof_discussion')
-
     def __str__(self):
         return f"Message : {self.contenu[:50]}..."
 
@@ -166,4 +163,45 @@ class Transaction(models.Model):
     status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('success', 'Success'), ('failed', 'Failed')])
 
     def __str__(self):
-        return f"Transaction of {self.amount} by {self.user.username} at {self.date_time}"
+        return f"Transaction of {self.amount} by {self.user.username} at {self.date_time}" 
+
+
+
+
+
+
+import os
+
+def upload_to(instance, filename):
+    # Assurez-vous que le nom du fichier est unique
+    filename_base, filename_ext = os.path.splitext(filename)
+    return f'diplomes/{instance.professeur.user.username}/{filename_base}{filename_ext}'
+
+class Diplome(models.Model):
+    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
+    fichier = models.FileField(upload_to=upload_to)
+
+def __str__(self):
+        return f"Diplôme de {self.professeur.user.username}"
+
+class Cours(models.Model):
+    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
+    eleve = models.ForeignKey(Eleve, on_delete=models.CASCADE)
+    date = models.DateField()
+    heure_debut = models.TimeField()
+    heure_fin = models.TimeField()
+    present = models.BooleanField(default=False)
+    dispense = models.BooleanField(default=False)
+    commentaire = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Cours de {self.professeur} avec {self.eleve} le {self.date}"
+    
+class SuiviProfesseur(models.Model):
+    professeur = models.OneToOneField(Professeur, on_delete=models.CASCADE)
+    cours_planifies = models.IntegerField(default=0)
+    cours_effectues = models.IntegerField(default=0)
+    cours_manques = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"Suivi de {self.professeur}"

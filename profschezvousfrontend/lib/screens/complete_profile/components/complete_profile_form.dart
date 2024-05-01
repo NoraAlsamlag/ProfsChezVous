@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:profschezvousfrontend/api/parent/parent_api.dart';
 import 'package:profschezvousfrontend/screens/sign_in/sign_in_screen.dart';
+import 'package:profschezvousfrontend/Localisation/utilusateur_localisation.dart';
+import 'package:profschezvousfrontend/Localisation/LocationPermissionPrompt.dart';
 import '../../../components/custom_surfix_icon.dart';
 import '../../../components/form_error.dart';
 import '../../../constants.dart';
 import '../../otp/otp_screen.dart';
+import 'package:geolocator/geolocator.dart';
 
 class CompleteProfileForm extends StatefulWidget {
   final String email;
@@ -27,6 +30,24 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
   String? nom;
   String? numero_tel;
   String? address;
+
+  @override
+  void initState() {
+    super.initState();
+    _requestLocationPermission();
+  }
+
+  Future<void> _requestLocationPermission() async {
+    bool permissionGranted = await requestLocationPermission(context);
+    if (!permissionGranted) {
+      // Handle the case when location permission is denied
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Permission de localisation refusée.'),
+        ),
+      );
+    }
+  }
 
   void addError({String? error}) {
     if (!errors.contains(error)) {
@@ -156,52 +177,77 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
           FormError(errors: errors),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (_formKey.currentState!.validate()) {
-                if (preNom != null &&
-                    nom != null &&
-                    address != null &&
-                    numero_tel != null) {
-                  registerParent(
-                    email: widget.email,
-                    password: widget.password,
-                    nom: nom!,
-                    prenom: preNom!,
-                    dateNaissance: '2000-01-01',
-                    ville: 'VilleParent',
-                    adresse: address!,
-                    numeroTelephone: numero_tel!,
-                    quartierResidence: 'QuartierParent',
-                  ).then((_) {
-                    // Afficher un message de succès
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                            'Inscription réussie. Vous pouvez maintenant vous connecter.'),
-                        duration: Duration(
-                            seconds:
-                                2), // Facultatif : durée d'affichage du message
-                      ),
-                    );
+                bool permissionGranted =
+                    await requestLocationPermission(context);
+                if (permissionGranted) {
+                  Map<String, double>? locationData =
+                      await getCurrentLocation();
+                  if (locationData != null) {
+                    if (preNom != null &&
+                        nom != null &&
+                        address != null &&
+                        numero_tel != null) {
+                      registerParent(
+                        email: widget.email,
+                        password: widget.password,
+                        nom: nom!,
+                        prenom: preNom!,
+                        dateNaissance: '2000-01-01',
+                        ville: 'VilleParent',
+                        adresse: address!,
+                        longitude: locationData['longitude'].toString(),
+                        latitude: locationData['latitude'].toString(),
+                        numeroTelephone: numero_tel!,
+                        quartierResidence: 'QuartierParent',
+                      ).then((_) {
+                        // Afficher un message de succès
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Inscription réussie. Vous pouvez maintenant vous connecter.'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
 
-                    // Naviguer vers la page de connexion après un délai
-                    Future.delayed(Duration(seconds: 2), () {
-                      Navigator.pushReplacementNamed(context, SignInScreen.routeName);
-                    });
-                  }).catchError((error) {
-                    // Afficher un message d'erreur en cas d'échec de l'inscription
+                        // Naviguer vers la page de connexion après un délai
+                        Future.delayed(Duration(seconds: 2), () {
+                          Navigator.pushReplacementNamed(
+                              context, SignInScreen.routeName);
+                        });
+                      }).catchError((error) {
+                        // Afficher un message d'erreur en cas d'échec de l'inscription
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                'Échec de l\'enregistrement. Veuillez réessayer.: $error'),
+                          ),
+                        );
+                      });
+                    } else {
+                      // Afficher un message d'erreur si des champs requis sont manquants
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content:
+                              Text('Veuillez remplir tous les champs requis.'),
+                        ),
+                      );
+                    }
+                  } else {
+                    // Location data not obtained, show an error message
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text(
-                            'Échec de l\'enregistrement. Veuillez réessayer.: $error'),
+                            'Impossible d\'obtenir les données de localisation.'),
                       ),
                     );
-                  });
+                  }
                 } else {
-                  // Afficher un message d'erreur si des champs requis sont manquants
+                  // Location permission was denied, handle accordingly
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Veuillez remplir tous les champs requis.'),
+                    const SnackBar(
+                      content: Text('Permission de localisation refusée.'),
                     ),
                   );
                 }

@@ -1,12 +1,9 @@
 from django.urls import path, include
 from . import views
 from .views import geocode_parent_address
-<<<<<<< HEAD
 from user.views import ParentRegisterView, ProfesseurRegisterView, EleveRegisterView, AdminRegisterView 
 
-=======
 from user.views import *
->>>>>>> 5f94715f5b7ee5601577a42c74d1b2d633e3f910
 urlpatterns = [
     path('register/parent/', ParentRegisterView.as_view(), name='parent_register'),
     path('register/professeur/', ProfesseurRegisterView.as_view(), name='professeur_register'),
@@ -24,4 +21,9 @@ urlpatterns = [
     #path('transactions/', views.TransactionListView.as_view(), name='transaction-list'),
     #path('transactions/<int:pk>/', views.TransactionDetailView.as_view(), name='transaction-detail'), 
    
+    path('enfants/', views.EnfantListCreateAPIView.as_view(), name='enfant-list-create'),
+    path('enfants/<int:pk>/', views.EnfantRetrieveUpdateDestroyAPIView.as_view(), name='enfant-detail'),
+    path('obtenir-adresse/', views.obtenir_adresse_a_partir_des_coordonnees, name='obtenir_adresse'),
+    path('ajouter-ou-modifier-photo-profil/<int:user_pk>/', views.ajouter_ou_modifier_photo_profil, name='ajouter_ou_modifier_photo_profil'),
+    path('obtenir_informations_utilisateur/', fetch_user, name='fetch_user'),
 ]
