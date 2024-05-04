@@ -1,10 +1,14 @@
-from rest_framework import generics
+from rest_framework import generics , permissions
 from rest_framework import viewsets
 #from .models import DiscussionParentAdmin
 #from .serializers import DiscussionParentAdminSerializer
-from .models import Transaction ,Evaluation,Message,CommentaireCours,Matiere,Cours_Package,Cours_Unite
+from .models import Transaction ,Evaluation,Message,CommentaireCours,Matiere,Cours_Package,Cours_Unite , Diplome
 from .serializers import *
+from .serializers import DiplomeSerializer
 
+
+from rest_framework.permissions import IsAuthenticated
+from .serializers import CoursSerializer, SuiviProfesseurSerializer
 
 
 
@@ -56,3 +60,34 @@ class EvaluationListAPIView(generics.ListCreateAPIView):
 class EvaluationRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Evaluation.objects.all()
     serializer_class = EvaluationSerializer
+
+
+class DiplomeListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Diplome.objects.all()
+    serializer_class = DiplomeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(professeur=self.request.user.professeur)
+
+class DiplomeRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Diplome.objects.all()
+    serializer_class = DiplomeSerializer
+    permission_classes = [IsAuthenticated]
+
+class CoursListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Cours.objects.all()
+    serializer_class = CoursSerializer
+
+class CoursRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Cours.objects.all()
+    serializer_class = CoursSerializer
+
+class SuiviProfesseurRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
+    queryset = SuiviProfesseur.objects.all()
+    serializer_class = SuiviProfesseurSerializer 
+
+
+class SuiviProfesseurListAPIView(generics.ListAPIView):
+    queryset = SuiviProfesseur.objects.all()
+    serializer_class = SuiviProfesseurSerializer

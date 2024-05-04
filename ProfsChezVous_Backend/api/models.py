@@ -141,6 +141,8 @@ class Message(models.Model):
     def __str__(self):
         return f"Message : {self.contenu[:50]}..."
 
+
+
 class Evaluation(models.Model):
     eleve = models.ForeignKey(Eleve, related_name='evaluations', on_delete=models.CASCADE)
     professeur = models.ForeignKey(Professeur, related_name='evaluations', on_delete=models.CASCADE)
@@ -148,7 +150,7 @@ class Evaluation(models.Model):
     matiere = models.CharField(max_length=100)
     note = models.DecimalField(max_digits=5, decimal_places=2)
 
-    def _str_(self):
+    def __str__(self):
         return f"Évaluation de {self.eleve} en {self.matiere} : {self.note}" 
     
 class Transaction(models.Model):
@@ -160,5 +162,46 @@ class Transaction(models.Model):
     date_time = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('success', 'Success'), ('failed', 'Failed')])
 
-    def _str_(self):
-        return f"Transaction of {self.amount} by {self.user.username} at {self.date_time}"
+    def __str__(self):
+        return f"Transaction of {self.amount} by {self.user.username} at {self.date_time}" 
+
+
+
+
+
+
+import os
+
+def upload_to(instance, filename):
+    # Assurez-vous que le nom du fichier est unique
+    filename_base, filename_ext = os.path.splitext(filename)
+    return f'diplomes/{instance.professeur.user.username}/{filename_base}{filename_ext}'
+
+class Diplome(models.Model):
+    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
+    fichier = models.FileField(upload_to=upload_to)
+
+def __str__(self):
+        return f"Diplôme de {self.professeur.user.username}"
+
+class Cours(models.Model):
+    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
+    eleve = models.ForeignKey(Eleve, on_delete=models.CASCADE)
+    date = models.DateField()
+    heure_debut = models.TimeField()
+    heure_fin = models.TimeField()
+    present = models.BooleanField(default=False)
+    dispense = models.BooleanField(default=False)
+    commentaire = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Cours de {self.professeur} avec {self.eleve} le {self.date}"
+    
+class SuiviProfesseur(models.Model):
+    professeur = models.OneToOneField(Professeur, on_delete=models.CASCADE)
+    cours_planifies = models.IntegerField(default=0)
+    cours_effectues = models.IntegerField(default=0)
+    cours_manques = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"Suivi de {self.professeur}"
