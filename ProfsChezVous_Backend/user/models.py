@@ -42,16 +42,15 @@ class User(AbstractUser):
 
 class Parent(models.Model):
     user  = models.OneToOneField(User , related_name='parent',on_delete=models.CASCADE)
-    ville = models.CharField(max_length=100)
-    adresse = models.CharField(max_length=200)
-    prenom = models.CharField(max_length=30)
     nom = models.CharField(max_length=50)
+    prenom = models.CharField(max_length=30)
+    ville = models.CharField(max_length=100)
     date_naissance = models.DateField()
     numero_telephone = models.CharField(max_length=12)
+    # adresse = models.CharField(max_length=200)
     # Eleve = models.ManyToManyField('Eleve')
     # eleves =ArrayField(models.CharField(max_length=100), blank=True)
-    quartier_résidence = models.CharField(max_length=70)
-
+    # quartier_résidence = models.CharField(max_length=70)
     latitude = models.FloatField()
     longitude = models.FloatField()
     
@@ -59,12 +58,12 @@ class Parent(models.Model):
         return {
             'user_id': self.user.id,
             'ville': self.ville,
-            'adresse': self.adresse,
+            # 'adresse': self.adresse,
             'prenom': self.prenom,
             'nom': self.nom,
             'date_naissance': self.date_naissance.strftime('%Y-%m-%d'),
             'numero_telephone': self.numero_telephone,
-            'quartier_résidence': self.quartier_résidence,
+            # 'quartier_résidence': self.quartier_résidence,
             'latitude': self.latitude,
             'longitude': self.longitude,
         }
@@ -97,33 +96,37 @@ class Parent(models.Model):
 
 class Professeur(models.Model):
     user  = models.OneToOneField(User , related_name='professeur',on_delete=models.CASCADE)
-    ville = models.CharField(max_length=100)
-    prenom = models.CharField(max_length=30)
     nom = models.CharField(max_length=50)
-    adresse = models.CharField(max_length=200)
-    quartier_résidence = models.CharField(max_length=70)
+    prenom = models.CharField(max_length=30)
+    ville = models.CharField(max_length=100)
+    # adresse = models.CharField(max_length=200)
+    # quartier_résidence = models.CharField(max_length=70)
     numero_telephone = models.CharField(max_length=12)
     experience_enseignement = models.CharField(max_length=100)
     certifications = models.CharField(max_length=100)
-    tarif_horaire = models.CharField(max_length=50)
+    # tarif_horaire = models.CharField(max_length=50)
     date_naissance = models.DateField()
     matiere_a_enseigner  = models.CharField(max_length=100)
     niveau_etude  = models.CharField(max_length=50)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
 
     def to_json(self):
         return {
             'ville': self.ville,
             'prenom': self.prenom,
             'nom': self.nom,
-            'adresse': self.adresse,
-            'quartier_residence': self.quartier_residence,
+            # 'adresse': self.adresse,
+            # 'quartier_residence': self.quartier_residence,
             'numero_telephone': self.numero_telephone,
             'experience_enseignement': self.experience_enseignement,
             'certifications': self.certifications,
             'niveau_etude': self.niveau_etude,
-            'tarif_horaire': str(self.tarif_horaire),
+            'matiere_a_enseigner': self.matiere_a_enseigner,
+            # 'tarif_horaire': str(self.tarif_horaire),
             'date_naissance': self.date_naissance.strftime('%Y-%m-%d'),
-            # Ajoutez d'autres champs selon vos besoins
+            'latitude': self.latitude,
+            'longitude': self.longitude,
         }
 
 
@@ -135,41 +138,40 @@ class Professeur(models.Model):
 
 class Eleve(models.Model):
     user  = models.OneToOneField(User , related_name='eleve',on_delete=models.CASCADE)
-    ville = models.CharField(max_length=100)
-    adresse = models.CharField(max_length=200)
-    prenom = models.CharField(max_length=30)
     nom = models.CharField(max_length=50)
+    # adresse = models.CharField(max_length=200)
+    prenom = models.CharField(max_length=30)
+    ville = models.CharField(max_length=100)
     date_naissance = models.DateField()
     Etablissement = models.CharField(max_length=100) 
     niveau_scolaire = models.CharField(max_length=100)
    
-    GENRE_CHOICES = (
-        ('masculin', 'Masculin'),
-        ('feminin', 'Féminin'),
-        ('autre', 'Autre'),)
-    genre = models.CharField(max_length=60, choices=GENRE_CHOICES)
+    # GENRE_CHOICES = (
+    #     ('masculin', 'Masculin'),
+    #     ('feminin', 'Féminin'),
+    #     ('autre', 'Autre'),)
+    # genre = models.CharField(max_length=60, choices=GENRE_CHOICES)
     numero_telephone = models.CharField(max_length=12)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
 
     def to_json(self):
         return {
             'ville': self.ville,
-            'adresse': self.adresse,
+            # 'adresse': self.adresse,
             'prenom': self.prenom,
             'nom': self.nom,
             'date_naissance': self.date_naissance.strftime('%Y-%m-%d'),
             'etablissement': self.Etablissement,
             'niveau_scolaire': self.niveau_scolaire,
-            'genre': self.genre,
+            # 'genre': self.genre,
             'numero_telephone': self.numero_telephone,
-            # Ajoutez d'autres champs selon vos besoins
+            'latitude': self.latitude,
+            'longitude': self.longitude,
         }
 
     def __str__(self):
         return f"{self.nom} {self.prenom}"
-
-
-    def __str__(self):
-        return f"{self.prenom} {self.nom}"
     
 class Admin(models.Model):
     user  = models.OneToOneField(User , related_name='admin',on_delete=models.CASCADE)

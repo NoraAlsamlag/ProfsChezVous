@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../constants.dart';
-import '../screens/sign_up/sign_up_screen.dart';
+import '../screens/inscription/page_inscription.dart';
 
-class NoAccountText extends StatelessWidget {
-  const NoAccountText({
+class AucunCompteText extends StatelessWidget {
+  const AucunCompteText({
     Key? key,
   }) : super(key: key);
 
@@ -18,7 +18,7 @@ class NoAccountText extends StatelessWidget {
           style: TextStyle(fontSize: 16),
         ),
         GestureDetector(
-          onTap: () => Navigator.pushNamed(context, SignUpScreen.routeName),
+          onTap: () => Navigator.pushNamed(context, PageInscription.routeName),
           child: const Text(
             "Inscription",
             style: TextStyle(fontSize: 16, color: kPrimaryColor),

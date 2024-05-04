@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 
-import '../../components/aucun_compte_text.dart';
 import '../../components/socal_card.dart';
-import 'components/sign_form.dart';
+import '../../constants.dart';
+import 'composent/inscription_form.dart';
+import 'completion_de_profil/composent/PageInscriptionEleve.dart';
 
-class SignInScreen extends StatelessWidget {
-  static String routeName = "/sign_in";
+class InscriptionEcrant extends StatelessWidget {
+  static String routeName = "/inscription";
 
-  const SignInScreen({super.key});
+  const InscriptionEcrant({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
+    final Map<String, dynamic>? args =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+
+    final String type = args?['type'] ?? '';
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Se connecter"),
+        title: const Text("S'inscrire"),
       ),
       body: SafeArea(
         child: SizedBox(
@@ -23,20 +29,13 @@ class SignInScreen extends StatelessWidget {
               child: Column(
                 children: [
                   const SizedBox(height: 16),
+                  const Text("Créer un compte", style: headingStyle),
                   const Text(
-                    "Bon retour",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Text(
-                    "Connectez-vous avec votre e-mail et votre mot de passe ou continuez avec les médias sociaux.",
+                    "Complétez vos coordonnées ou continuez avec les médias sociaux.",
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
-                  const SignForm(),
+                  InscriptionForm(type: type),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -55,8 +54,12 @@ class SignInScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  const AucunCompteText(),
+                  const SizedBox(height: 16),
+                  Text(
+                    'En continuant, vous confirmez que vous acceptez nos conditions générales.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyText2,
+                  )
                 ],
               ),
             ),
