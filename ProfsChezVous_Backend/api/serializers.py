@@ -14,7 +14,10 @@ from .models import Evaluation
 
 from .models import Diplome
 
-from .models import      Cours , SuiviProfesseur 
+from .models import      Cours , SuiviProfesseur , Disponibilite ,  CoursReserve
+
+from .models import Absence, Remboursement, CoursRattrapage
+
 
 
 
@@ -77,3 +80,27 @@ class SuiviProfesseurSerializer(serializers.ModelSerializer):
         model = SuiviProfesseur
         fields = '__all__' 
 
+class DisponibiliteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Disponibilite
+        fields = ['id', 'professeur', 'jour', 'heure_debut', 'heure_fin'] 
+
+class CoursReserveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CoursReserve
+        fields = ['id', 'professeur', 'eleve', 'date', 'heure_debut', 'heure_fin'] 
+
+class AbsenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Absence
+        fields = '__all__'
+
+class RemboursementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Remboursement
+        fields = '__all__'
+
+class CoursRattrapageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CoursRattrapage
+        fields = '__all__'

@@ -32,5 +32,14 @@ urlpatterns = [
     
     path('suivi-professeur/<int:pk>/', views.SuiviProfesseurRetrieveUpdateAPIView.as_view(), name='suivi-professeur-detail'),
     path('suivi-professeur/', views.SuiviProfesseurListAPIView.as_view(), name='suivi-professeur-list'),
+    path('disponibilites/', views.DisponibiliteListCreateAPIView.as_view(), name='disponibilite_list_create'),
+    path('disponibilites/<int:pk>/', views.DisponibiliteRetrieveUpdateDestroyAPIView.as_view(), name='disponibilite_detail'),
+
+    path('cours/', views.CoursReserveListCreateAPIView.as_view(), name='cours_reserve_list_create'),
+    path('cours/<int:pk>/',views. CoursReserveRetrieveUpdateDestroyAPIView.as_view(), name='cours_reserve_detail'),
+    path('reserver-cours/', views.reserver_cours, name='reserver_cours'),
+    path('signaler-absence/', views.signaler_absence, name='signaler_absence'),
+    path('demander-remboursement/', views.demander_remboursement, name='demander_remboursement'),
+    path('planifier-rattrapage/', views.planifier_rattrapage, name='planifier_rattrapage'),
 
 ]
