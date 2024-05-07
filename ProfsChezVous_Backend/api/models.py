@@ -204,4 +204,36 @@ class SuiviProfesseur(models.Model):
     cours_manques = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"Suivi de {self.professeur}"
+        return f"Suivi de {self.professeur}" 
+
+
+class Disponibilite(models.Model):
+    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
+    jour = models.DateField()
+    heure_debut = models.TimeField()
+    heure_fin = models.TimeField()
+
+class CoursReserve(models.Model):
+    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
+    eleve = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateField()
+    heure_debut = models.TimeField()
+    heure_fin = models.TimeField() 
+
+class Absence(models.Model):
+    eleve = models.ForeignKey(User, on_delete=models.CASCADE)
+    date_absence = models.DateField()
+    raison = models.TextField()
+
+class Remboursement(models.Model):
+    eleve = models.ForeignKey(User, on_delete=models.CASCADE)
+    cours_manque = models.ForeignKey(Cours, on_delete=models.CASCADE)
+    motif = models.TextField()
+    montant_rembourse = models.DecimalField(max_digits=10, decimal_places=2)
+    date_demande = models.DateField(auto_now_add=True)
+
+class CoursRattrapage(models.Model):
+    eleve = models.ForeignKey(User, on_delete=models.CASCADE)
+    cours_manque = models.ForeignKey(Cours, on_delete=models.CASCADE)
+    date_rattrapage = models.DateField()
+    motif = models.TextField()

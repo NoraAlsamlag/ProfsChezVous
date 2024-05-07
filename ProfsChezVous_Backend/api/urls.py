@@ -24,12 +24,21 @@ urlpatterns = [
     path('transactions/<int:pk>/', views.TransactionDetailView.as_view(), name='transaction-detail'),
     path('evaluations/', views.EvaluationListAPIView.as_view(), name='evaluation-list-create'),
     path('evaluations/<int:pk>/', views.EvaluationRetrieveUpdateDestroyAPIView.as_view(), name='evaluation-detail'),
-    # path('diplomes/', views.DiplomeListCreateAPIView.as_view(), name='diplome-list-create'),
-    # path('diplomes/<int:pk>/', views.DiplomeRetrieveUpdateDestroyAPIView.as_view(), name='diplome-detail'),
+   # path('diplomes/', views.DiplomeListCreateAPIView.as_view(), name='diplome-list-create'),
+   # path('diplomes/<int:pk>/', views.DiplomeRetrieveUpdateDestroyAPIView.as_view(), name='diplome-detail'),
     path('cours/', views.CoursListCreateAPIView.as_view(), name='cours-list-create'),
     path('cours/<int:pk>/', views.CoursRetrieveUpdateDestroyAPIView.as_view(), name='cours-detail'),
     
     path('suivi-professeur/<int:pk>/', views.SuiviProfesseurRetrieveUpdateAPIView.as_view(), name='suivi-professeur-detail'),
     path('suivi-professeur/', views.SuiviProfesseurListAPIView.as_view(), name='suivi-professeur-list'),
+    path('disponibilites/', views.DisponibiliteListCreateAPIView.as_view(), name='disponibilite_list_create'),
+    path('disponibilites/<int:pk>/', views.DisponibiliteRetrieveUpdateDestroyAPIView.as_view(), name='disponibilite_detail'),
+
+    path('cours/', views.CoursReserveListCreateAPIView.as_view(), name='cours_reserve_list_create'),
+    path('cours/<int:pk>/',views. CoursReserveRetrieveUpdateDestroyAPIView.as_view(), name='cours_reserve_detail'),
+    path('reserver-cours/', views.reserver_cours, name='reserver_cours'),
+    path('signaler-absence/', views.signaler_absence, name='signaler_absence'),
+    path('demander-remboursement/', views.demander_remboursement, name='demander_remboursement'),
+    path('planifier-rattrapage/', views.planifier_rattrapage, name='planifier_rattrapage'),
 
 ]
