@@ -46,7 +46,7 @@ Future<dynamic> authentificationUtilisateur(String? email, String? password) asy
 }
 
 Future<User?> getUser(String token) async {
-  var url = Uri.parse("$domaine/user/info");
+  var url = Uri.parse("$domaine/user/auth/user");
   var res = await http.get(url, headers: {
     'Authorization': 'Token ${token}',
   });

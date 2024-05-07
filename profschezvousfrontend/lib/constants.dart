@@ -37,6 +37,7 @@ const String kNamelNullError = "Veuillez entrer votre nom";
 const String kPhoneNumberNullError =
     "Veuillez entrer votre numéro de téléphone";
 const String kAddressNullError = "Veuillez entrer votre adresse";
+const String kDateNaissanceNullError = "Veuillez entrer votre date de naissance";
 
 final otpInputDecoration = InputDecoration(
   contentPadding: const EdgeInsets.symmetric(vertical: 16),

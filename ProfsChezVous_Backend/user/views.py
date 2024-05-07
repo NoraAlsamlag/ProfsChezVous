@@ -276,6 +276,9 @@ def get_user_info(request, user_pk):
 
 
 
+import requests
+from django.http import JsonResponse
+
 def obtenir_adresse_a_partir_des_coordonnees(request):
     if request.method == 'GET':
         latitude = request.GET.get('latitude')
@@ -288,14 +291,18 @@ def obtenir_adresse_a_partir_des_coordonnees(request):
 
             if response.status_code == 200:
                 data = response.json()
-                adresse = data.get('display_name', 'Adresse introuvable')
-                return JsonResponse({'adresse': adresse})
+                address = data.get('address', {})
+                city = address.get('city', '')
+                suburb = address.get('suburb', '')
+                country = address.get('country', '')
+                display_address = f"{country}, {city}, {suburb}"
+                return JsonResponse({'address': display_address})
             else:
-                return JsonResponse({'erreur': 'Échec de l\'obtention de l\'adresse'}, status=response.status_code)
+                return JsonResponse({'error': 'Failed to retrieve the address'}, status=response.status_code)
         else:
-            return JsonResponse({'erreur': 'Latitude ou longitude manquante'}, status=400)
+            return JsonResponse({'error': 'Missing latitude or longitude'}, status=400)
     else:
-        return JsonResponse({'erreur': 'Méthode de requête invalide'}, status=405)
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
     
 
 

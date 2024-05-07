@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../components/custom_surfix_icon.dart';
 import '../../../components/form_error.dart';
-import '../../../components/no_account_text.dart';
+import '../../../components/aucun_compte_text.dart';
 import '../../../constants.dart';
 
 class ForgotPassForm extends StatefulWidget {
@@ -72,7 +72,7 @@ class _ForgotPassFormState extends State<ForgotPassForm> {
             child: const Text("Continue"),
           ),
           const SizedBox(height: 16),
-          const NoAccountText(),
+          const AucunCompteText(),
         ],
       ),
     );

@@ -26,9 +26,9 @@ class ParentRegisterSerializer(RegisterSerializer):
     prenom = serializers.CharField(max_length=30)
     date_naissance = serializers.DateField()
     ville = serializers.CharField(max_length=100)
-    adresse = serializers.CharField(max_length=200)
+    # adresse = serializers.CharField(max_length=200)
     numero_telephone = serializers.CharField(max_length=12)
-    quartier_résidence = serializers.CharField(max_length=70)
+    # quartier_résidence = serializers.CharField(max_length=70)
     latitude = serializers.FloatField()
     longitude = serializers.FloatField()
     # eleves = ArrayField(serializers.CharField(max_length=100), blank=True)
@@ -57,9 +57,8 @@ class ParentRegisterSerializer(RegisterSerializer):
             'prenom': self.validated_data.get('prenom'),
             'ville': self.validated_data.get('ville'),
             'date_naissance': self.validated_data.get('date_naissance'),
-            'adresse': self.validated_data.get('adresse'),
+            # 'adresse': self.validated_data.get('adresse'),
             'numero_telephone': self.validated_data.get('numero_telephone'),
-            'quartier_résidence': self.validated_data.get('quartier_résidence'),
             'latitude': self.validated_data.get('latitude'),
             'longitude': self.validated_data.get('longitude'),
         }
@@ -71,11 +70,13 @@ class ProfesseurRegisterSerializer(RegisterSerializer):
     prenom = serializers.CharField(max_length=30)
     ville = serializers.CharField(max_length=30)
     date_naissance = serializers.DateField()
-    adresse = serializers.CharField(max_length=30)
     numero_telephone = serializers.CharField(max_length=12)
     experience_enseignement = serializers.CharField(max_length=100)
     certifications = serializers.CharField(max_length=100)
-    tarif_horaire = serializers.DecimalField(max_digits=10, decimal_places=2)
+    matiere_a_enseigner  = serializers.CharField(max_length=100)
+    niveau_etude  = serializers.CharField(max_length=50)
+    latitude = serializers.FloatField()
+    longitude = serializers.FloatField()
 
     def get_cleaned_data(self):
         cleaned_data = super().get_cleaned_data()
@@ -92,11 +93,13 @@ class ProfesseurRegisterSerializer(RegisterSerializer):
             'prenom': self.validated_data.get('prenom'),
             'ville': self.validated_data.get('ville'),
             'date_naissance': self.validated_data.get('date_naissance'),
-            'adresse': self.validated_data.get('adresse'),
             'numero_telephone': self.validated_data.get('numero_telephone'),
             'experience_enseignement': self.validated_data.get('experience_enseignement'),
             'certifications': self.validated_data.get('certifications'),
-            'tarif_horaire': self.validated_data.get('tarif_horaire'),
+            'niveau_etude': self.validated_data.get('niveau_etude'),
+            'matiere_a_enseigner': self.validated_data.get('matiere_a_enseigner'),
+            'latitude': self.validated_data.get('latitude'),
+            'longitude': self.validated_data.get('longitude'),
         }
         Professeur.objects.create(**professeur_data)
         return user
@@ -105,15 +108,12 @@ class EleveRegisterSerializer(RegisterSerializer):
     nom = serializers.CharField(max_length=50)
     prenom = serializers.CharField(max_length=30)
     ville = serializers.CharField(max_length=30)
-    adresse = serializers.CharField(max_length=30)
     date_naissance = serializers.DateField()
     Etablissement = serializers.CharField(max_length=100) 
-    GENRE_CHOICES = (
-        ('masculin', 'Masculin'),
-        ('feminin', 'Féminin'),
-        ('autre', 'Autre'),)
-    genre = serializers.ChoiceField( choices=GENRE_CHOICES)
     numero_telephone = serializers.CharField(max_length=12)
+    niveau_scolaire = serializers.CharField(max_length=100)
+    latitude = serializers.FloatField()
+    longitude = serializers.FloatField()
 
     def get_cleaned_data(self):
         cleaned_data = super().get_cleaned_data()
@@ -129,11 +129,12 @@ class EleveRegisterSerializer(RegisterSerializer):
             'nom': self.validated_data.get('nom'),
             'prenom': self.validated_data.get('prenom'),
             'ville': self.validated_data.get('ville'),
-            'adresse': self.validated_data.get('adresse'),
             'date_naissance': self.validated_data.get('date_naissance'),
-            'genre': self.validated_data.get('genre'),
+            'niveau_scolaire': self.validated_data.get('niveau_scolaire'),
             'numero_telephone': self.validated_data.get('numero_telephone'),
             'Etablissement': self.validated_data.get('Etablissement'),
+            'latitude': self.validated_data.get('latitude'),
+            'longitude': self.validated_data.get('longitude'),
         }
         Eleve.objects.create(**eleve_data)
         return user
