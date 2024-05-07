@@ -12,7 +12,7 @@ from .models import Transaction
 from rest_framework import serializers
 from .models import Evaluation
 
-from .models import Diplome
+#from .models import Diplome
 
 from .models import      Cours , SuiviProfesseur , Disponibilite ,  CoursReserve
 
@@ -65,10 +65,10 @@ class EvaluationSerializer(serializers.ModelSerializer):
         model = Evaluation
         fields = '__all__' 
 
-class DiplomeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Diplome
-        fields = '__all__' 
+# class DiplomeSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Diplome
+#         fields = '__all__' 
 
 class CoursSerializer(serializers.ModelSerializer):
     class Meta:

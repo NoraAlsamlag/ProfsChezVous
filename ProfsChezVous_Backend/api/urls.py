@@ -25,8 +25,8 @@ urlpatterns = [
     path('transactions/<int:pk>/', views.TransactionDetailView.as_view(), name='transaction-detail'),
     path('evaluations/', views.EvaluationListAPIView.as_view(), name='evaluation-list-create'),
     path('evaluations/<int:pk>/', views.EvaluationRetrieveUpdateDestroyAPIView.as_view(), name='evaluation-detail'),
-    path('diplomes/', views.DiplomeListCreateAPIView.as_view(), name='diplome-list-create'),
-    path('diplomes/<int:pk>/', views.DiplomeRetrieveUpdateDestroyAPIView.as_view(), name='diplome-detail'),
+   # path('diplomes/', views.DiplomeListCreateAPIView.as_view(), name='diplome-list-create'),
+   # path('diplomes/<int:pk>/', views.DiplomeRetrieveUpdateDestroyAPIView.as_view(), name='diplome-detail'),
     path('cours/', views.CoursListCreateAPIView.as_view(), name='cours-list-create'),
     path('cours/<int:pk>/', views.CoursRetrieveUpdateDestroyAPIView.as_view(), name='cours-detail'),
     
