@@ -26,7 +26,7 @@ Future<void> enregistrerEleve({
     "date_naissance": dateNaissance,
     "ville": ville,
     "numero_telephone": numeroTelephone,
-    "etablissement": etablissement,
+    "Etablissement": etablissement,
     "niveau_scolaire": niveauScolaire,
     "latitude": latitude,
     "longitude": longitude,

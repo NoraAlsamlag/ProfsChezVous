@@ -38,11 +38,11 @@ class CompletionProfilEcrant extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
-                  if (type == 'parent') ...[
+                  if (type == 'Parent') ...[
                     PageInscriptionParent(email: email, password: password),
-                  ] else if (type == 'prof') ...[
+                  ] else if (type == 'Professeur') ...[
                     PageInscriptionProfesseur(email: email, password: password),
-                  ] else if (type == 'eleve') ...[
+                  ] else if (type == 'Élève') ...[
                     PageInscriptionEleve(email: email, password: password),
                   ],
                   const SizedBox(height: 30),

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../components/socal_card.dart';
 import '../../constants.dart';
 import 'composent/inscription_form.dart';
-import 'completion_de_profil/composent/PageInscriptionEleve.dart';
 
 class InscriptionEcrant extends StatelessWidget {
   static String routeName = "/inscription";
@@ -29,7 +28,7 @@ class InscriptionEcrant extends StatelessWidget {
               child: Column(
                 children: [
                   const SizedBox(height: 16),
-                  const Text("Créer un compte", style: headingStyle),
+                  Text("Créer un compte $type", style: headingStyle),
                   const Text(
                     "Complétez vos coordonnées ou continuez avec les médias sociaux.",
                     textAlign: TextAlign.center,

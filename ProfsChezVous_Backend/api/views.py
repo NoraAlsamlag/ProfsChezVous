@@ -2,9 +2,9 @@ from rest_framework import generics , permissions
 from rest_framework import viewsets
 #from .models import DiscussionParentAdmin
 #from .serializers import DiscussionParentAdminSerializer
-from .models import Transaction ,Evaluation,Message,CommentaireCours,Matiere,Cours_Package,Cours_Unite , Diplome
+from .models import Transaction ,Evaluation,Message,CommentaireCours,Matiere,Cours_Package,Cours_Unite
 from .serializers import *
-from .serializers import DiplomeSerializer
+# from .serializers import DiplomeSerializer
 
 
 from rest_framework.permissions import IsAuthenticated
@@ -62,18 +62,18 @@ class EvaluationRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIVi
     serializer_class = EvaluationSerializer
 
 
-class DiplomeListCreateAPIView(generics.ListCreateAPIView):
-    queryset = Diplome.objects.all()
-    serializer_class = DiplomeSerializer
-    permission_classes = [IsAuthenticated]
+# class DiplomeListCreateAPIView(generics.ListCreateAPIView):
+#     queryset = Diplome.objects.all()
+#     serializer_class = DiplomeSerializer
+#     permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(professeur=self.request.user.professeur)
+#     def perform_create(self, serializer):
+#         serializer.save(professeur=self.request.user.professeur)
 
-class DiplomeRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Diplome.objects.all()
-    serializer_class = DiplomeSerializer
-    permission_classes = [IsAuthenticated]
+# class DiplomeRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Diplome.objects.all()
+#     serializer_class = DiplomeSerializer
+#     permission_classes = [IsAuthenticated]
 
 class CoursListCreateAPIView(generics.ListCreateAPIView):
     queryset = Cours.objects.all()

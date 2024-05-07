@@ -323,3 +323,14 @@ def ajouter_ou_modifier_photo_profil(request,user_pk):
             return JsonResponse({'message': 'Photo de profil mise à jour avec succès.'})
 
     return JsonResponse({'error': 'Méthode de requête invalide.'}, status=405)
+
+
+
+class EmailCheckAPIView(APIView):
+    def get(self, request, email):
+        # Vérifie si l'email existe dans la base de données
+        try:
+            user = User.objects.get(email=email)
+            return Response({'email_existe': True}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'email_existe': False}, status=status.HTTP_200_OK)

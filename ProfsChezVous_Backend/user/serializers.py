@@ -2,19 +2,12 @@ from dj_rest_auth.serializers import LoginSerializer
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
 from django_resized import ResizedImageField
+from rest_framework.validators import UniqueValidator
 # from django.contrib.postgres.fields import ArrayField
-from user.models import Parent, Professeur, Eleve, Admin
-
-
-from dj_rest_auth.registration.serializers import RegisterSerializer
-from rest_framework import serializers
-from .models import Parent
-from .models import Enfant
-from rest_framework import serializers
-
+from user.models import User,Parent, Professeur, Eleve, Admin
+from .models import Parent,Enfant,cv_file_name,diplome_file_name
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from io import BytesIO
-from rest_framework import serializers
 #from .models import Transaction
 
 
@@ -22,6 +15,10 @@ from rest_framework import serializers
 
 
 class ParentRegisterSerializer(RegisterSerializer):
+    # email = serializers.EmailField(
+    #     required=True,
+    #     validators=[UniqueValidator(queryset=User.objects.all())]
+    # )
     nom = serializers.CharField(max_length=50)
     prenom = serializers.CharField(max_length=30)
     date_naissance = serializers.DateField()
@@ -65,18 +62,29 @@ class ParentRegisterSerializer(RegisterSerializer):
         Parent.objects.create(**parent_data)
         return user
 
+
+
 class ProfesseurRegisterSerializer(RegisterSerializer):
     nom = serializers.CharField(max_length=50)
     prenom = serializers.CharField(max_length=30)
     ville = serializers.CharField(max_length=30)
     date_naissance = serializers.DateField()
     numero_telephone = serializers.CharField(max_length=12)
-    experience_enseignement = serializers.CharField(max_length=100)
-    certifications = serializers.CharField(max_length=100)
-    matiere_a_enseigner  = serializers.CharField(max_length=100)
-    niveau_etude  = serializers.CharField(max_length=50)
+    cv = serializers.FileField(write_only=True, required=True, allow_empty_file=False, use_url=False)
+    diplome = serializers.FileField(write_only=True, required=True, allow_empty_file=False, use_url=False)
+    matiere_a_enseigner = serializers.CharField(max_length=100)
+    niveau_etude = serializers.CharField(max_length=50)
     latitude = serializers.FloatField()
     longitude = serializers.FloatField()
+
+    def to_internal_value(self, data):
+        validated_data = super().to_internal_value(data)
+        request = self.context.get('request')
+        if 'cv' in data and isinstance(data['cv'], str):
+            validated_data['cv'] = cv_file_name(request.user, data['cv'])
+        if 'diplome' in data and isinstance(data['diplome'], str):
+            validated_data['diplome'] = diplome_file_name(request.user, data['diplome'])
+        return validated_data
 
     def get_cleaned_data(self):
         cleaned_data = super().get_cleaned_data()
@@ -94,8 +102,8 @@ class ProfesseurRegisterSerializer(RegisterSerializer):
             'ville': self.validated_data.get('ville'),
             'date_naissance': self.validated_data.get('date_naissance'),
             'numero_telephone': self.validated_data.get('numero_telephone'),
-            'experience_enseignement': self.validated_data.get('experience_enseignement'),
-            'certifications': self.validated_data.get('certifications'),
+            'cv': self.validated_data.get('cv'),
+            'diplome': self.validated_data.get('diplome'),
             'niveau_etude': self.validated_data.get('niveau_etude'),
             'matiere_a_enseigner': self.validated_data.get('matiere_a_enseigner'),
             'latitude': self.validated_data.get('latitude'),
@@ -105,11 +113,15 @@ class ProfesseurRegisterSerializer(RegisterSerializer):
         return user
 
 class EleveRegisterSerializer(RegisterSerializer):
+    # email = serializers.EmailField(
+    #     required=True,
+    #     validators=[UniqueValidator(queryset=User.objects.all())]
+    # )
     nom = serializers.CharField(max_length=50)
     prenom = serializers.CharField(max_length=30)
     ville = serializers.CharField(max_length=30)
     date_naissance = serializers.DateField()
-    Etablissement = serializers.CharField(max_length=100) 
+    Etablissement = serializers.CharField(max_length=100)
     numero_telephone = serializers.CharField(max_length=12)
     niveau_scolaire = serializers.CharField(max_length=100)
     latitude = serializers.FloatField()

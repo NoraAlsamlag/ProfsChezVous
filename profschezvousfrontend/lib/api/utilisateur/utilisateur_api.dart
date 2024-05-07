@@ -45,6 +45,22 @@ Future<String> obtenirAdresseAPartirDesCoordinates(double? latitude, double? lon
 
 
 
+Future<bool> verifierEmail(String email) async {
+  final response = await http.get(Uri.parse('$domaine/user/verifier-email/$email/'));
+
+  if (response.statusCode == 200) {
+    // Si la requête a réussi, analyser la réponse JSON
+    Map<String, dynamic> data = json.decode(response.body);
+    return data['email_existe'];
+  } else {
+    // Gérer les erreurs de requête HTTP ici
+    throw Exception('Impossible de vérifier l\'email');
+  }
+}
+
+
+
+
 
 
 
@@ -57,12 +73,9 @@ Future<void> uploadProfilePicture(String imagePath,int? user_pk) async {
 
   if (response.statusCode == 200) {
     String jsonResponse = await response.stream.bytesToString();
-    // Parse the JSON response if needed
-    // Handle the response from the server here
     print(jsonResponse);
   } else {
     String errorResponse = await response.stream.bytesToString();
-    // Handle the error response from the server here
     print(errorResponse);
   }
 }

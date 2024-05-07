@@ -94,6 +94,19 @@ class Parent(models.Model):
     def __str__(self):
         return f"{self.nom} {self.prenom} (Parent)"
 
+
+
+def diplome_file_name(inst, filename):
+    ext = filename.split('.')[-1]
+    file_name = f"{inst.id}_{inst.prenom}_diplome.{ext}"
+    return os.path.join("diplome",file_name)
+
+def cv_file_name(inst, filename):
+    # Generate the file name using ID, first name, and "cv"
+    ext = filename.split('.')[-1]
+    file_name = f"{inst.id}_{inst.prenom}_cv.{ext}"
+    return os.path.join('cv', file_name)
+
 class Professeur(models.Model):
     user  = models.OneToOneField(User , related_name='professeur',on_delete=models.CASCADE)
     nom = models.CharField(max_length=50)
@@ -102,8 +115,8 @@ class Professeur(models.Model):
     # adresse = models.CharField(max_length=200)
     # quartier_résidence = models.CharField(max_length=70)
     numero_telephone = models.CharField(max_length=12)
-    experience_enseignement = models.CharField(max_length=100)
-    certifications = models.CharField(max_length=100)
+    cv = models.FileField(upload_to=cv_file_name)
+    diplome = models.FileField(upload_to=diplome_file_name)
     # tarif_horaire = models.CharField(max_length=50)
     date_naissance = models.DateField()
     matiere_a_enseigner  = models.CharField(max_length=100)

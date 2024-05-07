@@ -4,15 +4,14 @@ import '../../../../../components/custom_surfix_icon.dart';
 class VilleDropdown extends StatefulWidget {
   final Function(String?) onVilleSelected;
 
-  const VilleDropdown({Key? key, required this.onVilleSelected})
-      : super(key: key);
+  const VilleDropdown({Key? key, required this.onVilleSelected}) : super(key: key);
 
   @override
   _VilleDropdownState createState() => _VilleDropdownState();
 }
 
 class _VilleDropdownState extends State<VilleDropdown> {
-  final List<String> _cities = [
+  List<String> _villes = [
     'Nouakchott',
     'Nouadhibou',
     'Boutilimit',
@@ -35,6 +34,12 @@ class _VilleDropdownState extends State<VilleDropdown> {
     'Ouadane',
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _villes.sort();
+  }
+
   String? _selectedVille;
 
   @override
@@ -44,7 +49,7 @@ class _VilleDropdownState extends State<VilleDropdown> {
         labelText: 'Ville',
         hintText: 'Sélectionnez votre ville',
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Lock.svg"),
+        suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Ville.svg"),
       ),
       value: _selectedVille,
       onChanged: (String? newValue) {
@@ -53,7 +58,7 @@ class _VilleDropdownState extends State<VilleDropdown> {
         });
         widget.onVilleSelected(newValue);
       },
-      items: _cities.map<DropdownMenuItem<String>>((String value) {
+      items: _villes.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(value),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../api/utilisateur/utilisateur_api.dart';
 import '../../../components/custom_surfix_icon.dart';
 import '../../../components/form_error.dart';
 import '../../../constants.dart';
@@ -47,11 +48,20 @@ class _InscriptionFormState extends State<InscriptionForm> {
           TextFormField(
             keyboardType: TextInputType.emailAddress,
             onSaved: (newValue) => email = newValue,
-            onChanged: (value) {
+            onChanged: (value) async {
               if (value.isNotEmpty) {
                 removeError(error: kEmailNullError);
               } else if (emailValidatorRegExp.hasMatch(value)) {
                 removeError(error: kInvalidEmailError);
+              }
+              // Vérifier l'email uniquement si le format est correct
+              if (emailValidatorRegExp.hasMatch(value)) {
+                bool emailExiste = await verifierEmail(value);
+                if (emailExiste) {
+                  addError(error: kEmailDejaUtiliseError);
+                } else {
+                  removeError(error: kEmailDejaUtiliseError);
+                }
               }
               email = value;
             },
@@ -62,14 +72,14 @@ class _InscriptionFormState extends State<InscriptionForm> {
               } else if (!emailValidatorRegExp.hasMatch(value)) {
                 addError(error: kInvalidEmailError);
                 return "";
+              } else if (errors.contains(kEmailDejaUtiliseError)) {
+                return kEmailDejaUtiliseError;
               }
               return null;
             },
             decoration: const InputDecoration(
               labelText: "E-mail",
               hintText: "Entrez votre adresse e-mail",
-              // If  you are using latest version of flutter then lable text and hint text shown like this
-              // if you r using flutter less then 1.20.* then maybe this is not working properly
               floatingLabelBehavior: FloatingLabelBehavior.always,
               suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Mail.svg"),
             ),
@@ -99,8 +109,6 @@ class _InscriptionFormState extends State<InscriptionForm> {
             decoration: const InputDecoration(
               labelText: "Mot de passe",
               hintText: "Entrez votre mot de passe",
-              // If  you are using latest version of flutter then lable text and hint text shown like this
-              // if you r using flutter less then 1.20.* then maybe this is not working properly
               floatingLabelBehavior: FloatingLabelBehavior.always,
               suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Lock.svg"),
             ),
@@ -130,8 +138,6 @@ class _InscriptionFormState extends State<InscriptionForm> {
             decoration: const InputDecoration(
               labelText: "Confirmer le mot de passe",
               hintText: "Ré-entrez votre mot de passe",
-              // If  you are using latest version of flutter then lable text and hint text shown like this
-              // if you r using flutter less then 1.20.* then maybe this is not working properly
               floatingLabelBehavior: FloatingLabelBehavior.always,
               suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Lock.svg"),
             ),

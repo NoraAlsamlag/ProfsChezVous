@@ -6,6 +6,10 @@ import '../../../../api/prof/prof_api.dart';
 import '../../../../components/custom_surfix_icon.dart';
 import '../../../../components/form_error.dart';
 import '../../../../constants.dart';
+import 'widgets/ecran_envoi_fichiers.dart';
+import 'widgets/niveau_etude_dropdown.dart';
+import 'widgets/ville_dropdown.dart';
+import 'widgets/matiere_a_enseigner_dropdown.dart';
 
 class PageInscriptionProfesseur extends StatefulWidget {
   final String email;
@@ -18,7 +22,8 @@ class PageInscriptionProfesseur extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _PageInscriptionProfesseurState createState() => _PageInscriptionProfesseurState();
+  _PageInscriptionProfesseurState createState() =>
+      _PageInscriptionProfesseurState();
 }
 
 class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
@@ -27,7 +32,31 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
   String? preNom;
   String? nom;
   String? numero_tel;
-  String? address;
+  String? dateNaissance;
+  String? ville;
+  String? niveauEtude;
+  String? cheminFichierDiplome;
+  String? cheminFichierCV;
+  List<String> selectedItems = [];
+  bool isLoading = false;
+
+  void _updateSelectedItems(List<String> newSelectedItems) {
+    setState(() {
+      selectedItems = newSelectedItems;
+    });
+  }
+
+  // void _updatecheminFichierCV(String? newcheminFichierCV) {
+  //   setState(() {
+  //     cheminFichierCV = newcheminFichierCV;
+  //   });
+  // }
+
+  // void _updatecheminFichierDiplome(String? newcheminFichierDiplome) {
+  //   setState(() {
+  //     cheminFichierDiplome = newcheminFichierDiplome;
+  //   });
+  // }
 
   @override
   void initState() {
@@ -35,12 +64,52 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
     _requestLocationPermission();
   }
 
+  void _handleVilleSelected(String? v) {
+    setState(() {
+      ville = v;
+    });
+  }
+
+  void _handleNiveauEtudeSelected(String? n) {
+    setState(() {
+      niveauEtude = n;
+    });
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime? _picked = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(1900),
+        lastDate: DateTime.now());
+
+    if (_picked != null) {
+      setState(() {
+        dateNaissance = _picked.toString().split(" ")[0];
+      });
+    }
+  }
+
+  String? validateDateNaissance(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Veuillez sélectionner une date de naissance';
+    }
+
+    final selectedDateTime = DateTime.parse(value);
+    final minimumAge = DateTime.now().subtract(Duration(days: 18 * 365));
+    if (selectedDateTime.isAfter(minimumAge)) {
+      return 'Vous devez avoir au moins 18 ans.';
+    }
+
+    return null;
+  }
+
   Future<void> _requestLocationPermission() async {
     bool permissionGranted = await requestLocationPermission(context);
     if (!permissionGranted) {
       // Handle the case when location permission is denied
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Permission de localisation refusée.'),
         ),
       );
@@ -75,17 +144,38 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
               if (value.isNotEmpty) {
                 removeError(error: kNamelNullError);
               } else if (value.length > 16) {
-                removeError(error: kNamelNullError);
+                removeError(error: kPrenomTropLongError);
               }
               preNom = value;
+              if (value.length >= 3 &&
+                  value.length <= 16 &&
+                  nomPrenomValidatorRegExp.hasMatch(value)) {
+                removeError(error: kPrenomFormatError);
+              } else {
+                removeError(
+                    error:
+                        kPrenomTropCourtError); // Supprimer l'erreur si le prénom est valide
+                removeError(
+                    error:
+                        kPrenomTropLongError); // Supprimer l'erreur si le prénom est valide
+                removeError(
+                    error:
+                        kPrenomFormatError); // Supprimer l'erreur si le prénom est valide
+              }
             },
             validator: (value) {
               if (value!.isEmpty) {
                 addError(error: kNamelNullError);
                 return "";
               } else if (value.length < 3) {
-                addError(error: kNamelNullError);
-                return "";
+                addError(error: kPrenomTropCourtError);
+                return kPrenomTropCourtError;
+              } else if (value.length > 16) {
+                addError(error: kPrenomTropLongError);
+                return kPrenomTropLongError;
+              } else if (!nomPrenomValidatorRegExp.hasMatch(value)) {
+                addError(error: kPrenomFormatError);
+                return kPrenomFormatError;
               }
               return null;
             },
@@ -103,17 +193,38 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
               if (value.isNotEmpty) {
                 removeError(error: kNamelNullError);
               } else if (value.length > 16) {
-                removeError(error: kNamelNullError);
+                removeError(error: kNomeTropLongError);
               }
               nom = value;
+              if (value.length >= 3 &&
+                  value.length <= 16 &&
+                  nomPrenomValidatorRegExp.hasMatch(value)) {
+                removeError(error: kNomeFormatError);
+              } else {
+                removeError(
+                    error:
+                        kNomeTropCourtError); // Supprimer l'erreur si le nom est valide
+                removeError(
+                    error:
+                        kNomeTropLongError); // Supprimer l'erreur si le nom est valide
+                removeError(
+                    error:
+                        kNomeFormatError); // Supprimer l'erreur si le nom est valide
+              }
             },
             validator: (value) {
               if (value!.isEmpty) {
                 addError(error: kNamelNullError);
                 return "";
               } else if (value.length < 3) {
-                addError(error: kNamelNullError);
-                return "";
+                addError(error: kNomeTropCourtError);
+                return kNomeTropCourtError;
+              } else if (value.length > 16) {
+                addError(error: kNomeTropLongError);
+                return kNomeTropLongError;
+              } else if (!nomPrenomValidatorRegExp.hasMatch(value)) {
+                addError(error: kNomeFormatError);
+                return kNomeFormatError;
               }
               return null;
             },
@@ -133,11 +244,39 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
                 removeError(error: kPhoneNumberNullError);
               }
               numero_tel = value;
+              if (numeroTelephoneValidatorRegExp.hasMatch(value)) {
+                removeError(error: kNumeroTelephoneCommencerPar234);
+              } else {
+                addError(
+                    error:
+                        kNumeroTelephoneCommencerPar234); // Ajoutez l'erreur si le numéro ne commence pas par 2, 3 ou 4
+              }
+              if (value.length == 8) {
+                removeError(
+                    error:
+                        kNumeroTelephoneLengthError); // Supprimez l'erreur si la longueur est égale à 8 chiffres
+              }
+              if (numeroTelephoneContientLetterValidatorRegExp
+                  .hasMatch(value)) {
+                removeError(
+                    error:
+                        kNumeroTelephoneContientLetterError); // Supprimez l'erreur si le numéro ne contient pas de lettres
+              }
             },
             validator: (value) {
               if (value!.isEmpty) {
                 addError(error: kPhoneNumberNullError);
                 return "";
+              } else if (!numeroTelephoneValidatorRegExp.hasMatch(value)) {
+                addError(error: kNumeroTelephoneCommencerPar234);
+                return kNumeroTelephoneCommencerPar234;
+              } else if (value.length != 8) {
+                addError(error: kNumeroTelephoneLengthError);
+                return kNumeroTelephoneLengthError;
+              } else if (!numeroTelephoneContientLetterValidatorRegExp
+                  .hasMatch(value)) {
+                addError(error: kNumeroTelephoneContientLetterError);
+                return kNumeroTelephoneContientLetterError;
               }
               return null;
             },
@@ -149,58 +288,93 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
             ),
           ),
           const SizedBox(height: 20),
+          VilleDropdown(
+            onVilleSelected: _handleVilleSelected,
+          ),
+          const SizedBox(height: 20),
           TextFormField(
-            onSaved: (newValue) => address = newValue,
-            onChanged: (value) {
-              if (value.isNotEmpty) {
-                removeError(error: kAddressNullError);
-              }
-              address = value;
+            onTap: () {
+              _selectDate(context);
             },
-            validator: (value) {
-              if (value!.isEmpty) {
-                addError(error: kAddressNullError);
-                return "";
-              }
-              return null;
-            },
+            readOnly: true,
+            controller: TextEditingController(
+              text: dateNaissance != null ? dateNaissance : '',
+            ),
             decoration: const InputDecoration(
-              labelText: "Adresse",
-              hintText: "Entrez votre adresse",
+              labelText: "Date de naissance",
+              hintText: "Sélectionnez votre date de naissance",
               floatingLabelBehavior: FloatingLabelBehavior.always,
               suffixIcon:
-                  CustomSurffixIcon(svgIcon: "assets/icons/Location point.svg"),
+                  CustomSurffixIcon(svgIcon: "assets/icons/calendar.svg"),
             ),
+            validator: validateDateNaissance,
           ),
+          const SizedBox(height: 20),
+          NiveauEtudeDropdown(
+            onNiveauEtudeSelected: _handleNiveauEtudeSelected,
+          ),
+          const SizedBox(height: 20),
+          MatiereAEnseigneeDropdown(
+            onSelectionChanged: _updateSelectedItems,
+          ),
+          const SizedBox(height: 20),
+          EcranEnvoiFichiers(
+        onCheminFichierCV: (cheminCV) {
+          // Faites quelque chose avec le chemin du fichier CV sélectionné
+          print('Chemin du fichier CV : $cheminCV');
+          setState(() {
+            cheminFichierCV = cheminCV;
+          });
+        },
+        onCheminFichierDiplome: (cheminDiplome) {
+          // Faites quelque chose avec le chemin du fichier Diplôme sélectionné
+          print('Chemin du fichier Diplôme : $cheminDiplome');
+          setState(() {
+            cheminFichierDiplome = cheminDiplome;
+          });
+        },
+      ),
+      SizedBox(height: 16.0),
+      Text(cheminFichierCV?.isNotEmpty == true
+          ? 'Fichier CV : ${cheminFichierCV!}'
+          : 'Veuillez choisir un fichier CV.'),
+      SizedBox(height: 16.0),
+      Text(cheminFichierDiplome?.isNotEmpty == true
+          ? 'Fichier Diplôme : ${cheminFichierDiplome!}'
+          : 'Veuillez choisir un fichier Diplôme.'),
+          const SizedBox(height: 20),
           FormError(errors: errors),
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () async {
+              print(selectedItems.isNotEmpty
+                  ? selectedItems.join(', ')
+                  : 'No items selected');
               if (_formKey.currentState!.validate()) {
+                setState(() {
+            isLoading = true; // Définit isLoading à true avant l'appel à enregistrerProfesseur
+          });
                 bool permissionGranted =
                     await requestLocationPermission(context);
                 if (permissionGranted) {
                   Map<String, double>? locationData =
                       await getCurrentLocation();
                   if (locationData != null) {
-                    if (preNom != null &&
-                        nom != null &&
-                        address != null &&
-                        numero_tel != null) {
+                    if (preNom != null && nom != null && numero_tel != null) {
                       enregistrerProfesseur(
                         email: widget.email,
                         motDePasse: widget.password,
                         nom: nom!,
                         prenom: preNom!,
-                        dateNaissance: '2000-01-01',
-                        ville: 'VilleParent',
+                        dateNaissance: dateNaissance!,
+                        ville: ville!,
                         longitude: locationData['longitude'].toString(),
                         latitude: locationData['latitude'].toString(),
                         numeroTelephone: numero_tel!,
-                        matiereAEnseigner: "matiereAEnseigner",
-                        niveauEtude: "niveauEtude",
-                        certifications: "certifications",
-                        experienceEnseignement: "experienceEnseignement",
+                        matiereAEnseigner: selectedItems.join(', '),
+                        niveauEtude: niveauEtude!,
+                        cvPath: cheminFichierCV!,
+                        diplomePath: cheminFichierDiplome!,
                       ).then((_) {
                         // Afficher un message de succès
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -224,7 +398,11 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
                                 'Échec de l\'enregistrement. Veuillez réessayer.: $error'),
                           ),
                         );
-                      });
+                      }).whenComplete(() {
+            setState(() {
+              isLoading = false; // Définit isLoading à false après l'appel à enregistrerProfesseur
+            });
+          });
                     } else {
                       // Afficher un message d'erreur si des champs requis sont manquants
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -255,6 +433,11 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
             },
             child: const Text("Continue"),
           ),
+          Visibility(
+      visible: isLoading,
+      child: CircularProgressIndicator(),
+    ),
+
         ],
       ),
     );

@@ -170,19 +170,19 @@ class Transaction(models.Model):
 
 
 
-import os
+# import os
 
-def upload_to(instance, filename):
-    # Assurez-vous que le nom du fichier est unique
-    filename_base, filename_ext = os.path.splitext(filename)
-    return f'diplomes/{instance.professeur.user.username}/{filename_base}{filename_ext}'
+# def upload_to(instance, filename):
+#     # Assurez-vous que le nom du fichier est unique
+#     filename_base, filename_ext = os.path.splitext(filename)
+#     return f'diplomes/{instance.professeur.user.username}/{filename_base}{filename_ext}'
 
-class Diplome(models.Model):
-    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
-    fichier = models.FileField(upload_to=upload_to)
+# class Diplome(models.Model):
+#     professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
+#     fichier = models.FileField(upload_to=upload_to)
 
-def __str__(self):
-        return f"Diplôme de {self.professeur.user.username}"
+# def __str__(self):
+#         return f"Diplôme de {self.professeur.user.username}"
 
 class Cours(models.Model):
     professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
