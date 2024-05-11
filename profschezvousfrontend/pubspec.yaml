@@ -46,6 +46,7 @@ dependencies:
   intl: ^0.19.0
   shared_preferences: ^2.0.8
   file_picker: ^8.0.3
+  equatable: ^2.0.3
 
 
 dev_dependencies:

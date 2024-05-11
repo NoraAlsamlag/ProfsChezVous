@@ -25,7 +25,6 @@ class _DateNaissanceFieldState extends State<DateNaissanceField> {
       initialDate: DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
-      locale: const Locale("fr", "FR"),
     );
 
     if (picked != null) {

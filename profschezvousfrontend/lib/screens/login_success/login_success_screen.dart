@@ -10,7 +10,7 @@ class LoginSuccessScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: const SizedBox(),
-        title: const Text("Login Success"),
+        title: const Text("Connexion réussie"),
       ),
       body: Column(
         children: [
@@ -21,7 +21,7 @@ class LoginSuccessScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           const Text(
-            "Login Success",
+            "Connexion réussie",
             style: TextStyle(
               fontSize: 30,
               fontWeight: FontWeight.bold,
@@ -35,7 +35,7 @@ class LoginSuccessScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.pushNamed(context, InitScreen.routeName);
               },
-              child: const Text("Back to home"),
+              child: const Text("Retour à la page d'accueil"),
             ),
           ),
           const Spacer(),

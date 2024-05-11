@@ -12,23 +12,71 @@ from io import BytesIO
 
 
 
+from dj_rest_auth.serializers import UserDetailsSerializer
+
+from dj_rest_auth.serializers import UserDetailsSerializer
+from rest_framework import serializers
+
+
+from rest_framework import serializers
+
+class CustomUserDetailsSerializer(UserDetailsSerializer):
+    role = serializers.SerializerMethodField()
+    info = serializers.SerializerMethodField()
+
+    class Meta(UserDetailsSerializer.Meta):
+        fields = ('pk', 'username', 'email', 'first_name', 'last_name', 'last_login', 'is_parent', 'is_eleve', 'is_professeur', 'role', 'info')
+        read_only_fields = ('is_admin', 'is_parent', 'is_eleve', 'is_professeur', 'image_profil')
+
+    def get_role(self, instance):
+        if instance.is_parent:
+            return 'parent'
+        elif instance.is_professeur:
+            return 'prof'
+        elif instance.is_eleve:
+            return 'eleve'
+        else:
+            return ''
+
+    def get_info(self, instance):
+        if instance.is_parent:
+            parent = instance.parent
+            return parent.to_json()  # Assuming to_json() returns a dictionary
+        elif instance.is_professeur:
+            professeur = instance.professeur
+            return professeur.to_json()  # Add professeur fields here
+        elif instance.is_eleve:
+            eleve = instance.eleve
+            return eleve.to_json()  # Add eleve fields here
+        else:
+            return {}
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['user_details'] = {
+            'role': representation.pop('role'),
+            'info': representation.pop('info')
+        }
+        if instance.image_profil:
+            representation['image_profil'] = instance.image_profil.url
+        return representation
+
+class EnfantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Enfant
+        fields = ['prenom', 'nom', 'date_naissance', 'niveau_scolaire', 'etablissement']
+
 
 
 class ParentRegisterSerializer(RegisterSerializer):
-    # email = serializers.EmailField(
-    #     required=True,
-    #     validators=[UniqueValidator(queryset=User.objects.all())]
-    # )
     nom = serializers.CharField(max_length=50)
     prenom = serializers.CharField(max_length=30)
     date_naissance = serializers.DateField()
     ville = serializers.CharField(max_length=100)
-    # adresse = serializers.CharField(max_length=200)
     numero_telephone = serializers.CharField(max_length=12)
-    # quartier_résidence = serializers.CharField(max_length=70)
     latitude = serializers.FloatField()
     longitude = serializers.FloatField()
-    # eleves = ArrayField(serializers.CharField(max_length=100), blank=True)
+    enfants = EnfantSerializer(many=True)
     
 
     def get_cleaned_data(self):
@@ -43,7 +91,7 @@ class ParentRegisterSerializer(RegisterSerializer):
     def save(self, request):
         user = super().save(request)
         user.is_parent = True
-        # Enregistrer l'image dans l'instance de l'utilisateur
+        # Save the image in the user instance
         image_profil = self.validated_data.get('image_profil')
         if image_profil:
             user.image_profil = image_profil
@@ -54,12 +102,16 @@ class ParentRegisterSerializer(RegisterSerializer):
             'prenom': self.validated_data.get('prenom'),
             'ville': self.validated_data.get('ville'),
             'date_naissance': self.validated_data.get('date_naissance'),
-            # 'adresse': self.validated_data.get('adresse'),
             'numero_telephone': self.validated_data.get('numero_telephone'),
             'latitude': self.validated_data.get('latitude'),
             'longitude': self.validated_data.get('longitude'),
         }
-        Parent.objects.create(**parent_data)
+        parent = Parent.objects.create(**parent_data)
+
+        enfants_data = self.validated_data.get('enfants')
+        for enfant_data in enfants_data:
+            Enfant.objects.create(parent=parent, **enfant_data)
+
         return user
 
 

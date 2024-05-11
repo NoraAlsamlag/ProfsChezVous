@@ -26,7 +26,22 @@ class UtilisateurApi {
       throw Exception('Échec de la récupération des données de l\'utilisateur');
     }
   }
+
+  Future<User> fetchUserDetails() async {
+  final response = await http.get(Uri.parse('$domaine/user/auth/user/'));
+
+  if (response.statusCode == 200) {
+    // If the server returns a successful response, parse the JSON data
+    final jsonData = jsonDecode(response.body);
+    User user = User.fromJson(jsonData);
+    return user;
+  } else {
+    // If the server returns an error, throw an exception
+    throw Exception('Failed to fetch user details');
+  }
 }
+}
+
 
 
 

@@ -36,8 +36,13 @@ from .serializers import EnfantSerializer
 
 
 
+from dj_rest_auth.registration.views import RegisterView
+
 class ParentRegisterView(RegisterView):
     serializer_class = ParentRegisterSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(request=self.request)
     
 
 class ProfesseurRegisterView(RegisterView):
@@ -102,49 +107,6 @@ class ProfesseurViewSet(viewsets.ViewSet):
             return Response(serializer.data)
         else:
             return Response({"message": "L'utilisateur n'est pas un professeur."}, status=403)
-
-
-# @api_view(['GET'])
-# def getParents(request):
-#     parents= Parent.objects.all()
-#     serializer = ParentSerializer(parents, many=True)
-#     return  Response(serializer.data)
-
-# @api_view(['GET'])
-# def getParent(request, pk):
-#     parent= Parent.objects.get(id=pk) 
-#     serializer = ParentSerializer(parent, many=False)
-#     return  Response(serializer.data)
-
-# @api_view(["POST"])
-# def createParent(request):
-#     serializer = ParentSerializer(data=request.data)
-#     if serializer.is_valid():
-#         parent = serializer.save()
-#         return Response(serializer.data, status=201)
-#     return Response(serializer.errors, status=400)
-
-
-# @api_view(["PUT"])
-# def updateParent(request, pk):
-#     try:
-#         parent = Parent.objects.get(id=pk)
-#     except Parent.DoesNotExist:
-#         return Response({"error": "Parent non trouvé"}, status=404)
-
-#     serializer = ParentSerializer(parent, data=request.data)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response(serializer.data)
-#     return Response(serializer.errors, status=400)
-
-
-# @api_view(["DELETE"])
-# def deleteParent(request, pk):
-#     parent = Parent.objects.get(id=pk)
-
-#     parent.delete()
-#     return Response("Parent supprimé")
 
 
 @api_view(['GET'])
@@ -223,15 +185,15 @@ def fetch_user(request):
         user = User.objects.get(id=request.user.id)
         if user.is_parent:
             parent = Parent.objects.get(user=user)
-            return JsonResponse({'user_type': 'parent','email': user.email,
+            return JsonResponse({'user_type': 'Paren','email': user.email,
         'image_profil': str(user.image_profil), 'details': parent.to_json()}, status=200)
         elif user.is_professeur:
             professeur = Professeur.objects.get(user=user)
-            return JsonResponse({'user_type': 'professeur','email': user.email,
+            return JsonResponse({'user_type': 'Professeur','email': user.email,
         'image_profil': str(user.image_profil), 'details': professeur.to_json()}, status=200)
         elif user.is_eleve:
             eleve = Eleve.objects.get(user=user)
-            return JsonResponse({'user_type': 'eleve','email': user.email,
+            return JsonResponse({'user_type': 'Élève','email': user.email,
         'image_profil': str(user.image_profil), 'details': eleve.to_json()}, status=200)
         elif user.is_admin:
             user_data = {
@@ -259,13 +221,13 @@ def get_user_info(request, user_pk):
         user = User.objects.get(pk=user_pk)
         if user.is_parent:
             parent = Parent.objects.get(user=user)
-            return JsonResponse({'user_type': 'parent', 'details': parent.to_json()}, status=200)
+            return JsonResponse({'user_type': 'Parent', 'details': parent.to_json()}, status=200)
         elif user.is_professeur:
             professeur = Professeur.objects.get(user=user)
-            return JsonResponse({'user_type': 'professeur', 'details': professeur.to_json()}, status=200)
+            return JsonResponse({'user_type': 'Professeur', 'details': professeur.to_json()}, status=200)
         elif user.is_eleve:
             eleve = Eleve.objects.get(user=user)
-            return JsonResponse({'user_type': 'eleve', 'details': eleve.to_json()}, status=200)
+            return JsonResponse({'user_type': 'Élève', 'details': eleve.to_json()}, status=200)
         else:
             return JsonResponse({'error': 'Type d\'utilisateur non valide'}, status=400)
     except User.DoesNotExist:

@@ -2,6 +2,8 @@ from django.urls import path, include
 from . import views
 from .views import geocode_parent_address
 from user.views import ParentRegisterView, ProfesseurRegisterView, EleveRegisterView, AdminRegisterView 
+from dj_rest_auth.views import UserDetailsView
+from .serializers import CustomUserDetailsSerializer
 
 from user.views import *
 urlpatterns = [
@@ -14,6 +16,7 @@ urlpatterns = [
     # path('parente/<str:pk>/mettre-a-jour',views.updateParent),
     # path('parente/<str:pk>/supprimer',views.deleteParent),
     path('get_user_info/<int:user_pk>/', views.get_user_info, name='get_info_by_user_pk'),
+    path('auth/user/', UserDetailsView.as_view(serializer_class=CustomUserDetailsSerializer), name='user-details'),
     path('auth/',include('dj_rest_auth.urls')),
     path('auth/registration/',include('dj_rest_auth.registration.urls')),
     path('geocode-parent/<int:parent_id>/', geocode_parent_address, name='geocode_parent'),

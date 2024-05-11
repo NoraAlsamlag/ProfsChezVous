@@ -1,36 +1,35 @@
 import 'package:profschezvousfrontend/models/user_models.dart';
 
-class Parent {
-  User? user;
+class Parent extends UserDetails {
+  int userId;
   String? ville;
-  String? adresse;
   String? prenom;
   String? nom;
-  DateTime? dateNaissance;
+  String? dateNaissance;
   String? numeroTelephone;
-  String? quartierResidence;
+  double latitude;
+  double longitude;
 
   Parent({
-    this.user,
-    this.ville,
-    this.adresse,
-    this.prenom,
-    this.nom,
-    this.dateNaissance,
-    this.numeroTelephone,
-    this.quartierResidence,
+    required this.userId,
+    required this.ville,
+    required this.prenom,
+    required this.nom,
+    required this.dateNaissance,
+    required this.numeroTelephone,
+    required this.latitude,
+    required this.longitude,
   });
-
   factory Parent.fromJson(Map<String, dynamic> json) {
     return Parent(
-      user: User.fromJson(json['user']),
-      ville: json['ville'],
-      adresse: json['adresse'],
-      prenom: json['prenom'],
-      nom: json['nom'],
-      dateNaissance: DateTime.parse(json['date_naissance']),
-      numeroTelephone: json['numero_telephone'],
-      quartierResidence: json['quartier_résidence'],
+      userId: json["user_id"],
+      ville: json["ville"],
+      prenom: json["prenom"],
+      nom: json["nom"],
+      dateNaissance: json["date_naissance"],
+      numeroTelephone: json["numero_telephone"],
+      latitude: json["latitude"],
+      longitude: json["longitude"],
     );
   }
 }

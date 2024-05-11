@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:profschezvousfrontend/api/auth/auth_api.dart';
 import 'package:profschezvousfrontend/screens/sign_in/sign_in_screen.dart';
-import '../mon_compte/MonCompteEcran.dart';
+import 'profile_type/eleve_compte.dart';
+import 'profile_type/parent_compte.dart';
+import 'profile_type/prof_compte.dart';
 import 'components/profile_menu.dart';
 import 'components/profile_pic.dart';
 import 'package:profschezvousfrontend/models/user_cubit.dart';
@@ -13,59 +15,72 @@ class ProfileScreen extends StatelessWidget {
 
   const ProfileScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Profil"),
-      ),
-      body: SingleChildScrollView(
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: SafeArea(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Column(
           children: [
+            Container(
+              alignment: Alignment.center,
+              child: Text(
+                "Profil",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ),
             const ProfilePic(),
             const SizedBox(height: 20),
             ProfileMenu(
               text: "Mon Compte",
               icon: "assets/icons/User Icon.svg",
               press: () {
-                Navigator.pushNamed(context, MonCompteEcran.routeName);
+                User user = context.read<UserCubit>().state;
+                if (user.isParent == true) {
+                  Navigator.pushNamed(context, ParentCompte.routeName);
+                } else if (user.isProfesseur == true) {
+                  Navigator.pushNamed(context, ProfCompte.routeName);
+                } else if (user.isEleve == true) {
+                  Navigator.pushNamed(context, EleveCompte.routeName);
+                }
               },
             ),
             ProfileMenu(
               text: "Notifications",
               icon: "assets/icons/Bell.svg",
               press: () {
-                // Naviguer vers l'écran de Notifications
+                // Navigate to the Notifications screen
               },
             ),
             ProfileMenu(
               text: "Réglages",
               icon: "assets/icons/Settings.svg",
               press: () {
-                // Naviguer vers l'écran de Réglages
+                // Navigate to the Settings screen
               },
             ),
             ProfileMenu(
               text: "Centre d'Aide",
               icon: "assets/icons/Question mark.svg",
               press: () {
-                // Naviguer vers le Centre d'Aide
+                // Navigate to the Help Center screen
               },
             ),
             ProfileMenu(
               text: "Déconnexion",
               icon: "assets/icons/Log out.svg",
               press: () {
-                // Afficher la boîte de dialogue de confirmation avant la déconnexion
+                // Show the confirmation dialog before logging out
                 afficherDialogueConfirmationDeconnexion(context);
               },
             ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   void gererDeconnexion(BuildContext context, String? token) async {
     if (token != null) {

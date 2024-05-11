@@ -29,7 +29,7 @@ class _InitScreenState extends State<InitScreen> {
     const HomeScreen(),
     const FavoriteScreen(),
     const Center(
-      child: Text("Chat"),
+      child: Text("Discussion"),
     ),
     const ProfileScreen()
   ];
@@ -47,14 +47,14 @@ class _InitScreenState extends State<InitScreen> {
         items: [
           BottomNavigationBarItem(
             icon: SvgPicture.asset(
-              "assets/icons/Shop Icon.svg",
+              "assets/icons/home.svg",
               colorFilter: const ColorFilter.mode(
                 inActiveIconColor,
                 BlendMode.srcIn,
               ),
             ),
             activeIcon: SvgPicture.asset(
-              "assets/icons/Shop Icon.svg",
+              "assets/icons/home.svg",
               colorFilter: const ColorFilter.mode(
                 kPrimaryColor,
                 BlendMode.srcIn,
@@ -94,7 +94,7 @@ class _InitScreenState extends State<InitScreen> {
                 BlendMode.srcIn,
               ),
             ),
-            label: "Chat",
+            label: "discussion",
           ),
           BottomNavigationBarItem(
             icon: SvgPicture.asset(
@@ -111,7 +111,7 @@ class _InitScreenState extends State<InitScreen> {
                 BlendMode.srcIn,
               ),
             ),
-            label: "Fav",
+            label: "profile",
           ),
         ],
       ),
