@@ -236,4 +236,16 @@ class CoursRattrapage(models.Model):
     eleve = models.ForeignKey(User, on_delete=models.CASCADE)
     cours_manque = models.ForeignKey(Cours, on_delete=models.CASCADE)
     date_rattrapage = models.DateField()
-    motif = models.TextField()
+    motif = models.TextField() 
+
+    
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=100)  # Ajout du champ titre
+    message = models.TextField()
+    date_created = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.title} - {self.message}"  # Modification de la méthode __str__
+

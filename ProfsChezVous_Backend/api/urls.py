@@ -42,6 +42,9 @@ urlpatterns = [
     path('signaler-absence/', views.signaler_absence, name='signaler_absence'),
     path('demander-remboursement/', views.demander_remboursement, name='demander_remboursement'),
     path('planifier-rattrapage/', views.planifier_rattrapage, name='planifier_rattrapage'),
+    path('notifications/', views.NotificationListCreateAPIView.as_view(), name='notification-list-create'),
+    path('notifications/<int:pk>/', views.NotificationRetrieveUpdateDestroyAPIView.as_view(), name='notification-detail'),
+   
 
 
     re_path("product/((?P<pk>\d+)/)?", csrf_exempt(ParentView.as_view())),

@@ -17,7 +17,8 @@ from .models import Evaluation
 from .models import      Cours , SuiviProfesseur , Disponibilite ,  CoursReserve
 
 from .models import Absence, Remboursement, CoursRattrapage
-
+from rest_framework import serializers
+from .models import Notification
 
 
 
@@ -103,4 +104,11 @@ class RemboursementSerializer(serializers.ModelSerializer):
 class CoursRattrapageSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoursRattrapage
+        fields = '__all__' 
+
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
         fields = '__all__'

@@ -21,8 +21,8 @@ from .serializers import CoursReserveSerializer
 from rest_framework.permissions import IsAuthenticated
 from .models import Absence, Remboursement, CoursRattrapage
 from .serializers import AbsenceSerializer, RemboursementSerializer, CoursRattrapageSerializer
-
-
+from .models import Notification
+from .serializers import NotificationSerializer
 
 
 class MatiereList(generics.ListCreateAPIView):
@@ -188,8 +188,20 @@ def demander_remboursement(request):
 def planifier_rattrapage(request):
     # Traitement de la planification du cours de rattrapage
     # Création de l'instance CoursRattrapage
-    # Vérification de la disponibilité des professeurs
-    return JsonResponse({'message': 'Cours de rattrapage planifié avec succès'})
+    return JsonResponse({'message': 'Cours de rattrapage planifié avec succès'}) 
+
+
+
+
+
+class NotificationListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+
+class NotificationRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+
 
 
 
