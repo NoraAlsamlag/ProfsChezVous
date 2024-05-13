@@ -48,7 +48,7 @@ class PageInscription extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   _buildCardButton(
-                    icon: Icons.child_care,
+                    icon: Icons.school,
                     label: 'Élève',
                     onPressed: () {
                       _navigateToInscriptionScreen(context, 'Élève');

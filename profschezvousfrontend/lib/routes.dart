@@ -4,15 +4,15 @@ import 'package:profschezvousfrontend/screens/products/products_screen.dart';
 
 import 'screens/inscription/completion_de_profil/ecran_completion_profil.dart';
 import 'screens/inscription/inscription_ecrant.dart';
-import 'screens/mon_compte/MonCompteEcran.dart';
 import 'screens/cart/cart_screen.dart';
 import 'screens/details/details_screen.dart';
 import 'screens/forgot_password/forgot_password_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/init_screen.dart';
 import 'screens/login_success/login_success_screen.dart';
-import 'screens/mon_compte/composent/parent_compte.dart';
-import 'screens/mon_compte/composent/prof_compte.dart';
+import 'screens/profile/profile_type/eleve_compte.dart';
+import 'screens/profile/profile_type/prof_compte.dart';
+import 'screens/profile/profile_type/parent_compte.dart';
 import 'screens/otp/otp_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/sign_in/sign_in_screen.dart';
@@ -33,8 +33,8 @@ final Map<String, WidgetBuilder> routes = {
   DetailsScreen.routeName: (context) => const DetailsScreen(),
   CartScreen.routeName: (context) => const CartScreen(),
   ProfileScreen.routeName: (context) => const ProfileScreen(),
-  MonCompteEcran.routeName: (context) => const MonCompteEcran(),
   ParentCompte.routeName: (context) => const ParentCompte(),
   ProfCompte.routeName: (context) => const ProfCompte(),
+  EleveCompte.routeName: (context) => const EleveCompte(),
   PageInscription.routeName: (context) => const PageInscription(),
 };

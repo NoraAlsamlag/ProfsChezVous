@@ -1,42 +1,42 @@
 import 'package:profschezvousfrontend/models/user_models.dart';
 
-class Eleve {
-  User? user;
-  String? ville;
-  String? adresse;
-  String? prenom;
-  String? nom;
-  DateTime? dateNaissance;
-  String? etablissement;
-  String? niveauScolaire;
-  String? genre;
-  String? numeroTelephone;
+class Eleve extends UserDetails {
+  int userId;
+  String ville;
+  String prenom;
+  String nom;
+  String dateNaissance;
+  String etablissement;
+  String niveauScolaire;
+  String numeroTelephone;
+  double latitude;
+  double longitude;
 
   Eleve({
-    this.user,
-    this.ville,
-    this.adresse,
-    this.prenom,
-    this.nom,
-    this.dateNaissance,
-    this.etablissement,
-    this.niveauScolaire,
-    this.genre,
-    this.numeroTelephone,
+    required this.userId,
+    required this.ville,
+    required this.prenom,
+    required this.nom,
+    required this.dateNaissance,
+    required this.etablissement,
+    required this.niveauScolaire,
+    required this.numeroTelephone,
+    required this.latitude,
+    required this.longitude,
   });
 
   factory Eleve.fromJson(Map<String, dynamic> json) {
     return Eleve(
-      user: User.fromJson(json['user']),
-      ville: json['ville'],
-      adresse: json['adresse'],
-      prenom: json['prenom'],
-      nom: json['nom'],
-      dateNaissance: DateTime.parse(json['date_naissance']),
-      etablissement: json['Etablissement'],
-      niveauScolaire: json['niveau_scolaire'],
-      genre: json['genre'],
-      numeroTelephone: json['numero_telephone'],
+      userId: json["user_id"],
+      ville: json["ville"],
+      prenom: json["prenom"],
+      nom: json["nom"],
+      dateNaissance: json["date_naissance"],
+      etablissement: json["etablissement"],
+      niveauScolaire: json["niveau_scolaire"],
+      numeroTelephone: json["numero_telephone"],
+      latitude: json["latitude"],
+      longitude: json["longitude"],
     );
   }
 }

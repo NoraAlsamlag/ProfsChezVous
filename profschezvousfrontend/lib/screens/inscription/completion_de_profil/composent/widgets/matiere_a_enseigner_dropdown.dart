@@ -18,12 +18,13 @@ class MatiereAEnseigneeDropdown extends StatefulWidget {
 
 class _MatiereAEnseigneeDropdownState extends State<MatiereAEnseigneeDropdown> {
   Map<String, List<String>> categories = {
-  'Mathématiques': ['Algèbre', 'Géométrie', 'Calcul'],
-  'Sciences': ['Physique', 'Chimie', 'Biologie'],
-  'Histoire': ['Ancienne', 'Moderne', 'Contemporaine'],
-  'Géographie': ['Physique', 'Humaine', 'Économique'],
-  'Langues': ['Français', 'Anglais', 'Espagnol'],
-  'Informatique': ['Programmation', 'Réseaux', 'Bases de données'],
+  'Fondamental': ['Français', 'Arabe', 'Mathématiques'],
+  'Collège': ['Français', 'Anglais', 'Arabe', 'Mathématiques', 'Physique-Chimie', 'Histoire-Géographie', 'Instruction Islamique', 'Sciences Naturelles', 'Instruction Civique', 'EPS activités physiques'],
+  'Lycée': ['Anglais', 'Histoire-Géographie', 'Instruction Islamique', 'Philosophie', 'EPS activités physiques', 'الإسلامي التشريع', 'الإسلامي الفكر'],
+  'Sciences Naturelles (Lycée)': ['Sciences Naturelles 5C', 'Sciences Naturelles 5D', 'Sciences Naturelles 6C', 'Sciences Naturelles 6D', 'Sciences Naturelles 7C', 'Sciences Naturelles 7D'],
+  'Mathématiques (Lycée)': ['Mathématiques 5C', 'Mathématiques 5D', 'Mathématiques 6C', 'Mathématiques 6D', 'Mathématiques 7C', 'Mathématiques 7D'],
+  'Arabe (Lycée)': ['Arabe 5C', 'Arabe 5D', 'Arabe 6C', 'Arabe 6D', 'Arabe 7C', 'Arabe 7D'],
+  'Français (Lycée)': ['Français 5C', 'Français 5D', 'Français 6C', 'Français 6D', 'Français 7C', 'Français 7D'],
 };
   // List<String> selectedItems = [];
   List<String> errors = [];

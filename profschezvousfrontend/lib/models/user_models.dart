@@ -1,32 +1,101 @@
+import 'eleve_model.dart';
+import 'parent_model.dart';
+import 'professeur_model.dart';
+
 class User {
   int? id;
   String? token;
   String? username;
-  String? email,last_login,is_parent,image_profil,mmm, first_name, last_name;
+  String? email;
+  String? lastLogin;
+  String? imageProfile;
+  String? firstName;
+  String? lastName;
+  bool? isProfesseur;
+  bool? isEleve;
+  bool? isParent;
+  UserDetails? userDetails;
 
   User({
     this.email,
-    this.mmm,
-    this.first_name,
-    this.last_name,
+    this.firstName,
+    this.lastName,
     this.id,
     this.username,
-    this.image_profil,
-    this.is_parent,
-    this.last_login,
+    this.imageProfile,
+    this.isParent,
+    this.isEleve,
+    this.isProfesseur,
+    this.lastLogin,
+    this.userDetails,
   });
+
+  User copyWith({
+    String? email,
+    String? firstName,
+    String? lastName,
+    int? id,
+    String? username,
+    String? imageProfile,
+    bool? isParent,
+    bool? isEleve,
+    bool? isProfesseur,
+    String? lastLogin,
+    UserDetails? userDetails,
+  }) {
+    return User(
+      email: email ?? this.email,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      id: id ?? this.id,
+      username: username ?? this.username,
+      imageProfile: imageProfile ?? this.imageProfile,
+      isParent: isParent ?? this.isParent,
+      isEleve: isEleve ?? this.isEleve,
+      isProfesseur: isProfesseur ?? this.isProfesseur,
+      lastLogin: lastLogin ?? this.lastLogin,
+      userDetails: userDetails ?? this.userDetails,
+    );
+  }
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       email: json["email"],
-      first_name: json["first_name"],
-      mmm: json["mmm"],
+      firstName: json["first_name"],
       id: json["pk"],
-      last_name: json["last_name"],
+      lastName: json["last_name"],
       username: json["username"],
-      image_profil: json["image_profil"],
-      is_parent: json["is_parent"],
-      last_login: json["last_login"],
+      imageProfile: json["image_profil"],
+      isParent: json["is_parent"],
+      isEleve: json["is_eleve"],
+      isProfesseur: json["is_professeur"],
+      lastLogin: json["last_login"],
+      userDetails: UserDetails.fromJson(json["user_details"]),
+    );
+  }
+}
+
+class UserDetails {
+  String? role;
+  Parent? parent;
+  Professeur? prof;
+  Eleve? eleve;
+
+  UserDetails({
+    this.role,
+    this.parent,
+    this.prof,
+    this.eleve,
+  });
+
+  factory UserDetails.fromJson(Map<String, dynamic> json) {
+    final role = json['role'];
+
+    return UserDetails(
+      role: role,
+      parent: role == 'parent' ? Parent.fromJson(json['info']) : null,
+      prof: role == 'prof' ? Professeur.fromJson(json['info']) : null,
+      eleve: role == 'eleve' ? Eleve.fromJson(json['info']) : null,
     );
   }
 }

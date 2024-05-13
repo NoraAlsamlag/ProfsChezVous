@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:profschezvousfrontend/api/auth/auth_api.dart';
-import 'package:profschezvousfrontend/api/utilisateur/utilisateur_api.dart';
 import 'package:profschezvousfrontend/models/user_models.dart';
 import 'package:profschezvousfrontend/models/user_cubit.dart';
 
 import '../../constants.dart';
-
+import '../profile/profile_type/parent_compte.dart';
+import '../profile/profile_type/prof_compte.dart';
 
 class MonCompteEcran extends StatefulWidget {
   static String routeName = "/mon_compte";
@@ -36,18 +36,6 @@ class _MonCompteEcranState extends State<MonCompteEcran> {
       setState(() {
         userInfo = data;
       });
-
-      if (userInfo != null && userInfo!['details'] != null) {
-        double? latitude = userInfo!['details']['latitude'] as double?;
-        double? longitude = userInfo!['details']['longitude'] as double?;
-
-        if (latitude != null && longitude != null) {
-          address = await obtenirAdresseAPartirDesCoordinates(latitude, longitude);
-          setState(() {
-            address = address;
-          });
-        }
-      }
     } catch (e) {
       print("Erreur lors de la récupération des données utilisateur: $e");
     }
@@ -55,9 +43,11 @@ class _MonCompteEcranState extends State<MonCompteEcran> {
 
   @override
   Widget build(BuildContext context) {
+    String type = userInfo?['user_type'] ?? '';
+    print(userInfo?['user_type']);
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           "Mon Compte",
           style: TextStyle(color: kTextColor),
         ),
@@ -69,40 +59,21 @@ class _MonCompteEcranState extends State<MonCompteEcran> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoRow("Type de profil", userInfo!['user_type'], Icons.person),
-                  _buildInfoRow("Nom", userInfo!['details']['nom'], Icons.person),
-                  _buildInfoRow("Prénom", userInfo!['details']['prenom'], Icons.person),
-                  _buildInfoRow("Adresse", address ?? '', Icons.location_on),
-                  _buildInfoRow("Ville", userInfo!['details']['ville'], Icons.location_city),
-                  _buildInfoRow("Date de Naissance", userInfo!['details']['date_naissance'], Icons.calendar_today),
-                  _buildInfoRow("Numéro de Téléphone", userInfo!['details']['numero_telephone'], Icons.phone),
+                  if (type == 'Parent') ...[
+                    ParentCompte(),
+                  ] else if (type == 'Professeur') ...[
+                    ProfCompte(),
+                  ] else if (type == 'Élève') ...[
+                    ParentCompte(),
+                  ],
                 ],
               ),
             )
-          : Center(
+          : const Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(kPrimaryColor),
               ),
             ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String? value, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: kPrimaryColor,
-          ),
-          SizedBox(width: 8),
-          Text(
-            "$label: ${value ?? ''}",
-            style: TextStyle(fontSize: 18, color: kTextColor),
-          ),
-        ],
-      ),
     );
   }
 }

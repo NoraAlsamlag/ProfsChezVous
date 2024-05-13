@@ -1,11 +1,17 @@
 import 'dart:convert';
-
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:http/http.dart' as http;
 import 'package:profschezvousfrontend/models/user_models.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 
 import '../../constants.dart';
+
+Future<String?> getTokenFromHive() async {
+  final tokenBox = await Hive.openBox('tokenBox');
+  String? token = tokenBox.get('token');
+  return token;
+}
 
 Future<dynamic> authentificationUtilisateur(String? email, String? password) async {
 
@@ -52,7 +58,8 @@ Future<User?> getUser(String token) async {
   });
 
   if (res.statusCode == 200) {
-    var json = jsonDecode(res.body);
+    var jsonString = res.body;
+    var json = jsonDecode(utf8.decode(jsonString.runes.toList()));
 
     User user = User.fromJson(json);
     user.token = token;

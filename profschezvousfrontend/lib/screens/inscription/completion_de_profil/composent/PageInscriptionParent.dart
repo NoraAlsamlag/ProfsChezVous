@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:profschezvousfrontend/api/parent/parent_api.dart';
 import 'package:profschezvousfrontend/screens/sign_in/sign_in_screen.dart';
@@ -6,6 +8,7 @@ import 'package:profschezvousfrontend/Localisation/LocationPermissionPrompt.dart
 import '../../../../components/custom_surfix_icon.dart';
 import '../../../../components/form_error.dart';
 import '../../../../constants.dart';
+import 'widgets/enfent_form.dart';
 import 'widgets/ville_dropdown.dart';
 
 class PageInscriptionParent extends StatefulWidget {
@@ -30,6 +33,7 @@ class _PageInscriptionParentState extends State<PageInscriptionParent> {
   String? numero_tel;
   String? dateNaissance;
   String? ville;
+  String? enfantJson;
   bool isLoading = false;
 
   @override
@@ -82,6 +86,51 @@ class _PageInscriptionParentState extends State<PageInscriptionParent> {
         ),
       );
     }
+  }
+
+  void _showFormDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: EnfantForm(
+            onEnfantForm: _handleEnfentForm,
+          ),
+        );
+      },
+    );
+  }
+
+  List<Map<String, dynamic>> enfantsList = [];
+
+  void _handleEnfentForm(
+    String prenom,
+    String nom,
+    String? dateNaissance,
+    String? niveauScolaire,
+    String etablissement,
+  ) {
+    Map<String, dynamic> enfantData = {
+      'prenom': prenom,
+      'nom': nom,
+      'date_naissance': dateNaissance.toString(),
+      'niveau_scolaire': niveauScolaire,
+      'etablissement': etablissement,
+    };
+
+    setState(() {
+      enfantsList.add(enfantData);
+    });
+
+    print('Enfants data:');
+    enfantsList.forEach((enfant) {
+      print('Prénom: ${enfant['prenom']}');
+      print('Nom: ${enfant['nom']}');
+      print('Date de naissance: ${enfant['dateNaissance']}');
+      print('Année scolaire: ${enfant['anneeScolaire']}');
+      print('Établissement: ${enfant['etablissement']}');
+      print('---');
+    });
   }
 
   void addError({String? error}) {
@@ -278,6 +327,33 @@ class _PageInscriptionParentState extends State<PageInscriptionParent> {
             validator: validateDateNaissance,
           ),
           const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              _showFormDialog(context);
+            },
+            child: Text('Open Form'),
+          ),
+          const SizedBox(height: 20),
+          ListView.builder(
+            shrinkWrap: true,
+            itemCount: enfantsList.length,
+            itemBuilder: (context, index) {
+              final enfant = enfantsList[index];
+              return ListTile(
+                title: Text('Prénom: ${enfant['prenom']}'),
+                subtitle: Text('Nom: ${enfant['nom']}'),
+                trailing: IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () {
+                    setState(() {
+                      enfantsList.removeAt(index);
+                    });
+                  },
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 20),
           FormError(errors: errors),
           const SizedBox(height: 20),
           ElevatedButton(
@@ -307,7 +383,7 @@ class _PageInscriptionParentState extends State<PageInscriptionParent> {
                         longitude: locationData['longitude'].toString(),
                         latitude: locationData['latitude'].toString(),
                         numeroTelephone: numero_tel!,
-                        quartierResidence: 'QuartierParent',
+                        enfants: enfantsList,
                       ).then((_) {
                         // Afficher un message de succès
                         ScaffoldMessenger.of(context).showSnackBar(

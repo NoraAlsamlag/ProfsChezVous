@@ -17,6 +17,7 @@ Future<Map<String, dynamic>> getParent(int userPk) async {
   }
 }
 
+
 Future<void> enregistrerParent({
   required String email,
   required String motDePasse,
@@ -25,9 +26,9 @@ Future<void> enregistrerParent({
   required String dateNaissance,
   required String ville,
   required String numeroTelephone,
-  required String quartierResidence,
   required String latitude,
   required String longitude,
+  required List<Map<String, dynamic>> enfants,
 }) async {
   // Définir le corps de la requête
   Map<String, dynamic> body = {
@@ -39,9 +40,9 @@ Future<void> enregistrerParent({
     "date_naissance": dateNaissance,
     "ville": ville,
     "numero_telephone": numeroTelephone,
-    "quartier_résidence": quartierResidence,
     "latitude": latitude,
     "longitude": longitude,
+    "enfants": enfants,
   };
 
   // Convertir le corps en JSON

@@ -75,7 +75,7 @@ class Parent(models.Model):
                 prenom=form.cleaned_data['prenom'],
                 nom=form.cleaned_data['nom'],
                 date_naissance=form.cleaned_data['date_naissance'],
-                annee_scolaire=form.cleaned_data['annee_scolaire'],
+                niveau_scolaire=form.cleaned_data['niveau_scolaire'],
                 etablissement=form.cleaned_data['etablissement'],
                 parent=self
             )
@@ -98,13 +98,13 @@ class Parent(models.Model):
 
 def diplome_file_name(inst, filename):
     ext = filename.split('.')[-1]
-    file_name = f"{inst.id}_{inst.prenom}_diplome.{ext}"
+    file_name = f"{inst.user.pk}_{inst.prenom}_diplome.{ext}"
     return os.path.join("diplome",file_name)
 
 def cv_file_name(inst, filename):
     # Generate the file name using ID, first name, and "cv"
     ext = filename.split('.')[-1]
-    file_name = f"{inst.id}_{inst.prenom}_cv.{ext}"
+    file_name = f"{inst.user.pk}_{inst.prenom}_cv.{ext}"
     return os.path.join('cv', file_name)
 
 class Professeur(models.Model):
@@ -126,14 +126,15 @@ class Professeur(models.Model):
 
     def to_json(self):
         return {
+            'user_id': self.user.id,
             'ville': self.ville,
             'prenom': self.prenom,
             'nom': self.nom,
             # 'adresse': self.adresse,
             # 'quartier_residence': self.quartier_residence,
             'numero_telephone': self.numero_telephone,
-            'experience_enseignement': self.experience_enseignement,
-            'certifications': self.certifications,
+            'cv': str(self.cv) if self.cv else None,
+            'diplome': str(self.diplome) if self.diplome else None,
             'niveau_etude': self.niveau_etude,
             'matiere_a_enseigner': self.matiere_a_enseigner,
             # 'tarif_horaire': str(self.tarif_horaire),
@@ -170,6 +171,7 @@ class Eleve(models.Model):
 
     def to_json(self):
         return {
+            'user_id': self.user.id,
             'ville': self.ville,
             # 'adresse': self.adresse,
             'prenom': self.prenom,
@@ -198,7 +200,7 @@ class InscrireEnfantForm(forms.Form):
     prenom = forms.CharField(max_length=30)
     nom = forms.CharField(max_length=50)
     date_naissance = forms.DateField()
-    annee_scolaire = forms.CharField(max_length=100)
+    niveau_scolaire = forms.CharField(max_length=100)
     etablissement = forms.CharField(max_length=100)
 
 from django.db import models
@@ -207,15 +209,13 @@ class Enfant(models.Model):
     prenom = models.CharField(max_length=30)
     nom = models.CharField(max_length=50)
     date_naissance = models.DateField()
-    annee_scolaire = models.CharField(max_length=100)
+    niveau_scolaire = models.CharField(max_length=100)
     etablissement = models.CharField(max_length=100)
     parent = models.ForeignKey('Parent', on_delete=models.CASCADE, related_name='enfants')
 
     def __str__(self):
         return f"{self.prenom} {self.nom}"
 
-    class Meta:
-        db_table = 'user_enfant'
 
 
 
