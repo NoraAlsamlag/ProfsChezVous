@@ -238,8 +238,25 @@ class UserSerializer(serializers.ModelSerializer):
 class ParentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Parent
-        fields = ['id','user', 'nom', 'prenom', 'date_naissance', 'ville', 'adresse', 'numero_telephone', 'quartier_résidence']
+        fields = "__all__"
 
+
+
+try:
+
+    from user.models import Parent
+
+except:
+    pass 
+
+class ParentSerializer(serializers.ModelSerializer):
+    class Meta:
+
+        try:
+            model = Parent
+        except:
+            pass    
+        fields = '__all__'
 
 class EleveSerializer(serializers.ModelSerializer):
     class Meta:

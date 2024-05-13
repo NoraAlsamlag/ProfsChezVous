@@ -109,42 +109,42 @@ class ProfesseurViewSet(viewsets.ViewSet):
             return Response({"message": "L'utilisateur n'est pas un professeur."}, status=403)
 
 
-@api_view(['GET'])
-def geocode_parent_address(request, parent_id):
-    parent = Parent.objects.get(id=parent_id)
-    address = f"{parent.adresse}, {parent.ville}"  # Adresse complète à géocoder
-    api_key = '0791-8482-2557'  # Clé API Google Maps Geocoding
+# @api_view(['GET'])
+# def geocode_parent_address(request, parent_id):
+#     parent = Parent.objects.get(id=parent_id)
+#     address = f"{parent.adresse}, {parent.ville}"  # Adresse complète à géocoder
+#     api_key = '0791-8482-2557'  # Clé API Google Maps Geocoding
 
-    url = f'https://maps.googleapis.com/maps/api/geocode/json?address={address}&key={api_key}'
-    response = requests.get(url)
-    data = response.json()
+#     url = f'https://maps.googleapis.com/maps/api/geocode/json?address={address}&key={api_key}'
+#     response = requests.get(url)
+#     data = response.json()
 
-    if data['status'] == 'OK':
-        # Extraire les coordonnées de latitude et de longitude
-        location = data['results'][0]['geometry']['location']
-        latitude = location['lat']
-        longitude = location['lng']
-        # Mettre à jour les champs de géolocalisation du parent
-        parent.latitude = latitude
-        parent.longitude = longitude
-        parent.save()
-        return Response({'success': True})
-    else:
-        return Response({'success': False, 'message': 'Erreur de géocodage'})
+#     if data['status'] == 'OK':
+#         # Extraire les coordonnées de latitude et de longitude
+#         location = data['results'][0]['geometry']['location']
+#         latitude = location['lat']
+#         longitude = location['lng']
+#         # Mettre à jour les champs de géolocalisation du parent
+#         parent.latitude = latitude
+#         parent.longitude = longitude
+#         parent.save()
+#         return Response({'success': True})
+#     else:
+#         return Response({'success': False, 'message': 'Erreur de géocodage'})
 
-def geocode_parent_address(parent):
-    address = f"{parent.adresse}, {parent.ville}, {parent.pays}"  # Utilisez les champs appropriés de votre modèle Parent
-    gmaps = googlemaps.Client(key=settings.GOOGLE_MAPS_API_KEY)
-    geocode_result = gmaps.geocode(address)
-    if geocode_result:
-        location = geocode_result[0]['geometry']['location']
-        latitude, longitude = location['lat'], location['lng']
-        parent.latitude = latitude
-        parent.longitude = longitude
-        parent.save()
-        return True
-    else:
-        return False
+# def geocode_parent_address(parent):
+#     address = f"{parent.adresse}, {parent.ville}, {parent.pays}"  # Utilisez les champs appropriés de votre modèle Parent
+#     gmaps = googlemaps.Client(key=settings.GOOGLE_MAPS_API_KEY)
+#     geocode_result = gmaps.geocode(address)
+#     if geocode_result:
+#         location = geocode_result[0]['geometry']['location']
+#         latitude, longitude = location['lat'], location['lng']
+#         parent.latitude = latitude
+#         parent.longitude = longitude
+#         parent.save()
+#         return True
+#     else:
+#         return False
     
     
 
@@ -238,33 +238,43 @@ def get_user_info(request, user_pk):
 
 
 
-import requests
-from django.http import JsonResponse
 
-def obtenir_adresse_a_partir_des_coordonnees(request):
-    if request.method == 'GET':
-        latitude = request.GET.get('latitude')
-        longitude = request.GET.get('longitude')
 
-        if latitude and longitude:
-            # Utiliser un service de géocodage comme Google Maps ou Nominatim pour obtenir l'adresse
-            url = f"https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={latitude}&lon={longitude}"
-            response = requests.get(url)
+def obtenir_adresse_depuis_coordonnees(latitude, longitude):
+    try:
+        # Valider les coordonnées
+        lat = float(latitude)
+        lon = float(longitude)
+        if not (-90 <= lat <= 90) or not (-180 <= lon <= 180):
+            return "Latitude ou longitude hors limites."
 
-            if response.status_code == 200:
-                data = response.json()
-                address = data.get('address', {})
-                city = address.get('city', '')
-                suburb = address.get('suburb', '')
-                country = address.get('country', '')
-                display_address = f"{country}, {city}, {suburb}"
-                return JsonResponse({'address': display_address})
-            else:
-                return JsonResponse({'error': 'Failed to retrieve the address'}, status=response.status_code)
+        # URL pour le géocodage
+        headers = {'User-Agent': 'ProfsChezVous'}
+        url = f"https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={latitude}&lon={longitude}"
+        response = requests.get(url, headers=headers, timeout=10)
+
+
+        if response.status_code == 200:
+            data = response.json()
+            adresse = data.get('address', {})
+            
+            # Extraction des composants de l'adresse et création d'une liste filtrée
+            components = [
+                adresse.get('road', ''),
+                adresse.get('city', ''),
+                adresse.get('state', ''),
+                adresse.get('postcode', ''),
+                adresse.get('country', '')
+            ]
+            # Filtrer les composants vides et joindre les restants avec une virgule
+            concise_address = ', '.join(filter(None, components))
+
+            return concise_address if concise_address else "Aucune adresse précise trouvée."
         else:
-            return JsonResponse({'error': 'Missing latitude or longitude'}, status=400)
-    else:
-        return JsonResponse({'error': 'Invalid request method'}, status=405)
+            return "Échec de la récupération de l'adresse."
+    except Exception as e:
+        return f"Erreur : {str(e)}"
+
     
 
 
@@ -296,3 +306,13 @@ class EmailCheckAPIView(APIView):
             return Response({'email_existe': True}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'email_existe': False}, status=status.HTTP_200_OK)
+
+
+
+def get_professeur(request):
+    Professeurs = Professeur.objects.all()
+    Professeur_list = [
+        Professeur.to_json()
+        for Professeur in Professeurs
+    ]
+    return JsonResponse({'professeursDisponibles': Professeur_list})

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:profschezvousfrontend/models/user_models.dart';
-import 'package:profschezvousfrontend/screens/splash/splash_screen.dart';
+import 'package:profschezvousfrontend/ecrans/splash/splash_screen.dart';
 import 'package:profschezvousfrontend/models/user_cubit.dart';
 
 import 'routes.dart';

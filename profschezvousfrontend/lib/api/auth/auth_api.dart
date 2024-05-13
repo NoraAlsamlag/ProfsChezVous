@@ -72,7 +72,7 @@ Future<User?> getUser(String token) async {
 
 
 Future<void> deconnexion(String token) async {
-  var url = Uri.parse("$domaine/user/auth/deconnexion/"); // Replace with your deconnexion endpoint URL
+  var url = Uri.parse("$domaine/user/auth/logout/");
   var response = await http.post(
     url,
     headers: {
@@ -81,11 +81,9 @@ Future<void> deconnexion(String token) async {
   );
 
   if (response.statusCode == 200) {
-    // deconnexion successful, clear local token or any other cleanup
     var box = await Hive.openBox(tokenBox);
     await box.delete("token");
   } else {
-    // deconnexion failed, handle error
     print('Failed to deconnexion: ${response.statusCode}');
   }
 }

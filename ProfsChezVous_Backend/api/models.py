@@ -1,5 +1,5 @@
 from django.db import models
-from user.models import User, Admin, Professeur, Parent , Eleve
+from user.models import User,Professeur, Parent , Eleve
 from django.utils import timezone
 from rest_framework import serializers
 from django.db import models

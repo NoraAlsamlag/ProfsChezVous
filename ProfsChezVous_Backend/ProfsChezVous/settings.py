@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os, random, string, inspect
+from pathlib import Path
+
+
+import django_dyn_dt
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,10 +32,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
+# Add here your deployment HOSTS
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://localhost:5085', 'http://127.0.0.1:8000', 'http://127.0.0.1:5085']
 
 # Application definition
 
 INSTALLED_APPS = [
+    'admin_datta.apps.AdminDattaConfig',
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -40,6 +48,15 @@ INSTALLED_APPS = [
     # Local apps
     'api.apps.ApiConfig',
     'user',
+
+    "home",
+
+    # Tooling Dynamic_DT
+    'django_dyn_dt',             # <-- NEW: Dynamic_DT
+
+    # Tooling API-GEN
+    'django_api_gen',  
+
     # Restful apps
     'rest_framework',
     # Rest auth
@@ -68,6 +85,8 @@ SITE_ID = 1
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
 
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+
     "corsheaders.middleware.CorsMiddleware",
 
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -84,10 +103,13 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "ProfsChezVous.urls"
 
+HOME_TEMPLATES      = os.path.join(BASE_DIR, 'templates') 
+TEMPLATE_DIR_DATATB = os.path.join(BASE_DIR, "django_dyn_dt/templates")
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [HOME_TEMPLATES, TEMPLATE_DIR_DATATB], 
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -99,6 +121,8 @@ TEMPLATES = [
         },
     },
 ]
+
+WSGI_APPLICATION = "ProfsChezVous.wsgi.application"
 
 # WSGI_APPLICATION = "ProfsChezVous.wsgi_Backend.application",
 #os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ProfsChezVous.settings')
@@ -153,6 +177,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+DYN_DB_PKG_ROOT = os.path.dirname( inspect.getfile( django_dyn_dt ) ) # <-- NEW: Dynamic_DT
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+    os.path.join(DYN_DB_PKG_ROOT, "templates/static"),                # <-- NEW: Dynamic_DT 
+)
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

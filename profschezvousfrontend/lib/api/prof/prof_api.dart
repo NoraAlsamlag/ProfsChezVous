@@ -101,3 +101,13 @@ String mimeTypeFromFileExtension(String filePath) {
       throw UnsupportedError('Extension de fichier non prise en charge : $ext');
   }
 }
+
+Future<List<dynamic>> obtenirProfesseurs() async {
+  final response = await http.get(Uri.parse('$domaine/user/professeurs/'));
+  if (response.statusCode == 200) {
+    final jsonData = jsonDecode(response.body);
+    return jsonData['professeursDisponibles'];
+  } else {
+    throw Exception('Échec de la récupération des professeurs');
+  }
+}

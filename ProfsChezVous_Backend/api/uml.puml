@@ -1,0 +1,117 @@
+@startuml
+' Adjust diagram layout
+skinparam linetype ortho
+
+class User {
+    - is_admin: Boolean
+    - is_parent: Boolean
+    - is_eleve: Boolean
+    - is_professeur: Boolean
+    - image_profil: ImageField
+    - cree_le: DateTime
+    - modifie_le: DateTime
+}
+
+class Parent {
+    - nom: CharField
+    - prenom: CharField
+    - ville: CharField
+    - date_naissance: DateField
+    - numero_telephone: CharField
+    - latitude: Float
+    - longitude: Float
+}
+
+class Professeur {
+    - nom: CharField
+    - prenom: CharField
+    - ville: CharField
+    - numero_telephone: CharField
+    - cv: FileField
+    - diplome: FileField
+    - date_naissance: DateField
+    - matiere_a_enseigner: CharField
+    - niveau_etude: CharField
+    - latitude: Float
+    - longitude: Float
+}
+
+class Eleve {
+    - nom: CharField
+    - prenom: CharField
+    - ville: CharField
+    - date_naissance: DateField
+    - Etablissement: CharField
+    - niveau_scolaire: CharField
+    - numero_telephone: CharField
+    - latitude: Float
+    - longitude: Float
+}
+
+User <|-- Parent
+User <|-- Professeur
+User <|-- Eleve
+
+class Matiere {
+    - nom_complet: CharField
+    - symbole: CharField
+}
+
+class CommentaireCours {
+    - contenu: TextField
+    - date: DateTime
+    - Cours_Unite: BooleanField
+    - Cours_Package: BooleanField
+}
+
+Professeur "1" -- "*" CommentaireCours
+Parent "1" -- "*" CommentaireCours
+Matiere "1" -- "*" CommentaireCours
+
+class Cours {
+    - date: DateField
+    - heure_debut: TimeField
+    - heure_fin: TimeField
+    - present: BooleanField
+    - dispense: BooleanField
+    - commentaire: TextField
+}
+
+Professeur "1" -- "*" Cours
+Eleve "1" -- "*" Cours
+
+class Cours_Unite {
+    - sujet: TextField
+    - date: DateField
+    - heure_debut: TimeField
+    - duree: IntegerField
+    - statut: CharField
+    - lieu_des_cours: CharField
+}
+
+Matiere "1" -- "*" Cours_Unite
+Professeur "0..1" -- "*" Cours_Unite
+
+class Cours_Package {
+    - description: TextField
+    - duree: IntegerField
+    - date_debut: DateField
+    - date_fin: DateField
+    - est_actif: BooleanField
+    - nombre_semaines: IntegerField
+    - nombre_eleves: IntegerField
+    - heures_par_semaine: CharField
+    - prix: DecimalField
+}
+
+Matiere "1" -- "*" Cours_Package
+
+class Message {
+    - contenu: TextField
+    - date_envoi: DateTime
+}
+
+Message "1" *-- "1" User : "expediteur"
+Message "1" *-- "1" User : "destinataire"
+
+@enduml

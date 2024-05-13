@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django_resized import ResizedImageField
 from django import forms
 from .forms import InscrireEnfantForm
+
 #from .utils.forms import InscrireEnfantForm
 
 #from .models import Transaction
@@ -47,23 +48,20 @@ class Parent(models.Model):
     ville = models.CharField(max_length=100)
     date_naissance = models.DateField()
     numero_telephone = models.CharField(max_length=12)
-    # adresse = models.CharField(max_length=200)
-    # Eleve = models.ManyToManyField('Eleve')
-    # eleves =ArrayField(models.CharField(max_length=100), blank=True)
-    # quartier_résidence = models.CharField(max_length=70)
     latitude = models.FloatField()
     longitude = models.FloatField()
     
     def to_json(self):
+        from .views import obtenir_adresse_depuis_coordonnees
+        adresse = obtenir_adresse_depuis_coordonnees(self.latitude, self.longitude)
         return {
             'user_id': self.user.id,
             'ville': self.ville,
-            # 'adresse': self.adresse,
             'prenom': self.prenom,
             'nom': self.nom,
             'date_naissance': self.date_naissance.strftime('%Y-%m-%d'),
             'numero_telephone': self.numero_telephone,
-            # 'quartier_résidence': self.quartier_résidence,
+            'adresse': adresse,
             'latitude': self.latitude,
             'longitude': self.longitude,
         }
@@ -125,23 +123,26 @@ class Professeur(models.Model):
     longitude = models.FloatField()
 
     def to_json(self):
+        from .views import obtenir_adresse_depuis_coordonnees
+        adresse = obtenir_adresse_depuis_coordonnees(self.latitude, self.longitude)
+        
         return {
             'user_id': self.user.id,
             'ville': self.ville,
             'prenom': self.prenom,
             'nom': self.nom,
-            # 'adresse': self.adresse,
-            # 'quartier_residence': self.quartier_residence,
             'numero_telephone': self.numero_telephone,
             'cv': str(self.cv) if self.cv else None,
             'diplome': str(self.diplome) if self.diplome else None,
             'niveau_etude': self.niveau_etude,
             'matiere_a_enseigner': self.matiere_a_enseigner,
-            # 'tarif_horaire': str(self.tarif_horaire),
+            'image_profil': str(self.user.image_profil.url) if self.user.image_profil else None,
             'date_naissance': self.date_naissance.strftime('%Y-%m-%d'),
+            'adresse': adresse,
             'latitude': self.latitude,
             'longitude': self.longitude,
         }
+
 
 
     def __str__(self):
@@ -153,34 +154,29 @@ class Professeur(models.Model):
 class Eleve(models.Model):
     user  = models.OneToOneField(User , related_name='eleve',on_delete=models.CASCADE)
     nom = models.CharField(max_length=50)
-    # adresse = models.CharField(max_length=200)
+
     prenom = models.CharField(max_length=30)
     ville = models.CharField(max_length=100)
     date_naissance = models.DateField()
     Etablissement = models.CharField(max_length=100) 
     niveau_scolaire = models.CharField(max_length=100)
-   
-    # GENRE_CHOICES = (
-    #     ('masculin', 'Masculin'),
-    #     ('feminin', 'Féminin'),
-    #     ('autre', 'Autre'),)
-    # genre = models.CharField(max_length=60, choices=GENRE_CHOICES)
     numero_telephone = models.CharField(max_length=12)
     latitude = models.FloatField()
     longitude = models.FloatField()
 
     def to_json(self):
+        from .views import obtenir_adresse_depuis_coordonnees
+        adresse = obtenir_adresse_depuis_coordonnees(self.latitude, self.longitude)
         return {
             'user_id': self.user.id,
             'ville': self.ville,
-            # 'adresse': self.adresse,
             'prenom': self.prenom,
             'nom': self.nom,
             'date_naissance': self.date_naissance.strftime('%Y-%m-%d'),
             'etablissement': self.Etablissement,
             'niveau_scolaire': self.niveau_scolaire,
-            # 'genre': self.genre,
             'numero_telephone': self.numero_telephone,
+            'adresse': adresse,
             'latitude': self.latitude,
             'longitude': self.longitude,
         }

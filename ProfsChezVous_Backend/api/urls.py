@@ -1,11 +1,13 @@
-from django.urls import path, include
+from django.urls import path, re_path
 from . import views
-from .views import CoursUniteViewSet
+from .views import CoursUniteViewSet, ParentView
 from rest_framework.routers import DefaultRouter
 from .views import CoursPackageViewSet
 #from .views import DiscussionParentAdminViewSet
 
 from .views import MessageViewSet 
+
+from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
     path('matieres/', views.MatiereList.as_view(), name='matiere-list'),
@@ -40,5 +42,9 @@ urlpatterns = [
     path('signaler-absence/', views.signaler_absence, name='signaler_absence'),
     path('demander-remboursement/', views.demander_remboursement, name='demander_remboursement'),
     path('planifier-rattrapage/', views.planifier_rattrapage, name='planifier_rattrapage'),
+
+
+    re_path("product/((?P<pk>\d+)/)?", csrf_exempt(ParentView.as_view())),
+
 
 ]

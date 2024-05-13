@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants.dart';
-import '../screens/inscription/page_inscription.dart';
+import '../ecrans/inscription/page_inscription.dart';
 
 class AucunCompteText extends StatelessWidget {
   const AucunCompteText({
