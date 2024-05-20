@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../../../../components/form_error.dart';
+import '../../../../../constants.dart';
 import 'multi_select.dart';
 
 class MatiereAEnseigneeDropdown extends StatefulWidget {
-  // final List<String> selectedItems;
-  final ValueChanged<List<String>> onSelectionChanged;
+  final ValueChanged<List<int>> onSelectionChanged;
 
   const MatiereAEnseigneeDropdown({
     Key? key,
@@ -12,60 +14,77 @@ class MatiereAEnseigneeDropdown extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _MatiereAEnseigneeDropdownState createState() =>
-      _MatiereAEnseigneeDropdownState();
+  _MatiereAEnseigneeDropdownState createState() => _MatiereAEnseigneeDropdownState();
 }
 
 class _MatiereAEnseigneeDropdownState extends State<MatiereAEnseigneeDropdown> {
-  Map<String, List<String>> categories = {
-  'Fondamental': ['Français', 'Arabe', 'Mathématiques'],
-  'Collège': ['Français', 'Anglais', 'Arabe', 'Mathématiques', 'Physique-Chimie', 'Histoire-Géographie', 'Instruction Islamique', 'Sciences Naturelles', 'Instruction Civique', 'EPS activités physiques'],
-  'Lycée': ['Anglais', 'Histoire-Géographie', 'Instruction Islamique', 'Philosophie', 'EPS activités physiques', 'الإسلامي التشريع', 'الإسلامي الفكر'],
-  'Sciences Naturelles (Lycée)': ['Sciences Naturelles 5C', 'Sciences Naturelles 5D', 'Sciences Naturelles 6C', 'Sciences Naturelles 6D', 'Sciences Naturelles 7C', 'Sciences Naturelles 7D'],
-  'Mathématiques (Lycée)': ['Mathématiques 5C', 'Mathématiques 5D', 'Mathématiques 6C', 'Mathématiques 6D', 'Mathématiques 7C', 'Mathématiques 7D'],
-  'Arabe (Lycée)': ['Arabe 5C', 'Arabe 5D', 'Arabe 6C', 'Arabe 6D', 'Arabe 7C', 'Arabe 7D'],
-  'Français (Lycée)': ['Français 5C', 'Français 5D', 'Français 6C', 'Français 6D', 'Français 7C', 'Français 7D'],
-};
-  // List<String> selectedItems = [];
+  Map<String, List<Map<String, dynamic>>> categories = {};
+  List<int> selectedMatieresIds = [];
   List<String> errors = [];
-  List<String> selectedCategories = [];
 
-  void _updateSelectedItems(List<String> items) {
+  @override
+  void initState() {
+    super.initState();
+    _fetchCategoriesAndMatieres();
+  }
+
+  Future<void> _fetchCategoriesAndMatieres() async {
+    try {
+      final response = await http.get(Uri.parse('$domaine/api/obtenir_categories_et_matieres/'));
+      if (response.statusCode == 200) {
+        setState(() {
+          Map<String, dynamic> data = json.decode(response.body);
+          data.forEach((key, value) {
+            categories[key] = List<Map<String, dynamic>>.from(value);
+          });
+        });
+      } else {
+        setState(() {
+          errors = ['Erreur lors de la récupération des données.'];
+        });
+      }
+    } catch (e) {
+      setState(() {
+        errors = ['Erreur de connexion.'];
+      });
+    }
+  }
+
+  void _updateSelectedItems(List<int> items) {
     setState(() {
-      // selectedItems = items;
-      selectedCategories = items;
+      selectedMatieresIds = items;
       errors = [];
     });
   }
 
-void _showMultiSelect() async {
-  final List<String>? results = await showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return MultiSelect(
-        items: categories, // Pass the categories map directly
-        initialSelectedItems: selectedCategories,
-        onSelectionChanged: _updateSelectedItems,
-      );
-    },
-  );
+  void _showMultiSelect() async {
+    final List<int>? results = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return MultiSelect(
+          items: categories,
+          initialSelectedItems: selectedMatieresIds,
+          onSelectionChanged: _updateSelectedItems,
+        );
+      },
+    );
 
-  if (results != null) {
-    setState(() {
-      errors = [];
-      selectedCategories = results;
-      widget.onSelectionChanged(selectedCategories);
-    });
-  } else {
-    setState(() {
-      errors = ['Veuillez sélectionner au moins un élément.'];
-    });
+    if (results != null) {
+      setState(() {
+        errors = [];
+        selectedMatieresIds = results;
+        widget.onSelectionChanged(selectedMatieresIds);
+      });
+    } else {
+      setState(() {
+        errors = ['Veuillez sélectionner au moins un élément.'];
+      });
+    }
   }
-}
 
   void _submit() {
-    Navigator.pop(context, selectedCategories);
-    widget.onSelectionChanged(selectedCategories);
+    Navigator.pop(context, selectedMatieresIds);
+    widget.onSelectionChanged(selectedMatieresIds);
   }
 
   @override
@@ -74,25 +93,32 @@ void _showMultiSelect() async {
       children: [
         ElevatedButton(
           onPressed: _showMultiSelect,
-          child: Text('Sélectionnez des matières'),
+          child: const Text('Sélectionnez des matières'),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Wrap(
           spacing: 8.0,
           runSpacing: 4.0,
-          children: selectedCategories.map((category) {
+          children: selectedMatieresIds.map((id) {
+            String? label;
+            categories.forEach((key, value) {
+              value.forEach((matiere) {
+                if (matiere['id'] == id) {
+                  label = matiere['nom_complet'];
+                }
+              });
+            });
             return Chip(
-              label: Text(category),
+              label: Text(label ?? ''),
               onDeleted: () {
                 setState(() {
-                  selectedCategories.remove(category);
-                  // selectedItems.remove(category);
+                  selectedMatieresIds.remove(id);
                 });
               },
             );
           }).toList(),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         FormError(errors: errors),
       ],
     );

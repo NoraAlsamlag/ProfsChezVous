@@ -3,8 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../constants.dart';
 
-class IconBtnWithCounter extends StatelessWidget {
-  const IconBtnWithCounter({
+class IconBtnAvecCompteur extends StatelessWidget {
+  const IconBtnAvecCompteur({
     Key? key,
     required this.svgSrc,
     this.numOfitem = 0,

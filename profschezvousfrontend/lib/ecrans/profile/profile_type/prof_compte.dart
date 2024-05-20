@@ -49,7 +49,7 @@ Widget build(BuildContext context) {
           _buildInfoRow("Date de Naissance", user.userDetails?.prof?.dateNaissance ?? "", Icons.calendar_today),
           _buildInfoRow("Numéro de Téléphone", user.userDetails?.prof?.numeroTelephone ?? "", Icons.phone),
           _buildInfoRow("Niveau etude", user.userDetails?.prof?.niveauEtude ?? "", Icons.school),
-          _buildInfoRow("Matiere a enseigner", user.userDetails?.prof?.matiereAEnseigner ?? "", Icons.school),
+          _buildInfoRow("Matiere a enseigner", user.userDetails?.prof?.matieresAEnseigner.join(', ') ?? "", Icons.school),
 
         ],
       ),

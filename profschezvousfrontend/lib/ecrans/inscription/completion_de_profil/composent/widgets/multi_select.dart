@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class MultiSelect extends StatefulWidget {
-  final Map<String, List<String>> items;
-  final List<String> initialSelectedItems;
-  final ValueChanged<List<String>> onSelectionChanged;
+  final Map<String, List<Map<String, dynamic>>> items;
+  final List<int> initialSelectedItems;
+  final ValueChanged<List<int>> onSelectionChanged;
 
   const MultiSelect({
     Key? key,
@@ -17,10 +17,10 @@ class MultiSelect extends StatefulWidget {
 }
 
 class _MultiSelectState extends State<MultiSelect> {
-  late List<String> _selectedItems = [];
+  late List<int> _selectedItems;
   String _searchQuery = '';
 
-  void _itemChange(String itemValue, bool isSelected) {
+  void _itemChange(int itemValue, bool isSelected) {
     setState(() {
       if (isSelected) {
         _selectedItems.add(itemValue);
@@ -46,75 +46,71 @@ class _MultiSelectState extends State<MultiSelect> {
   }
 
   List<Widget> _getFilteredItems() {
-  final filteredItems = <Widget>[];
-  final searchRegExp = RegExp('^${RegExp.escape(_searchQuery.toLowerCase())}');
+    final filteredItems = <Widget>[];
+    final searchRegExp = RegExp('^${RegExp.escape(_searchQuery.toLowerCase())}');
 
-  if (_searchQuery.isEmpty) {
-    // If the search query is empty, show all categories and items
-    widget.items.forEach((category, items) {
-      filteredItems.add(
-        ExpansionTile(
-          title: Text(category),
-          children: items.map((item) {
-            return CheckboxListTile(
-              value: _selectedItems.contains(item),
-              title: Text(item),
-              controlAffinity: ListTileControlAffinity.leading,
-              onChanged: (isChecked) => _itemChange(item, isChecked!),
-            );
-          }).toList(),
-        ),
-      );
-    });
-  } else {
-    // Filter categories and items based on the search query
-    widget.items.forEach((category, items) {
-      final matchingItems = items.where((item) =>
-          searchRegExp.hasMatch(item.toLowerCase()));
-
-      if (searchRegExp.hasMatch(category.toLowerCase())) {
+    if (_searchQuery.isEmpty) {
+      widget.items.forEach((category, items) {
         filteredItems.add(
           ExpansionTile(
-            initiallyExpanded: true,
             title: Text(category),
             children: items.map((item) {
               return CheckboxListTile(
-                value: _selectedItems.contains(item),
-                title: Text(item),
+                value: _selectedItems.contains(item['id']),
+                title: Text(item['nom_complet']),
                 controlAffinity: ListTileControlAffinity.leading,
-                onChanged: (isChecked) => _itemChange(item, isChecked!),
+                onChanged: (isChecked) => _itemChange(item['id'], isChecked!),
               );
             }).toList(),
           ),
         );
-      } else if (matchingItems.isNotEmpty) {
-        filteredItems.add(
-          ExpansionTile(
-            initiallyExpanded: true, // Expand the category if any of its items match the search query
-            title: Text(category),
-            children: matchingItems.map((item) {
-              return CheckboxListTile(
-                value: _selectedItems.contains(item),
-                title: Text(item),
-                controlAffinity: ListTileControlAffinity.leading,
-                onChanged: (isChecked) => _itemChange(item, isChecked!),
-              );
-            }).toList(),
-          ),
-        );
-      }
+      });
+    } else {
+      widget.items.forEach((category, items) {
+        final matchingItems = items.where((item) => searchRegExp.hasMatch(item['nom_complet'].toLowerCase())).toList();
+
+        if (searchRegExp.hasMatch(category.toLowerCase())) {
+          filteredItems.add(
+            ExpansionTile(
+              initiallyExpanded: true,
+              title: Text(category),
+              children: items.map((item) {
+                return CheckboxListTile(
+                  value: _selectedItems.contains(item['id']),
+                  title: Text(item['nom_complet']),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  onChanged: (isChecked) => _itemChange(item['id'], isChecked!),
+                );
+              }).toList(),
+            ),
+          );
+        } else if (matchingItems.isNotEmpty) {
+          filteredItems.add(
+            ExpansionTile(
+              initiallyExpanded: true,
+              title: Text(category),
+              children: matchingItems.map((item) {
+                return CheckboxListTile(
+                  value: _selectedItems.contains(item['id']),
+                  title: Text(item['nom_complet']),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  onChanged: (isChecked) => _itemChange(item['id'], isChecked!),
+                );
+              }).toList(),
+            ),
+          );
+        }
+      });
+    }
+
+    filteredItems.sort((a, b) {
+      final titleA = (a as ExpansionTile).title.toString().toLowerCase();
+      final titleB = (b as ExpansionTile).title.toString().toLowerCase();
+      return titleA.compareTo(titleB);
     });
+
+    return filteredItems;
   }
-
-  // Sort the filtered items alphabetically
-  filteredItems.sort((a, b) {
-    final titleA = (a as ExpansionTile).title.toString().toLowerCase();
-    final titleB = (b as ExpansionTile).title.toString().toLowerCase();
-    return titleA.compareTo(titleB);
-  });
-
-  return filteredItems;
-}
 
   @override
   Widget build(BuildContext context) {

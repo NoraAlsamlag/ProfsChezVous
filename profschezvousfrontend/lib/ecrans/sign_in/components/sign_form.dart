@@ -8,7 +8,7 @@ import '../../../components/custom_surfix_icon.dart';
 import '../../../components/form_error.dart';
 import '../../../constants.dart';
 import '../../forgot_password/forgot_password_screen.dart';
-import '../../login_success/login_success_screen.dart';
+import '../../init_screen.dart';
 
 class SignForm extends StatefulWidget {
   const SignForm({Key? key}) : super(key: key);
@@ -67,7 +67,7 @@ class _SignFormState extends State<SignForm> {
       } else if (authRes is User) {
         User utilisateur = authRes;
         context.read<UserCubit>().emit(utilisateur);
-        Navigator.pushNamed(context, LoginSuccessScreen.routeName);
+        Navigator.pushNamed(context, InitScreen.routeName);
       }
     }
   }

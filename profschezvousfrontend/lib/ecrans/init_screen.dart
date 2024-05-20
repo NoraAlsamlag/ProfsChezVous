@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:profschezvousfrontend/constants.dart';
 import 'package:profschezvousfrontend/ecrans/professeurs_list/professeurs_list_ecrant.dart';
 import 'package:profschezvousfrontend/ecrans/accueil/accueil_ecrant.dart';
 import 'package:profschezvousfrontend/ecrans/profile/profile_screen.dart';
+
+
+import 'professeur_ecrans/confirmation_cours.dart';
+import '../models/user_cubit.dart';
+import '../models/user_models.dart';
+import 'notification/notification_ecrant.dart';
 
 const Color inActiveIconColor = Color(0xFFB6B6B6);
 
@@ -25,24 +32,30 @@ class _InitScreenState extends State<InitScreen> {
     });
   }
 
-  final pages = [
-    const AccueilEcrant(),
-    const ProfesseursListEcrant(),
-    const Center(
-      child: Text("Discussion"),
-    ),
-    const ProfileScreen()
-  ];
-
   @override
   Widget build(BuildContext context) {
+    User user = context.read<UserCubit>().state;
+
+    final pages = [
+      const AccueilEcrant(),
+      user.isProfesseur == true
+        ? const PageConfirmationCours()
+        : user.isEleve == true
+          ? NotificationEcrant()
+          : const ProfesseursListEcrant(),
+      const Center(
+        child: Text("Discussion"),
+      ),
+      const ProfileScreen()
+    ];
+
     return Scaffold(
       body: pages[currentSelectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         onTap: updateCurrentIndex,
         currentIndex: currentSelectedIndex,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
         items: [
           BottomNavigationBarItem(
@@ -60,24 +73,36 @@ class _InitScreenState extends State<InitScreen> {
                 BlendMode.srcIn,
               ),
             ),
-            label: "Home",
+            label: "Accueil",
           ),
           BottomNavigationBarItem(
             icon: SvgPicture.asset(
-              "assets/icons/Heart Icon.svg",
+              user.isProfesseur == true
+                  ? "assets/icons/List.svg"
+                  : user.isEleve == true
+                    ? "assets/icons/Bell.svg"
+                    : "assets/icons/Professeure.svg",
               colorFilter: const ColorFilter.mode(
                 inActiveIconColor,
                 BlendMode.srcIn,
               ),
             ),
             activeIcon: SvgPicture.asset(
-              "assets/icons/Heart Icon.svg",
+              user.isProfesseur == true
+                  ? "assets/icons/List.svg"
+                  : user.isEleve == true
+                    ? "assets/icons/Bell.svg"
+                    : "assets/icons/Professeure.svg",
               colorFilter: const ColorFilter.mode(
                 kPrimaryColor,
                 BlendMode.srcIn,
               ),
             ),
-            label: "Prof",
+            label: user.isProfesseur == true
+              ? "Cours"
+              : user.isEleve == true
+                ? "Notifications"
+                : "Professeurs",
           ),
           BottomNavigationBarItem(
             icon: SvgPicture.asset(
@@ -94,7 +119,7 @@ class _InitScreenState extends State<InitScreen> {
                 BlendMode.srcIn,
               ),
             ),
-            label: "discussion",
+            label: "Discussion",
           ),
           BottomNavigationBarItem(
             icon: SvgPicture.asset(
@@ -111,7 +136,7 @@ class _InitScreenState extends State<InitScreen> {
                 BlendMode.srcIn,
               ),
             ),
-            label: "profile",
+            label: "Profil",
           ),
         ],
       ),

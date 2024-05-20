@@ -9,7 +9,7 @@ class Professeur extends UserDetails {
   String? cv;
   String? diplome;
   String? niveauEtude;
-  String? matiereAEnseigner;
+  List<dynamic> matieresAEnseigner;
   String? dateNaissance;
   double? latitude;
   double? longitude;
@@ -24,7 +24,7 @@ class Professeur extends UserDetails {
     required this.cv,
     required this.diplome,
     required this.niveauEtude,
-    required this.matiereAEnseigner,
+    required this.matieresAEnseigner,
     required this.dateNaissance,
     required this.latitude,
     required this.longitude,
@@ -40,7 +40,7 @@ class Professeur extends UserDetails {
       cv: json["cv"],
       diplome: json["diplome"],
       niveauEtude: json["niveau_etude"],
-      matiereAEnseigner: json["matiere_a_enseigner"],
+      matieresAEnseigner: json["matieres_a_enseigner"],
       dateNaissance: json["date_naissance"],
       latitude: json["latitude"],
       longitude: json["longitude"],

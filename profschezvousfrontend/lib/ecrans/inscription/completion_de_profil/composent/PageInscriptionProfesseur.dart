@@ -37,26 +37,14 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
   String? niveauEtude;
   String? cheminFichierDiplome;
   String? cheminFichierCV;
-  List<String> selectedItems = [];
+  List<int> selectedItems = [];
   bool isLoading = false;
 
-  void _updateSelectedItems(List<String> newSelectedItems) {
+  void _updateSelectedItems(List<int> newSelectedItems) {
     setState(() {
       selectedItems = newSelectedItems;
     });
   }
-
-  // void _updatecheminFichierCV(String? newcheminFichierCV) {
-  //   setState(() {
-  //     cheminFichierCV = newcheminFichierCV;
-  //   });
-  // }
-
-  // void _updatecheminFichierDiplome(String? newcheminFichierDiplome) {
-  //   setState(() {
-  //     cheminFichierDiplome = newcheminFichierDiplome;
-  //   });
-  // }
 
   @override
   void initState() {
@@ -107,7 +95,6 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
   Future<void> _requestLocationPermission() async {
     bool permissionGranted = await requestLocationPermission(context);
     if (!permissionGranted) {
-      // Handle the case when location permission is denied
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Permission de localisation refusée.'),
@@ -132,6 +119,96 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
     }
   }
 
+  bool validateForm() {
+    bool isValid = true;
+
+    if (preNom == null || preNom!.isEmpty) {
+      addError(error: kNamelNullError);
+      isValid = false;
+    }
+    if (preNom!.length < 3) {
+      addError(error: kPrenomTropCourtError);
+      isValid = false;
+    }
+    if (preNom!.length > 16) {
+      addError(error: kPrenomTropLongError);
+      isValid = false;
+    }
+    if (!nomPrenomValidatorRegExp.hasMatch(preNom!)) {
+      addError(error: kPrenomFormatError);
+      isValid = false;
+    }
+
+    if (nom == null || nom!.isEmpty) {
+      addError(error: kNamelNullError);
+      isValid = false;
+    }
+    if (nom!.length < 3) {
+      addError(error: kNomeTropCourtError);
+      isValid = false;
+    }
+    if (nom!.length > 16) {
+      addError(error: kNomeTropLongError);
+      isValid = false;
+    }
+    if (!nomPrenomValidatorRegExp.hasMatch(nom!)) {
+      addError(error: kNomeFormatError);
+      isValid = false;
+    }
+
+    if (numero_tel == null || numero_tel!.isEmpty) {
+      addError(error: kPhoneNumberNullError);
+      isValid = false;
+    }
+    if (!numeroTelephoneValidatorRegExp.hasMatch(numero_tel!)) {
+      addError(error: kNumeroTelephoneCommencerPar234);
+      isValid = false;
+    }
+    if (numero_tel!.length != 8) {
+      addError(error: kNumeroTelephoneLengthError);
+      isValid = false;
+    }
+    if (!numeroTelephoneContientLetterValidatorRegExp.hasMatch(numero_tel!)) {
+      addError(error: kNumeroTelephoneContientLetterError);
+      isValid = false;
+    }
+
+    if (dateNaissance == null || dateNaissance!.isEmpty) {
+      addError(error: 'Veuillez sélectionner une date de naissance');
+      isValid = false;
+    }
+    if (validateDateNaissance(dateNaissance) != null) {
+      isValid = false;
+    }
+
+    if (ville == null || ville!.isEmpty) {
+      addError(error: 'Veuillez sélectionner une ville');
+      isValid = false;
+    }
+
+    if (niveauEtude == null || niveauEtude!.isEmpty) {
+      addError(error: 'Veuillez sélectionner un niveau d\'étude');
+      isValid = false;
+    }
+
+    if (selectedItems.isEmpty) {
+      addError(error: 'Veuillez sélectionner au moins une matière.');
+      isValid = false;
+    }
+
+    if (cheminFichierCV == null || cheminFichierCV!.isEmpty) {
+      addError(error: 'Veuillez choisir un fichier CV.');
+      isValid = false;
+    }
+
+    if (cheminFichierDiplome == null || cheminFichierDiplome!.isEmpty) {
+      addError(error: 'Veuillez choisir un fichier Diplôme.');
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -152,15 +229,9 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
                   nomPrenomValidatorRegExp.hasMatch(value)) {
                 removeError(error: kPrenomFormatError);
               } else {
-                removeError(
-                    error:
-                        kPrenomTropCourtError); // Supprimer l'erreur si le prénom est valide
-                removeError(
-                    error:
-                        kPrenomTropLongError); // Supprimer l'erreur si le prénom est valide
-                removeError(
-                    error:
-                        kPrenomFormatError); // Supprimer l'erreur si le prénom est valide
+                removeError(error: kPrenomTropCourtError);
+                removeError(error: kPrenomTropLongError);
+                removeError(error: kPrenomFormatError);
               }
             },
             validator: (value) {
@@ -201,15 +272,9 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
                   nomPrenomValidatorRegExp.hasMatch(value)) {
                 removeError(error: kNomeFormatError);
               } else {
-                removeError(
-                    error:
-                        kNomeTropCourtError); // Supprimer l'erreur si le nom est valide
-                removeError(
-                    error:
-                        kNomeTropLongError); // Supprimer l'erreur si le nom est valide
-                removeError(
-                    error:
-                        kNomeFormatError); // Supprimer l'erreur si le nom est valide
+                removeError(error: kNomeTropCourtError);
+                removeError(error: kNomeTropLongError);
+                removeError(error: kNomeFormatError);
               }
             },
             validator: (value) {
@@ -247,20 +312,14 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
               if (numeroTelephoneValidatorRegExp.hasMatch(value)) {
                 removeError(error: kNumeroTelephoneCommencerPar234);
               } else {
-                addError(
-                    error:
-                        kNumeroTelephoneCommencerPar234); // Ajoutez l'erreur si le numéro ne commence pas par 2, 3 ou 4
+                addError(error: kNumeroTelephoneCommencerPar234);
               }
               if (value.length == 8) {
-                removeError(
-                    error:
-                        kNumeroTelephoneLengthError); // Supprimez l'erreur si la longueur est égale à 8 chiffres
+                removeError(error: kNumeroTelephoneLengthError);
               }
               if (numeroTelephoneContientLetterValidatorRegExp
                   .hasMatch(value)) {
-                removeError(
-                    error:
-                        kNumeroTelephoneContientLetterError); // Supprimez l'erreur si le numéro ne contient pas de lettres
+                removeError(error: kNumeroTelephoneContientLetterError);
               }
             },
             validator: (value) {
@@ -315,105 +374,92 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
           ),
           const SizedBox(height: 20),
           MatiereAEnseigneeDropdown(
-            onSelectionChanged: _updateSelectedItems,
+            onSelectionChanged: (selectedMatieres) {
+              setState(() {
+                selectedItems = selectedMatieres;
+              });
+            },
           ),
           const SizedBox(height: 20),
           EcranEnvoiFichiers(
-        onCheminFichierCV: (cheminCV) {
-          // Faites quelque chose avec le chemin du fichier CV sélectionné
-          print('Chemin du fichier CV : $cheminCV');
-          setState(() {
-            cheminFichierCV = cheminCV;
-          });
-        },
-        onCheminFichierDiplome: (cheminDiplome) {
-          // Faites quelque chose avec le chemin du fichier Diplôme sélectionné
-          print('Chemin du fichier Diplôme : $cheminDiplome');
-          setState(() {
-            cheminFichierDiplome = cheminDiplome;
-          });
-        },
-      ),
-      SizedBox(height: 16.0),
-      Text(cheminFichierCV?.isNotEmpty == true
-          ? 'Fichier CV : ${cheminFichierCV!}'
-          : 'Veuillez choisir un fichier CV.'),
-      SizedBox(height: 16.0),
-      Text(cheminFichierDiplome?.isNotEmpty == true
-          ? 'Fichier Diplôme : ${cheminFichierDiplome!}'
-          : 'Veuillez choisir un fichier Diplôme.'),
+            onCheminFichierCV: (cheminCV) {
+              setState(() {
+                cheminFichierCV = cheminCV;
+              });
+            },
+            onCheminFichierDiplome: (cheminDiplome) {
+              setState(() {
+                cheminFichierDiplome = cheminDiplome;
+              });
+            },
+          ),
+          const SizedBox(height: 16.0),
+          Text(cheminFichierCV?.isNotEmpty == true
+              ? 'Fichier CV : ${cheminFichierCV!}'
+              : 'Veuillez choisir un fichier CV.'),
+          const SizedBox(height: 16.0),
+          Text(cheminFichierDiplome?.isNotEmpty == true
+              ? 'Fichier Diplôme : ${cheminFichierDiplome!}'
+              : 'Veuillez choisir un fichier Diplôme.'),
           const SizedBox(height: 20),
           FormError(errors: errors),
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () async {
-              print(selectedItems.isNotEmpty
-                  ? selectedItems.join(', ')
-                  : 'No items selected');
-              if (_formKey.currentState!.validate()) {
+              print(selectedItems.toString());
+              if (_formKey.currentState!.validate() && validateForm()) {
                 setState(() {
-            isLoading = true; // Définit isLoading à true avant l'appel à enregistrerProfesseur
-          });
+                  isLoading = true;
+                });
                 bool permissionGranted =
                     await requestLocationPermission(context);
                 if (permissionGranted) {
                   Map<String, double>? locationData =
                       await getCurrentLocation();
                   if (locationData != null) {
-                    if (preNom != null && nom != null && numero_tel != null) {
-                      enregistrerProfesseur(
-                        email: widget.email,
-                        motDePasse: widget.password,
-                        nom: nom!,
-                        prenom: preNom!,
-                        dateNaissance: dateNaissance!,
-                        ville: ville!,
-                        longitude: locationData['longitude'].toString(),
-                        latitude: locationData['latitude'].toString(),
-                        numeroTelephone: numero_tel!,
-                        matiereAEnseigner: selectedItems.join(', '),
-                        niveauEtude: niveauEtude!,
-                        cvPath: cheminFichierCV!,
-                        diplomePath: cheminFichierDiplome!,
-                      ).then((_) {
-                        // Afficher un message de succès
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                                'Inscription réussie. Vous pouvez maintenant vous connecter.'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-
-                        // Naviguer vers la page de connexion après un délai
-                        Future.delayed(Duration(seconds: 2), () {
-                          Navigator.pushReplacementNamed(
-                              context, SignInScreen.routeName);
-                        });
-                      }).catchError((error) {
-                        // Afficher un message d'erreur en cas d'échec de l'inscription
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                                'Échec de l\'enregistrement. Veuillez réessayer.: $error'),
-                          ),
-                        );
-                      }).whenComplete(() {
-            setState(() {
-              isLoading = false; // Définit isLoading à false après l'appel à enregistrerProfesseur
-            });
-          });
-                    } else {
-                      // Afficher un message d'erreur si des champs requis sont manquants
+                    enregistrerProfesseur(
+                      email: widget.email,
+                      motDePasse: widget.password,
+                      nom: nom!,
+                      prenom: preNom!,
+                      dateNaissance: dateNaissance!,
+                      ville: ville!,
+                      longitude: locationData['longitude'].toString(),
+                      latitude: locationData['latitude'].toString(),
+                      numeroTelephone: numero_tel!,
+                      matieresAEnseigner: selectedItems,
+                      niveauEtude: niveauEtude!,
+                      cvPath: cheminFichierCV!,
+                      diplomePath: cheminFichierDiplome!,
+                    ).then((_) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content:
-                              Text('Veuillez remplir tous les champs requis.'),
+                          content: Text(
+                              'Inscription réussie. Vous pouvez maintenant vous connecter.'),
+                          duration: Duration(seconds: 2),
                         ),
                       );
-                    }
+
+                      Future.delayed(const Duration(seconds: 2), () {
+                        Navigator.pushReplacementNamed(
+                            context, SignInScreen.routeName);
+                      });
+                    }).catchError((error) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              'Échec de l\'enregistrement. Veuillez réessayer.: $error'),
+                        ),
+                      );
+                    }).whenComplete(() {
+                      setState(() {
+                        isLoading = false;
+                      });
+                    });
                   } else {
-                    // Location data not obtained, show an error message
+                    setState(() {
+                      isLoading = false;
+                    });
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
@@ -422,7 +468,9 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
                     );
                   }
                 } else {
-                  // Location permission was denied, handle accordingly
+                  setState(() {
+                    isLoading = false;
+                  });
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Permission de localisation refusée.'),
@@ -434,10 +482,9 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
             child: const Text("Continue"),
           ),
           Visibility(
-      visible: isLoading,
-      child: CircularProgressIndicator(),
-    ),
-
+            visible: isLoading,
+            child: const CircularProgressIndicator(),
+          ),
         ],
       ),
     );

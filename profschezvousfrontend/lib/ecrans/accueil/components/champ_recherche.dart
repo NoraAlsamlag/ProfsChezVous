@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../constants.dart';
 
-class SearchField extends StatelessWidget {
-  const SearchField({
+class ChampRecherche extends StatelessWidget {
+  const ChampRecherche({
     Key? key,
   }) : super(key: key);
 

@@ -16,10 +16,9 @@ Future<void> enregistrerProfesseur({
   required String longitude,
   required String diplomePath,
   required String cvPath,
-  required String matiereAEnseigner,
+  required List<int> matieresAEnseigner,
   required String niveauEtude,
 }) async {
-  // Définir le corps de la requête
   Map<String, String> fields = {
     "email": email,
     "password1": motDePasse,
@@ -31,56 +30,52 @@ Future<void> enregistrerProfesseur({
     "numero_telephone": numeroTelephone,
     "latitude": latitude,
     "longitude": longitude,
-    "matiere_a_enseigner": matiereAEnseigner,
     "niveau_etude": niveauEtude,
   };
 
-  // Envoyer la requête POST avec les pièces jointes
   try {
     var request = http.MultipartRequest(
       'POST',
       Uri.parse('$domaine/user/register/professeur/'),
     );
 
-    // Ajouter les champs à la requête
     request.fields.addAll(fields);
 
-    // Ajouter le fichier CV à la requête
-    var cvFile = await http.MultipartFile.fromPath(
-      'cv',
-      cvPath,
-      contentType: MediaType.parse(mimeTypeFromFileExtension(cvPath)),
-    );
-    request.files.add(cvFile);
+    for (var i = 0; i < matieresAEnseigner.length; i++) {
+      request.fields['matieres_a_enseigner[$i]'] = matieresAEnseigner[i].toString();
     }
 
-    // Ajouter le fichier diplôme à la requête
-    var diplomeFile = await http.MultipartFile.fromPath(
-      'diplome',
-      diplomePath,
-      contentType: MediaType.parse(mimeTypeFromFileExtension(diplomePath)),
-    );
-    request.files.add(diplomeFile);
+    if (cvPath.isNotEmpty) {
+      var cvFile = await http.MultipartFile.fromPath(
+        'cv',
+        cvPath,
+        contentType: MediaType.parse(mimeTypeFromFileExtension(cvPath)),
+      );
+      request.files.add(cvFile);
+    }
 
-    // Envoyer la requête
+    if (diplomePath.isNotEmpty) {
+      var diplomeFile = await http.MultipartFile.fromPath(
+        'diplome',
+        diplomePath,
+        contentType: MediaType.parse(mimeTypeFromFileExtension(diplomePath)),
+      );
+      request.files.add(diplomeFile);
+    }
+
+    // print(jsonEncode(request.fields));
+
     final response = await request.send();
 
-    // Vérifier si la requête a réussi
-    if (response.statusCode == 204) {
-      // Pas de contenu à retourner (succès sans contenu)
-      print('Professeur enregistré avec succès');
-    } else if (response.statusCode == 201) {
-      // Création réussie (créé)
-      // Vous pouvez également lire le corps de la réponse si nécessaire
+    if (response.statusCode == 204 || response.statusCode == 201) {
       print('Professeur enregistré avec succès');
     } else {
-      // Erreur lors de l'enregistrement
-      print('Erreur lors de l\'enregistrement du professeur : ${response.statusCode}');
-      print('Réponse du serveur : ${await response.stream.bytesToString()}');
+      final responseBody = await response.stream.bytesToString();
+      throw Exception(
+          'Erreur lors de l\'enregistrement du professeur : ${response.statusCode}\n$responseBody');
     }
   } catch (error) {
-    // Erreur lors de l'envoi de la requête
-    print('Erreur lors de l\'envoi de la requête : $error');
+    throw Exception('Erreur lors de l\'envoi de la requête : $error');
   }
 }
 

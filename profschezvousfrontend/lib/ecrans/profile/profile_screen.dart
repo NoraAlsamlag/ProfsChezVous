@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:profschezvousfrontend/api/auth/auth_api.dart';
 import 'package:profschezvousfrontend/ecrans/sign_in/sign_in_screen.dart';
 import '../notification/notification_ecrant.dart';
+import '../professeurs_list/composent/professeur_disponibilites_page.dart';
 import 'profile_type/eleve_compte.dart';
 import 'profile_type/parent_compte.dart';
 import 'profile_type/prof_compte.dart';
@@ -18,93 +19,113 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            children: [
-              Container(
-                alignment: Alignment.center,
-                child: Text(
-                  "Profil",
-                  style: Theme.of(context).textTheme.titleLarge,
+    try {
+      User user = context.read<UserCubit>().state;
+      print("User role: ${user.isParent}, ${user.isProfesseur}, ${user.isEleve}");
+      return Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              children: [
+                Container(
+                  alignment: Alignment.center,
+                  child: Text(
+                    "Profil",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                 ),
-              ),
-              ProfilePic(),
-              const SizedBox(height: 20),
-              ProfileMenu(
-                text: "Mon Compte",
-                icon: "assets/icons/User Icon.svg",
-                press: () {
-                  User user = context.read<UserCubit>().state;
-                  if (user.isParent == true) {
-                    Navigator.pushNamed(context, ParentCompte.routeName);
-                  } else if (user.isProfesseur == true) {
-                    Navigator.pushNamed(context, ProfCompte.routeName);
-                  } else if (user.isEleve == true) {
-                    Navigator.pushNamed(context, EleveCompte.routeName);
-                  }
-                },
-              ),
-              ProfileMenu(
-                text: "Notifications",
-                icon: "assets/icons/Bell.svg",
-                press: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => NotificationEcrant()),
-                  );
-                },
-              ),
-              ProfileMenu(
-                text: "Réglages",
-                icon: "assets/icons/Settings.svg",
-                press: () {
-                  // Navigate to the Settings screen
-                },
-              ),
-              ProfileMenu(
-                text: "Centre d'Aide",
-                icon: "assets/icons/Question mark.svg",
-                press: () {
-                  // Navigate to the Help Center screen
-                },
-              ),
-              ProfileMenu(
-                text: "Déconnexion",
-                icon: "assets/icons/Log out.svg",
-                press: () {
-                  // Show the confirmation dialog before logging out
-                  afficherDialogueConfirmationDeconnexion(context);
-                },
-              ),
-            ],
+                ProfilePic(),
+                const SizedBox(height: 20),
+                ProfileMenu(
+                  text: "Mon Compte",
+                  icon: "assets/icons/User Icon.svg",
+                  press: () {
+                    if (user.isParent == true) {
+                      Navigator.pushNamed(context, ParentCompte.routeName);
+                    } else if (user.isProfesseur == true) {
+                      Navigator.pushNamed(context, ProfCompte.routeName);
+                    } else if (user.isEleve == true) {
+                      Navigator.pushNamed(context, EleveCompte.routeName);
+                    }
+                  },
+                ),
+                ProfileMenu(
+                  text: "Notifications",
+                  icon: "assets/icons/Bell.svg",
+                  press: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => NotificationEcrant()),
+                    );
+                  },
+                ),
+                if (user.isProfesseur == true)
+                  ProfileMenu(
+                    text: "Mes Disponibilités",
+                    icon: "assets/icons/Bell.svg",
+                    press: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProfesseurDisponibilitesPage(professeurId: user.userDetails?.prof?.userId),
+                        ),
+                      );
+                    },
+                  ),
+                ProfileMenu(
+                  text: "Réglages",
+                  icon: "assets/icons/Settings.svg",
+                  press: () {
+                    print("Navigating to settings");
+                    // Navigate to the Settings screen
+                  },
+                ),
+                ProfileMenu(
+                  text: "Centre d'Aide",
+                  icon: "assets/icons/Question mark.svg",
+                  press: () {
+                    // Navigate to the Help Center screen
+                  },
+                ),
+                ProfileMenu(
+                  text: "Déconnexion",
+                  icon: "assets/icons/Log out.svg",
+                  press: () {
+                    afficherDialogueConfirmationDeconnexion(context);
+                  },
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      print('Exception caught: $e');
+      return Scaffold(
+        body: Center(
+          child: Text('Une erreur s\'est produite. Veuillez réessayer plus tard.'),
+        ),
+      );
+    }
   }
 
   void gererDeconnexion(BuildContext context, String? token) async {
-    if (token != null) {
-      try {
+    try {
+      if (token != null) {
         await deconnexion(token);
         Navigator.pushNamedAndRemoveUntil(
             context, SignInScreen.routeName, (route) => false);
-      } catch (e) {
-        // Gérer l'erreur
-        print('Erreur lors de la déconnexion: $e');
+      } else {
+        print('Le jeton est nul. Impossible de déconnecter.');
       }
-    } else {
-      // Le jeton est nul, ne peut pas déconnecter
-      print('Le jeton est nul. Impossible de déconnecter.');
+    } catch (e) {
+      print('Erreur lors de la déconnexion: $e');
     }
   }
 
   void afficherDialogueConfirmationDeconnexion(BuildContext context) {
-    User user = context.read<UserCubit>().state;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -114,14 +135,18 @@ class ProfileScreen extends StatelessWidget {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Fermer la boîte de dialogue
+                Navigator.of(context).pop();
               },
               child: const Text("Annuler"),
             ),
             TextButton(
               onPressed: () {
-                gererDeconnexion(
-                    context, user.token); // Appeler la fonction de déconnexion
+                try {
+                  User user = context.read<UserCubit>().state;
+                  gererDeconnexion(context, user.token);
+                } catch (e) {
+                  print('Erreur lors de la déconnexion: $e');
+                }
               },
               child: const Text("Déconnexion"),
             ),

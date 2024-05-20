@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'components/categories.dart';
 import 'components/discount_banner.dart';
-import 'components/home_header.dart';
+import 'components/en_tete_accueil.dart';
 
 class AccueilEcrant extends StatelessWidget {
   static String routeName = "/accueil";
@@ -15,9 +15,9 @@ class AccueilEcrant extends StatelessWidget {
           padding: EdgeInsets.symmetric(vertical: 16),
           child: Column(
             children: [
-              HomeHeader(),
-              DiscountBanner(),
-              Categories(),
+              EnTeteAccueil(),
+              // DiscountBanner(),
+              // Categories(),
               // CourseReservationWidget(),
               // SpecialOffers(),
               // SizedBox(height: 20),
