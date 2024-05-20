@@ -250,7 +250,7 @@ def obtenir_adresse_depuis_coordonnees(latitude, longitude):
 
         # URL pour le géocodage
         headers = {'User-Agent': 'ProfsChezVous'}
-        url = f"https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={latitude}&lon={longitude}"
+        url = f"https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={latitude}&lon={longitude}&accept-language=fr"
         response = requests.get(url, headers=headers, timeout=10)
 
 
@@ -261,10 +261,10 @@ def obtenir_adresse_depuis_coordonnees(latitude, longitude):
             # Extraction des composants de l'adresse et création d'une liste filtrée
             components = [
                 adresse.get('road', ''),
+                adresse.get('country', ''),
                 adresse.get('city', ''),
-                adresse.get('state', ''),
-                adresse.get('postcode', ''),
-                adresse.get('country', '')
+                adresse.get('suburb', ''),
+                adresse.get('state', '')
             ]
             # Filtrer les composants vides et joindre les restants avec une virgule
             concise_address = ', '.join(filter(None, components))

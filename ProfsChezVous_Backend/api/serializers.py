@@ -79,12 +79,7 @@ class CoursSerializer(serializers.ModelSerializer):
 class SuiviProfesseurSerializer(serializers.ModelSerializer):
     class Meta:
         model = SuiviProfesseur
-        fields = '__all__' 
-
-class DisponibiliteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Disponibilite
-        fields = ['id', 'professeur', 'jour', 'heure_debut', 'heure_fin'] 
+        fields = '__all__'  
 
 class CoursReserveSerializer(serializers.ModelSerializer):
     class Meta:
@@ -112,3 +107,13 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = '__all__'
+
+
+
+class NotificationUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['is_read']
+        extra_kwargs = {
+            'is_read': {'required': True}
+        }

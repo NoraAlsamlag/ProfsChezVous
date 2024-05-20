@@ -5,8 +5,10 @@ from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django_resized import ResizedImageField
 from django import forms
+from django.apps import apps
 from .forms import InscrireEnfantForm
-
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 #from .utils.forms import InscrireEnfantForm
 
 #from .models import Transaction
@@ -42,30 +44,28 @@ class User(AbstractUser):
 
 
 class Parent(models.Model):
-    user  = models.OneToOneField(User , related_name='parent',on_delete=models.CASCADE)
+    user = models.OneToOneField(User, related_name='parent', on_delete=models.CASCADE)
     nom = models.CharField(max_length=50)
     prenom = models.CharField(max_length=30)
     ville = models.CharField(max_length=100)
-    date_naissance = models.DateField()
+    date_naissance = models.DateField(blank=True, null=True)
     numero_telephone = models.CharField(max_length=12)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    
+    adresse = models.CharField(max_length=255, blank=True, null=True)
+
     def to_json(self):
-        from .views import obtenir_adresse_depuis_coordonnees
-        adresse = obtenir_adresse_depuis_coordonnees(self.latitude, self.longitude)
         return {
-            'user_id': self.user.id,
+            'user_id': self.id,
             'ville': self.ville,
             'prenom': self.prenom,
             'nom': self.nom,
-            'date_naissance': self.date_naissance.strftime('%Y-%m-%d'),
             'numero_telephone': self.numero_telephone,
-            'adresse': adresse,
+            'adresse': self.adresse,
             'latitude': self.latitude,
             'longitude': self.longitude,
         }
-
+    
     def inscrire_enfant(self, data):
         form = InscrireEnfantForm(data)
         if form.is_valid():
@@ -81,6 +81,20 @@ class Parent(models.Model):
             return enfant
         else:
             raise ValueError("Formulaire invalide")
+
+    def __str__(self):
+        return f"{self.nom} {self.prenom}"
+
+@receiver(post_save, sender=Parent)
+def update_address_parent(sender, instance, **kwargs):
+    from .views import obtenir_adresse_depuis_coordonnees
+    if instance.latitude and instance.longitude:
+        new_adresse = obtenir_adresse_depuis_coordonnees(instance.latitude, instance.longitude)
+        if new_adresse != instance.adresse:
+            instance.adresse = new_adresse
+            instance.save(update_fields=['adresse'])
+
+    
     
 
 
@@ -100,34 +114,29 @@ def diplome_file_name(inst, filename):
     return os.path.join("diplome",file_name)
 
 def cv_file_name(inst, filename):
-    # Generate the file name using ID, first name, and "cv"
     ext = filename.split('.')[-1]
     file_name = f"{inst.user.pk}_{inst.prenom}_cv.{ext}"
     return os.path.join('cv', file_name)
 
+
 class Professeur(models.Model):
-    user  = models.OneToOneField(User , related_name='professeur',on_delete=models.CASCADE)
+    user = models.OneToOneField(User, related_name='professeur', on_delete=models.CASCADE)
     nom = models.CharField(max_length=50)
     prenom = models.CharField(max_length=30)
     ville = models.CharField(max_length=100)
-    # adresse = models.CharField(max_length=200)
-    # quartier_résidence = models.CharField(max_length=70)
     numero_telephone = models.CharField(max_length=12)
     cv = models.FileField(upload_to=cv_file_name)
     diplome = models.FileField(upload_to=diplome_file_name)
-    # tarif_horaire = models.CharField(max_length=50)
     date_naissance = models.DateField()
-    matiere_a_enseigner  = models.CharField(max_length=100)
-    niveau_etude  = models.CharField(max_length=50)
+    matieres_a_enseigner = models.ManyToManyField('api.Matiere')
+    niveau_etude = models.CharField(max_length=50)
     latitude = models.FloatField()
     longitude = models.FloatField()
+    adresse = models.CharField(max_length=255, blank=True, null=True)
 
     def to_json(self):
-        from .views import obtenir_adresse_depuis_coordonnees
-        adresse = obtenir_adresse_depuis_coordonnees(self.latitude, self.longitude)
-        
         return {
-            'user_id': self.user.id,
+            'user_id': self.id,
             'ville': self.ville,
             'prenom': self.prenom,
             'nom': self.nom,
@@ -135,26 +144,31 @@ class Professeur(models.Model):
             'cv': str(self.cv) if self.cv else None,
             'diplome': str(self.diplome) if self.diplome else None,
             'niveau_etude': self.niveau_etude,
-            'matiere_a_enseigner': self.matiere_a_enseigner,
+            'matieres_a_enseigner': [matiere.symbole for matiere in self.matieres_a_enseigner.all()],
             'image_profil': str(self.user.image_profil.url) if self.user.image_profil else None,
             'date_naissance': self.date_naissance.strftime('%Y-%m-%d'),
-            'adresse': adresse,
+            'adresse': self.adresse,
             'latitude': self.latitude,
             'longitude': self.longitude,
         }
 
-
-
     def __str__(self):
         return f"{self.nom} {self.prenom} (Prof.)"
 
+@receiver(post_save, sender=Professeur)
+def update_address(sender, instance, **kwargs):
+    from .views import obtenir_adresse_depuis_coordonnees
+    if instance.latitude and instance.longitude:
+        new_adresse = obtenir_adresse_depuis_coordonnees(instance.latitude, instance.longitude)
+        if new_adresse != instance.adresse:
+            instance.adresse = new_adresse
+            instance.save(update_fields=['adresse'])
 
     
 
 class Eleve(models.Model):
-    user  = models.OneToOneField(User , related_name='eleve',on_delete=models.CASCADE)
+    user = models.OneToOneField(User, related_name='eleve', on_delete=models.CASCADE)
     nom = models.CharField(max_length=50)
-
     prenom = models.CharField(max_length=30)
     ville = models.CharField(max_length=100)
     date_naissance = models.DateField()
@@ -163,12 +177,11 @@ class Eleve(models.Model):
     numero_telephone = models.CharField(max_length=12)
     latitude = models.FloatField()
     longitude = models.FloatField()
+    adresse = models.CharField(max_length=255, blank=True, null=True)
 
     def to_json(self):
-        from .views import obtenir_adresse_depuis_coordonnees
-        adresse = obtenir_adresse_depuis_coordonnees(self.latitude, self.longitude)
         return {
-            'user_id': self.user.id,
+            'user_id': self.id,
             'ville': self.ville,
             'prenom': self.prenom,
             'nom': self.nom,
@@ -176,13 +189,22 @@ class Eleve(models.Model):
             'etablissement': self.Etablissement,
             'niveau_scolaire': self.niveau_scolaire,
             'numero_telephone': self.numero_telephone,
-            'adresse': adresse,
+            'adresse': self.adresse,
             'latitude': self.latitude,
             'longitude': self.longitude,
         }
 
     def __str__(self):
         return f"{self.nom} {self.prenom}"
+
+@receiver(post_save, sender=Eleve)
+def update_address_eleve(sender, instance, **kwargs):
+    from .views import obtenir_adresse_depuis_coordonnees
+    if instance.latitude and instance.longitude:
+        new_adresse = obtenir_adresse_depuis_coordonnees(instance.latitude, instance.longitude)
+        if new_adresse != instance.adresse:
+            instance.adresse = new_adresse
+            instance.save(update_fields=['adresse'])
     
 class Admin(models.Model):
     user  = models.OneToOneField(User , related_name='admin',on_delete=models.CASCADE)

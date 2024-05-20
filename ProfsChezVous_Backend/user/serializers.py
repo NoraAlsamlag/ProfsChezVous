@@ -116,37 +116,49 @@ class ParentRegisterSerializer(RegisterSerializer):
 
 
 
+from rest_framework import serializers
+from dj_rest_auth.registration.serializers import RegisterSerializer
+from .models import Professeur
+from api.models import Matiere
+
 class ProfesseurRegisterSerializer(RegisterSerializer):
     nom = serializers.CharField(max_length=50)
     prenom = serializers.CharField(max_length=30)
     ville = serializers.CharField(max_length=30)
     date_naissance = serializers.DateField()
     numero_telephone = serializers.CharField(max_length=12)
-    cv = serializers.FileField(write_only=True, required=True, allow_empty_file=False, use_url=False)
-    diplome = serializers.FileField(write_only=True, required=True, allow_empty_file=False, use_url=False)
-    matiere_a_enseigner = serializers.CharField(max_length=100)
+    cv = serializers.FileField(write_only=True, required=False, allow_empty_file=False, use_url=False)
+    diplome = serializers.FileField(write_only=True, required=False, allow_empty_file=False, use_url=False)
+    matieres_a_enseigner = serializers.ListField(
+        child=serializers.IntegerField(), write_only=True
+    )
     niveau_etude = serializers.CharField(max_length=50)
     latitude = serializers.FloatField()
     longitude = serializers.FloatField()
 
-    def to_internal_value(self, data):
-        validated_data = super().to_internal_value(data)
-        request = self.context.get('request')
-        if 'cv' in data and isinstance(data['cv'], str):
-            validated_data['cv'] = cv_file_name(request.user, data['cv'])
-        if 'diplome' in data and isinstance(data['diplome'], str):
-            validated_data['diplome'] = diplome_file_name(request.user, data['diplome'])
-        return validated_data
-
     def get_cleaned_data(self):
         cleaned_data = super().get_cleaned_data()
         cleaned_data['is_professeur'] = True
+        cleaned_data.update({
+            'nom': self.validated_data.get('nom', ''),
+            'prenom': self.validated_data.get('prenom', ''),
+            'ville': self.validated_data.get('ville', ''),
+            'date_naissance': self.validated_data.get('date_naissance', None),
+            'numero_telephone': self.validated_data.get('numero_telephone', ''),
+            'cv': self.validated_data.get('cv', None),
+            'diplome': self.validated_data.get('diplome', None),
+            'matieres_a_enseigner': self.validated_data.get('matieres_a_enseigner', []),
+            'niveau_etude': self.validated_data.get('niveau_etude', ''),
+            'latitude': self.validated_data.get('latitude', 0.0),
+            'longitude': self.validated_data.get('longitude', 0.0),
+        })
         return cleaned_data
 
     def save(self, request):
         user = super().save(request)
         user.is_professeur = True
         user.save()
+
         professeur_data = {
             'user': user,
             'nom': self.validated_data.get('nom'),
@@ -157,12 +169,23 @@ class ProfesseurRegisterSerializer(RegisterSerializer):
             'cv': self.validated_data.get('cv'),
             'diplome': self.validated_data.get('diplome'),
             'niveau_etude': self.validated_data.get('niveau_etude'),
-            'matiere_a_enseigner': self.validated_data.get('matiere_a_enseigner'),
             'latitude': self.validated_data.get('latitude'),
             'longitude': self.validated_data.get('longitude'),
         }
-        Professeur.objects.create(**professeur_data)
+
+        # Retrieve address from coordinates
+        from .views import obtenir_adresse_depuis_coordonnees
+        latitude = professeur_data['latitude']
+        longitude = professeur_data['longitude']
+        professeur_data['adresse'] = obtenir_adresse_depuis_coordonnees(latitude, longitude)
+
+        professeur = Professeur.objects.create(**professeur_data)
+        matieres = self.validated_data.get('matieres_a_enseigner')
+        professeur.matieres_a_enseigner.set(matieres)
         return user
+
+
+
 
 class EleveRegisterSerializer(RegisterSerializer):
     # email = serializers.EmailField(

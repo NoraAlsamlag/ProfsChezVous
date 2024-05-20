@@ -52,6 +52,7 @@ Future<void> enregistrerProfesseur({
       contentType: MediaType.parse(mimeTypeFromFileExtension(cvPath)),
     );
     request.files.add(cvFile);
+    }
 
     // Ajouter le fichier diplôme à la requête
     var diplomeFile = await http.MultipartFile.fromPath(

@@ -1,33 +1,38 @@
 from rest_framework import generics , permissions
 from rest_framework import viewsets
-#from .models import DiscussionParentAdmin
-#from .serializers import DiscussionParentAdminSerializer
-from .models import Transaction ,Evaluation,Message,CommentaireCours,Matiere,Cours_Package,Cours_Unite , Disponibilite , CoursReserve
+from .models import *
 from .serializers import *
-#from .serializers import DiplomeSerializer
-
-
-from rest_framework.permissions import IsAuthenticated
-from .serializers import CoursSerializer, SuiviProfesseurSerializer 
-
-from .serializers import DisponibiliteSerializer 
-from django.core.mail import send_mail
-from .serializers import CoursReserveSerializer 
+from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from rest_framework import status
-from rest_framework.decorators import api_view
-from .models import CoursReserve, Disponibilite
-from .serializers import CoursReserveSerializer
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from .models import Absence, Remboursement, CoursRattrapage
-from .serializers import AbsenceSerializer, RemboursementSerializer, CoursRattrapageSerializer
-from .models import Notification
-from .serializers import NotificationSerializer
-
+from django.core.mail import send_mail
+from rest_framework import status
+from django.views.decorators.http import require_http_methods
+from .serializers import NotificationUpdateSerializer
+import json
+from django.contrib.auth.models import User
 
 class MatiereList(generics.ListCreateAPIView):
     queryset = Matiere.objects.all()
     serializer_class = MatiereSerializer
+
+
+class MatieresProfesseurView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = MatiereSerializer
+
+    def get_queryset(self):
+        professeur_id = self.kwargs['professeur_id']
+        try:
+            professeur = Professeur.objects.get(id=professeur_id)
+            return professeur.matieres_a_enseigner.all()
+        except Professeur.DoesNotExist:
+            return Response({'erreur': 'Professeur non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'erreur': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class MatiereDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Matiere.objects.all()
@@ -47,8 +52,57 @@ class CoursUniteViewSet(viewsets.ModelViewSet):
 
 class CoursPackageViewSet(viewsets.ModelViewSet):
     queryset = Cours_Package.objects.all()
-    serializer_class = CoursPackageSerializer 
+    serializer_class = CoursPackageSerializer
 
+
+
+class VueCoursReservesUtilisateur(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        utilisateur = request.user
+        try:
+            parent = Parent.objects.get(user_id=utilisateur.id)
+        except Parent.DoesNotExist:
+            return Response({"detail": "Parent non trouvé."}, status=404)
+
+        cours_unite = Cours_Unite.objects.filter(parent_id=parent.id)
+        cours_package = Cours_Package.objects.filter(parent_id=parent.id)
+
+        serializeur_unite = CoursUniteSerializer(cours_unite, many=True)
+        serializeur_package = CoursPackageSerializer(cours_package, many=True)
+
+        return Response({
+            'cours_unite': serializeur_unite.data,
+            'cours_package': serializeur_package.data
+        })
+
+
+
+class CoursPackageNonConfirmesView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        utilisateur = self.request.user
+        professeur = Professeur.objects.get(user_id=utilisateur.id)
+        return Cours_Package.objects.filter(professeur=professeur, est_actif=False)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = CoursPackageSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+class ConfirmerCoursPackageView(generics.UpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Cours_Package.objects.all()
+    serializer_class = CoursPackageSerializer
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.est_actif = True
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 class MessageViewSet(viewsets.ModelViewSet):
@@ -102,13 +156,6 @@ class SuiviProfesseurRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
 class SuiviProfesseurListAPIView(generics.ListAPIView):
     serializer_class = SuiviProfesseurSerializer 
 
-class DisponibiliteListCreateAPIView(generics.ListCreateAPIView):
-    queryset = Disponibilite.objects.all()
-    serializer_class = DisponibiliteSerializer
-
-class DisponibiliteRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Disponibilite.objects.all()
-    serializer_class = DisponibiliteSerializer 
 
 class CoursReserveListCreateAPIView(generics.ListCreateAPIView):
     queryset = CoursReserve.objects.all()
@@ -206,6 +253,150 @@ class NotificationRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPI
 
 
 
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def obtenir_notifications(request):
+    if request.user.is_authenticated:
+        # Récupère toutes les notifications associées à l'utilisateur connecté
+        notifications = Notification.objects.filter(user=request.user)
+        # Convertit chaque notification en format JSON en utilisant la méthode to_json définie dans le modèle
+        liste_notifications = [notification.to_json() for notification in notifications]
+        # Retourne la liste des notifications en format JSON
+        return JsonResponse({'NotificationsDisponibles': liste_notifications})
+    else:
+        # Retourne une erreur si l'utilisateur n'est pas authentifié
+        return JsonResponse({'error': 'Utilisateur non authentifié'}, status=401)
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_notification_status(request, notification_id):
+    try:
+        notification = Notification.objects.get(id=notification_id, user=request.user)
+    except Notification.DoesNotExist:
+        return JsonResponse({'error': 'Notification not found'}, status=404)
+
+    serializer = NotificationUpdateSerializer(notification, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({'message': 'Notification status updated successfully'}, status=status.HTTP_200_OK)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def nombre_notifications_non_lues(request):
+    nombre_non_lues = Notification.objects.filter(user=request.user, is_read=False).count()
+    return JsonResponse({'nombre_non_lues': nombre_non_lues})
+
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def ajouter_disponibilite(request):
+    data = json.loads(request.body)
+    professeur = Professeur.objects.get(id=data['professeur_id'])
+    date = data['date']
+    heure = data['heure']
+    disponibilite = Disponibilite(professeur=professeur, date=date, heure=heure)
+    disponibilite.save()
+    return JsonResponse({'status': 'success'})
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def obtenir_disponibilites(request, professeur_id):
+    disponibilites = Disponibilite.objects.filter(professeur__id=professeur_id)
+    disponibilites_dict = {}
+    for dispo in disponibilites:
+        date_str = dispo.date
+        if date_str not in disponibilites_dict:
+            disponibilites_dict[date_str] = []
+        disponibilites_dict[date_str].append(dispo.heure)
+    return JsonResponse(disponibilites_dict, safe=False)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def reserver_disponibilite(request):
+    data = json.loads(request.body)
+    disponibilite = Disponibilite.objects.get(professeur__id=data['professeur_id'], date=data['date'], heure=data['heure'])
+    disponibilite.est_reserve = True
+    disponibilite.save()
+    return JsonResponse({'status': 'success'})
+
+
+@csrf_exempt
+def supprimer_disponibilite(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            professeur_id = data.get('professeur_id')
+            date = data.get('date')
+            heure = data.get('heure')
+
+            if not professeur_id or not date or not heure:
+                return JsonResponse({'error': 'Données manquantes'}, status=400)
+
+            disponibilite = Disponibilite.objects.filter(
+                professeur_id=professeur_id,
+                date=date,
+                heure=heure
+            ).first()
+
+            if disponibilite:
+                disponibilite.delete()
+                return JsonResponse({'message': 'Disponibilité supprimée'}, status=200)
+            else:
+                return JsonResponse({'error': 'Disponibilité non trouvée'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Méthode de requête invalide'}, status=405)
+
+
+
+
+# @csrf_exempt
+# @require_http_methods(["POST"])
+# def reserver_cours_package(request):
+#     data = json.loads(request.body)
+#     professeur_id = data.get('professeur_id')
+#     disponibilites = data.get('disponibilites')
+    
+#     professeur = Professeur.objects.get(id=professeur_id)
+
+#     # Assurez-vous d'ajouter d'autres informations nécessaires pour la réservation de forfait ici.
+#     cours_package = Cours_Package.objects.create(
+#         description="Forfait réservé",
+#         duree=7,  # exemple
+#         date_debut="2024-05-01",  # exemple
+#         date_fin="2024-05-08",  # exemple
+#         nombre_semaines=1,
+#         nombre_eleves=1,
+#         heures_par_semaine="2h",
+#         matiere= Matiere.objects.get(id=1),
+#         prix=200.00,
+#         est_actif=True
+#     )
+
+#     for day, hours in disponibilites.items():
+#         for heure in hours:
+#             Disponibilite.objects.create(
+#                 professeur=professeur,
+#                 date=day,
+#                 heure=heure,
+#                 cours_package=cours_package  # Reliez la disponibilité au forfait
+#             )
+
+#     return JsonResponse({'status': 'success'})
+
+
+
+def obtenir_categories_et_matieres(request):
+    categories = Categorie.objects.all()
+    data = {categorie.nom: list(categorie.matieres.values('id', 'nom_complet', 'symbole')) for categorie in categories}
+    return JsonResponse(data, safe=False)
 
 
 from http import HTTPStatus
