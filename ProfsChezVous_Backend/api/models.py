@@ -204,6 +204,7 @@ class Cours(models.Model):
     present = models.BooleanField(default=False)
     dispense = models.BooleanField(default=False)
     commentaire = models.TextField(blank=True, null=True)
+    montant = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return f"Cours de {self.professeur} avec {self.eleve} le {self.date}"
