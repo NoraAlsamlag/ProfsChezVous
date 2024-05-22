@@ -66,16 +66,14 @@ class VueCoursReservesUtilisateur(generics.GenericAPIView):
         except Parent.DoesNotExist:
             return Response({"detail": "Parent non trouvé."}, status=404)
 
-        cours_unite = Cours_Unite.objects.filter(parent_id=parent.id)
         cours_package = Cours_Package.objects.filter(parent_id=parent.id)
 
-        serializeur_unite = CoursUniteSerializer(cours_unite, many=True)
         serializeur_package = CoursPackageSerializer(cours_package, many=True)
 
         return Response({
-            'cours_unite': serializeur_unite.data,
             'cours_package': serializeur_package.data
         })
+
 
 
 
@@ -355,41 +353,58 @@ def supprimer_disponibilite(request):
     return JsonResponse({'error': 'Méthode de requête invalide'}, status=405)
 
 
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def annuler_cours_package(request, cours_id):
+    try:
+        cours = Cours_Package.objects.get(id=cours_id)
+        disponibilites = json.loads(cours.selected_disponibilites)
+
+        for jour, heures in disponibilites.items():
+            for heure in heures:
+                disponibilite, created = Disponibilite.objects.get_or_create(
+                    professeur=cours.professeur,
+                    date=jour,
+                    heure=heure
+                )
+                disponibilite.est_reserve = False
+                disponibilite.save()
+
+        cours.delete()
+        return JsonResponse({'status': 'success'})
+    except Cours_Package.DoesNotExist:
+        return JsonResponse({'error': 'Cours forfait non trouvé'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
-# @csrf_exempt
-# @require_http_methods(["POST"])
-# def reserver_cours_package(request):
-#     data = json.loads(request.body)
-#     professeur_id = data.get('professeur_id')
-#     disponibilites = data.get('disponibilites')
-    
-#     professeur = Professeur.objects.get(id=professeur_id)
 
-#     # Assurez-vous d'ajouter d'autres informations nécessaires pour la réservation de forfait ici.
-#     cours_package = Cours_Package.objects.create(
-#         description="Forfait réservé",
-#         duree=7,  # exemple
-#         date_debut="2024-05-01",  # exemple
-#         date_fin="2024-05-08",  # exemple
-#         nombre_semaines=1,
-#         nombre_eleves=1,
-#         heures_par_semaine="2h",
-#         matiere= Matiere.objects.get(id=1),
-#         prix=200.00,
-#         est_actif=True
-#     )
 
-#     for day, hours in disponibilites.items():
-#         for heure in hours:
-#             Disponibilite.objects.create(
-#                 professeur=professeur,
-#                 date=day,
-#                 heure=heure,
-#                 cours_package=cours_package  # Reliez la disponibilité au forfait
-#             )
 
-#     return JsonResponse({'status': 'success'})
+@csrf_exempt
+@require_http_methods(["POST"])
+def calculer_prix_cours_package(request):
+    try:
+        data = json.loads(request.body)
+        nombre_semaines = data.get('nombre_semaines')
+        heures_par_semaine = data.get('heures_par_semaine')
+        nombre_eleves = data.get('nombre_eleves')
+
+        if nombre_semaines is None or nombre_eleves is None or heures_par_semaine is None:
+            return JsonResponse({'error': 'Données manquantes'}, status=400)
+
+        try:
+            prix_de_base = PrixDeBasePackage.objects.get(type="package")
+        except PrixDeBasePackage.DoesNotExist:
+            return JsonResponse({'error': 'Prix de base non trouvé'}, status=404)
+
+        prix = nombre_semaines * (prix_de_base.prix_base + (prix_de_base.prix_par_heure * heures_par_semaine) + (prix_de_base.prix_par_eleve * nombre_eleves))
+        return JsonResponse({'prix': prix}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+
 
 
 

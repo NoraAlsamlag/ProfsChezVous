@@ -43,14 +43,14 @@ class _PageConfirmationCoursState extends State<PageConfirmationCours> {
           hasError = true;
           isLoading = false;
         });
-        _showErrorSnackBar('Erreur de chargement des cours non confirmés.');
+        _showErrorSnackBar('Erreur de chargement des cours non confirmés. Code: ${response.statusCode}');
       }
     } catch (e) {
       setState(() {
         hasError = true;
         isLoading = false;
       });
-      _showErrorSnackBar('Erreur de chargement des cours non confirmés.');
+      _showErrorSnackBar('Erreur de chargement des cours non confirmés : $e');
     }
   }
 
@@ -60,7 +60,7 @@ class _PageConfirmationCoursState extends State<PageConfirmationCours> {
       final response = await http.patch(
         Uri.parse('$domaine/api/professeur/confirmer-cours-package/$coursId/'),
         headers: {
-          'Authorization': 'Token $token', // Remplacez par le jeton réel
+          'Authorization': 'Token $token',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({'est_actif': true}),
@@ -72,17 +72,41 @@ class _PageConfirmationCoursState extends State<PageConfirmationCours> {
         });
         _showSuccessSnackBar('Cours confirmé avec succès.');
       } else {
-        _showErrorSnackBar('Échec de la confirmation du cours.');
+        _showErrorSnackBar('Échec de la confirmation du cours. Code: ${response.statusCode}');
       }
     } catch (e) {
-      _showErrorSnackBar('Erreur lors de la confirmation du cours.');
+      _showErrorSnackBar('Erreur lors de la confirmation du cours : $e');
+    }
+  }
+
+  Future<void> _annulerCoursPackage(int coursId) async {
+    try {
+      String? token = await getToken();
+      final response = await http.delete(
+        Uri.parse('$domaine/api/professeur/annuler-cours-package/$coursId/'),
+        headers: {
+          'Authorization': 'Token $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          coursPackageNonConfirmes.removeWhere((cours) => cours['id'] == coursId);
+        });
+        _showSuccessSnackBar('Cours annulé avec succès.');
+      } else {
+        _showErrorSnackBar('Échec de l\'annulation du cours. Code: ${response.statusCode}');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Erreur lors de l\'annulation du cours : $e');
     }
   }
 
   Future<void> _showConfirmationDialog(int coursId) async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // L'utilisateur doit appuyer sur un bouton pour fermer la boîte de dialogue
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirmation'),
@@ -113,6 +137,40 @@ class _PageConfirmationCoursState extends State<PageConfirmationCours> {
     );
   }
 
+  Future<void> _showCancellationDialog(int coursId) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Annulation'),
+          content: const SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Voulez-vous vraiment annuler ce cours ?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Non'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Oui'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _annulerCoursPackage(coursId);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -132,7 +190,13 @@ class _PageConfirmationCoursState extends State<PageConfirmationCours> {
   }
 
   Widget _buildCarteCours(Map<String, dynamic> cours) {
-    Map<String, dynamic> disponibilites = jsonDecode(cours['selected_disponibilites']);
+    Map<String, dynamic> disponibilites;
+    try {
+      disponibilites = jsonDecode(cours['selected_disponibilites']);
+    } catch (e) {
+      disponibilites = {};
+      _showErrorSnackBar('Erreur de décodage des disponibilités : $e');
+    }
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
       child: Padding(
@@ -158,12 +222,29 @@ class _PageConfirmationCoursState extends State<PageConfirmationCours> {
             ..._buildEmploiDuTemps(disponibilites),
             const SizedBox(height: 10),
             Center(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: kPrimaryColor,
-                ),
-                onPressed: () => _showConfirmationDialog(cours['id']),
-                child: const Text('Confirmer'),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: kPrimaryColor,
+                      ),
+                      onPressed: () => _showConfirmationDialog(cours['id']),
+                      child: const Text('Confirmer'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                      onPressed: () => _showCancellationDialog(cours['id']),
+                      child: const Text('Annuler'),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

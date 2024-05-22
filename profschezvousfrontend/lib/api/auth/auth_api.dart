@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart' as path_provider;
 import '../../constants.dart';
 import '../../models/user_models.dart';
 

@@ -39,7 +39,23 @@ class Matiere(models.Model):
 
 
 
+class PrixDeBasePackage(models.Model):
+    type = models.CharField(max_length=50, unique=True)
+    prix_base = models.FloatField(default=100.0,null=True,blank=True)
+    prix_par_heure = models.FloatField(default=100.0)
+    prix_par_eleve = models.FloatField(default=50.0)
 
+    def __str__(self):
+        return self.type
+
+class PrixDeBaseUnite(models.Model):
+    type = models.CharField(default='unite',max_length=50, unique=True)
+    prix_base = models.FloatField(default=100.0,null=True,blank=True)
+    prix_par_heure = models.FloatField(default=100.0)
+    prix_par_eleve = models.FloatField(default=50.0)
+
+    def __str__(self):
+        return self.type
 
 
 
@@ -59,7 +75,7 @@ class CommentaireCours(models.Model):
 
 
 class Cours_Unite(models.Model):
-    sujet = models.TextField(max_length=100)
+    sujet = models.TextField(max_length=100,null=True,blank=True)
     date = models.DateField()
     heure_debut = models.TimeField(default='00:00', blank=False)
     STATUT_CHOICES = (
@@ -67,14 +83,7 @@ class Cours_Unite(models.Model):
         ('C', 'Confirmé'),
         ('A', 'Annulé'),
     )
-    
-    DURATION_CHOICES = (
-        (60, '1 hour'),
-        (120, '2 hours'),
-        (180, '3 hours'),
-        (240, '4 hours'),
-    )
-    duree = models.PositiveIntegerField(choices=DURATION_CHOICES)
+      
     matiere = models.ForeignKey(Matiere, on_delete=models.PROTECT, null=False)
     professeur = models.ForeignKey(Professeur, on_delete=models.SET_NULL, null=True, blank=True, related_name='cours_unite') 
     parent = models.ForeignKey(Parent,on_delete=models.PROTECT, help_text="Parent",null=True,blank=True)
@@ -103,7 +112,7 @@ class Cours_Unite(models.Model):
 
 
 class Cours_Package(models.Model):
-    description = models.TextField()
+    description = models.TextField(null=True,blank=True)
     duree = models.PositiveIntegerField(help_text="Durée du forfait en jours")
     date_debut = models.DateField(help_text="Date de début de la validité du forfait")
     date_fin = models.DateField(help_text="Date de fin de la validité du forfait")

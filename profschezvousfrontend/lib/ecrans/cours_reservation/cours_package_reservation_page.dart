@@ -6,17 +6,22 @@ import 'package:intl/intl.dart';
 import '../../../constants.dart';
 import '../../models/user_cubit.dart';
 import '../../models/user_models.dart';
+import '../professeurs_list/composent/professeur_detail_page.dart';
+import '../professeurs_list/composent/professeurs_list.dart';
 
 class PageReservationCoursPackage extends StatefulWidget {
-  final int professeurId;
+  final Professeur professeur;
 
-  const PageReservationCoursPackage({Key? key, required this.professeurId}) : super(key: key);
+  const PageReservationCoursPackage({Key? key, required this.professeur})
+      : super(key: key);
 
   @override
-  _PageReservationCoursPackageState createState() => _PageReservationCoursPackageState();
+  _PageReservationCoursPackageState createState() =>
+      _PageReservationCoursPackageState();
 }
 
-class _PageReservationCoursPackageState extends State<PageReservationCoursPackage> {
+class _PageReservationCoursPackageState
+    extends State<PageReservationCoursPackage> {
   final _formKey = GlobalKey<FormState>();
 
   TextEditingController descriptionController = TextEditingController();
@@ -47,7 +52,8 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
   Future<void> _fetchDisponibilites() async {
     try {
       final response = await http.get(
-        Uri.parse('$domaine/api/obtenir_disponibilites/${widget.professeurId}/'),
+        Uri.parse(
+            '$domaine/api/obtenir_disponibilites/${widget.professeur.id}/'),
       );
 
       if (response.statusCode == 200) {
@@ -61,7 +67,8 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
       } else {
         setState(() {
           hasError = true;
-          errorMessage = 'Erreur de chargement des disponibilités. Code: ${response.statusCode}';
+          errorMessage =
+              'Erreur de chargement des disponibilités. Code: ${response.statusCode}';
           isLoading = false;
         });
       }
@@ -78,20 +85,22 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
     try {
       User user = context.read<UserCubit>().state;
       final response = await http.get(
-        Uri.parse('$domaine/api/professeur/${widget.professeurId}/matieres/'),
+        Uri.parse('$domaine/api/professeur/${widget.professeur.id}/matieres/'),
         headers: {
-          'Authorization': 'Token ${user.token}', // Ajoutez le jeton d'authentification
+          'Authorization': 'Token ${user.token}',
         },
       );
 
       if (response.statusCode == 200) {
         setState(() {
-          matieres = List<Map<String, dynamic>>.from(jsonDecode(utf8.decode(response.bodyBytes)));
+          matieres = List<Map<String, dynamic>>.from(
+              jsonDecode(utf8.decode(response.bodyBytes)));
         });
       } else {
         setState(() {
           hasError = true;
-          errorMessage = 'Erreur de chargement des matières. Code: ${response.statusCode}';
+          errorMessage =
+              'Erreur de chargement des matières. Code: ${response.statusCode}';
         });
       }
     } catch (e) {
@@ -102,18 +111,64 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
     }
   }
 
-  int _calculateTotalHours() {
+  int? _calculeTotalHeures() {
+    if (selectedDisponibilites.isEmpty) {
+      return null;
+    }
     int totalHours = 0;
     selectedDisponibilites.forEach((day, hours) {
-      totalHours += hours.length;
+      totalHours += hours.length * 2;
     });
     return totalHours;
   }
 
-  void _calculatePrice() {
-    if (nombreSemaines != null && nombreEleves != null) {
-      double prix = 100.0 * nombreSemaines! + 50.0 * nombreEleves!;
-      prixController.text = prix.toStringAsFixed(2);
+  Future<void> _fetchPrix() async {
+    int? nomdreHeuresParSemaine = _calculeTotalHeures();
+    if (nombreSemaines != null &&
+        nombreEleves != null &&
+        nomdreHeuresParSemaine != null) {
+      try {
+        final response = await http.post(
+          Uri.parse('$domaine/api/calculer-prix-cours-package/'),
+          body: jsonEncode({
+            'nombre_semaines': nombreSemaines,
+            'heures_par_semaine': nomdreHeuresParSemaine,
+            'nombre_eleves': nombreEleves,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          double prix = data['prix'] is double
+              ? data['prix']
+              : double.parse(data['prix'].toString());
+          setState(() {
+            prixController.text = prix.toStringAsFixed(2);
+          });
+        } else {
+          throw Exception('Erreur de calcul du prix');
+        }
+      } catch (e) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Erreur'),
+            content: Text(
+                'Erreur de calcul du prix. Veuillez réessayer.\n${e.toString()}'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 
@@ -123,13 +178,13 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
       final response = await http.post(
         Uri.parse('$domaine/api/supprimer_disponibilite/'),
         body: jsonEncode({
-          'professeur_id': widget.professeurId,
+          'professeur_id': widget.professeur.id,
           'date': day,
           'heure': heure,
         }),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Token ${user.token}', // Ajoutez le jeton d'authentification
+          'Authorization': 'Token ${user.token}',
         },
       );
 
@@ -141,7 +196,8 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Erreur'),
-          content: const Text('Erreur de suppression de la disponibilité. Veuillez réessayer.'),
+          content: const Text(
+              'Erreur de suppression de la disponibilité. Veuillez réessayer.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -157,15 +213,13 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
 
   Future<void> _reserveCoursForfait() async {
     if (_formKey.currentState!.validate()) {
-      int totalHours = _calculateTotalHours();
-
+      int? nomdreHeuresParSemaine = _calculeTotalHeures();
       // Calculer la durée
       duree = 7 * nombreSemaines!;
 
-      DateTime dateDebut = DateFormat('yyyy-MM-dd').parse(dateDebutController.text);
+      DateTime dateDebut =
+          DateFormat('yyyy-MM-dd').parse(dateDebutController.text);
       dateFin = dateDebut.add(Duration(days: duree!));
-
-      double prix = double.parse(prixController.text);
 
       try {
         User user = context.read<UserCubit>().state;
@@ -178,16 +232,16 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
             'date_fin': DateFormat('yyyy-MM-dd').format(dateFin!),
             'nombre_semaines': nombreSemaines,
             'nombre_eleves': nombreEleves,
-            'heures_par_semaine': totalHours,
+            'heures_par_semaine': nomdreHeuresParSemaine,
             'matiere': matiereId,
-            'prix': prix,
+            'prix': prixController.text,
             'selected_disponibilites': jsonEncode(selectedDisponibilites),
-            'professeur': widget.professeurId,
+            'professeur': widget.professeur.id,
             'parent': user.userDetails!.parent?.userId,
           }),
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Token ${user.token}', // Ajoutez le jeton d'authentification
+            'Authorization': 'Token ${user.token}',
           },
         );
 
@@ -203,11 +257,17 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Réservation Confirmée'),
-              content: const Text('Vous avez réservé un cours en forfait avec les disponibilités choisies.'),
+              content: const Text(
+                  'Vous avez réservé un cours en forfait avec les disponibilités choisies.'),
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfesseurDetailPage(professeur: widget.professeur),
+                      ),
+                    );
                   },
                   child: const Text('OK'),
                 ),
@@ -219,7 +279,7 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Erreur'),
-              content: Text('Échec de la réservation. Code: ${response.statusCode}, Message: ${response.body}'),
+              content: const Text('Échec de la réservation.'),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -271,18 +331,17 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
                       children: [
                         TextFormField(
                           controller: descriptionController,
-                          decoration: const InputDecoration(labelText: 'Description'),
+                          decoration: const InputDecoration(
+                              labelText: 'Description (Optionnel)'),
                           validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Veuillez entrer une description';
-                            }
-                            return null;
+                            return null; // Make sure the validator does not enforce this field
                           },
                         ),
                         const SizedBox(height: 20),
                         TextFormField(
                           controller: dateDebutController,
-                          decoration: const InputDecoration(labelText: 'Date de Début'),
+                          decoration:
+                              const InputDecoration(labelText: 'Date de Début'),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Veuillez entrer la date de début';
@@ -298,7 +357,8 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
                             );
                             if (pickedDate != null) {
                               setState(() {
-                                dateDebutController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+                                dateDebutController.text =
+                                    DateFormat('yyyy-MM-dd').format(pickedDate);
                               });
                             }
                           },
@@ -306,21 +366,30 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
                         const SizedBox(height: 20),
                         DropdownButtonFormField<int>(
                           value: nombreSemaines,
-                          decoration: const InputDecoration(labelText: 'Nombre de Semaines'),
+                          decoration: const InputDecoration(
+                              labelText: 'Nombre de Semaines'),
                           items: const [
-                            DropdownMenuItem(value: 1, child: Text('1 semaine')),
-                            DropdownMenuItem(value: 2, child: Text('2 semaines')),
-                            DropdownMenuItem(value: 3, child: Text('3 semaines')),
-                            DropdownMenuItem(value: 4, child: Text('4 semaines')),
-                            DropdownMenuItem(value: 5, child: Text('5 semaines')),
-                            DropdownMenuItem(value: 6, child: Text('6 semaines')),
-                            DropdownMenuItem(value: 7, child: Text('7 semaines')),
-                            DropdownMenuItem(value: 8, child: Text('8 semaines')),
+                            DropdownMenuItem(
+                                value: 1, child: Text('1 semaine')),
+                            DropdownMenuItem(
+                                value: 2, child: Text('2 semaines')),
+                            DropdownMenuItem(
+                                value: 3, child: Text('3 semaines')),
+                            DropdownMenuItem(
+                                value: 4, child: Text('4 semaines')),
+                            DropdownMenuItem(
+                                value: 5, child: Text('5 semaines')),
+                            DropdownMenuItem(
+                                value: 6, child: Text('6 semaines')),
+                            DropdownMenuItem(
+                                value: 7, child: Text('7 semaines')),
+                            DropdownMenuItem(
+                                value: 8, child: Text('8 semaines')),
                           ],
                           onChanged: (value) {
                             setState(() {
                               nombreSemaines = value;
-                              _calculatePrice();
+                              _fetchPrix();
                             });
                           },
                           validator: (value) {
@@ -333,7 +402,8 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
                         const SizedBox(height: 20),
                         DropdownButtonFormField<int>(
                           value: nombreEleves,
-                          decoration: const InputDecoration(labelText: 'Nombre d\'Élèves'),
+                          decoration: const InputDecoration(
+                              labelText: 'Nombre d\'Élèves'),
                           items: const [
                             DropdownMenuItem(value: 1, child: Text('1 élève')),
                             DropdownMenuItem(value: 2, child: Text('2 élèves')),
@@ -344,7 +414,7 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
                           onChanged: (value) {
                             setState(() {
                               nombreEleves = value;
-                              _calculatePrice();
+                              _fetchPrix();
                             });
                           },
                           validator: (value) {
@@ -357,7 +427,8 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
                         const SizedBox(height: 20),
                         DropdownButtonFormField<int>(
                           value: matiereId,
-                          decoration: const InputDecoration(labelText: 'Matière'),
+                          decoration:
+                              const InputDecoration(labelText: 'Matière'),
                           items: matieres.map<DropdownMenuItem<int>>((matiere) {
                             return DropdownMenuItem<int>(
                               value: matiere['id'],
@@ -385,13 +456,24 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
                         const SizedBox(height: 20),
                         const Text(
                           'Disponibilités',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
                         ),
-                        for (var day in ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"])
+                        for (var day in [
+                          "Lundi",
+                          "Mardi",
+                          "Mercredi",
+                          "Jeudi",
+                          "Vendredi",
+                          "Samedi",
+                          "Dimanche"
+                        ])
                           ExpansionTile(
                             title: Text(day),
                             children: (disponibilites[day] ?? []).map((heure) {
-                              bool isSelected = selectedDisponibilites[day]?.contains(heure) ?? false;
+                              bool isSelected = selectedDisponibilites[day]
+                                      ?.contains(heure) ??
+                                  false;
                               return ListTile(
                                 title: Text(heure),
                                 trailing: Checkbox(
@@ -399,13 +481,16 @@ class _PageReservationCoursPackageState extends State<PageReservationCoursPackag
                                   onChanged: (bool? value) {
                                     setState(() {
                                       if (value == true) {
-                                        if (selectedDisponibilites[day] == null) {
+                                        if (selectedDisponibilites[day] ==
+                                            null) {
                                           selectedDisponibilites[day] = [];
                                         }
                                         selectedDisponibilites[day]!.add(heure);
                                       } else {
-                                        selectedDisponibilites[day]?.remove(heure);
+                                        selectedDisponibilites[day]
+                                            ?.remove(heure);
                                       }
+                                      _fetchPrix();
                                     });
                                   },
                                 ),
