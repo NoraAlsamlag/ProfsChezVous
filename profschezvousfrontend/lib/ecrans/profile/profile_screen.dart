@@ -21,7 +21,6 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     try {
       User user = context.read<UserCubit>().state;
-      print("User role: ${user.isParent}, ${user.isProfesseur}, ${user.isEleve}");
       return Scaffold(
         body: SafeArea(
           child: SingleChildScrollView(

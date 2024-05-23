@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:profschezvousfrontend/ecrans/inscription/page_inscription.dart';
 import 'package:profschezvousfrontend/ecrans/products/products_screen.dart';
-
 import 'ecrans/inscription/completion_de_profil/ecran_completion_profil.dart';
 import 'ecrans/inscription/inscription_ecrant.dart';
 import 'ecrans/cart/cart_screen.dart';
@@ -10,7 +9,6 @@ import 'ecrans/forgot_password/forgot_password_screen.dart';
 import 'ecrans/accueil/accueil_ecrant.dart';
 import 'ecrans/init_screen.dart';
 import 'ecrans/login_success/login_success_screen.dart';
-import 'ecrans/professeurs_list/composent/professor_detail_page.dart';
 import 'ecrans/profile/profile_type/eleve_compte.dart';
 import 'ecrans/profile/profile_type/prof_compte.dart';
 import 'ecrans/profile/profile_type/parent_compte.dart';

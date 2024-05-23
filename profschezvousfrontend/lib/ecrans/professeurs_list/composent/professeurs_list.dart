@@ -3,7 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../api/prof/prof_api.dart';
 import '../../../constants.dart';
-import 'professor_detail_page.dart';
+import 'professeur_detail_page.dart';
 
 class ProfesseursList extends StatefulWidget {
   @override
@@ -191,7 +191,7 @@ class _ProfesseursListState extends State<ProfesseursList> {
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                ProfesseurDetailPage(professor: professeur),
+                                ProfesseurDetailPage(professeur: professeur),
                           ),
                         );
                       },

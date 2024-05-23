@@ -12,7 +12,6 @@ class PageCoursReserves extends StatefulWidget {
 class _PageCoursReservesState extends State<PageCoursReserves> {
   bool isLoading = true;
   bool hasError = false;
-  List<Map<String, dynamic>> coursUnite = [];
   List<Map<String, dynamic>> coursPackage = [];
 
   @override
@@ -34,7 +33,6 @@ class _PageCoursReservesState extends State<PageCoursReserves> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
-          coursUnite = List<Map<String, dynamic>>.from(data['cours_unite']);
           coursPackage = List<Map<String, dynamic>>.from(data['cours_package']);
           isLoading = false;
         });
@@ -52,9 +50,8 @@ class _PageCoursReservesState extends State<PageCoursReserves> {
     }
   }
 
-  Widget _buildCarteCours(Map<String, dynamic> cours, bool estPackage) {
-    Map<String, dynamic> disponibilites =
-        jsonDecode(cours['selected_disponibilites']);
+  Widget _buildCarteCours(Map<String, dynamic> cours) {
+    Map<String, dynamic> disponibilites = jsonDecode(cours['selected_disponibilites']);
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
       child: Padding(
@@ -63,7 +60,7 @@ class _PageCoursReservesState extends State<PageCoursReserves> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              cours['description'],
+              cours['description'] ?? 'Pas de description',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
@@ -72,15 +69,6 @@ class _PageCoursReservesState extends State<PageCoursReserves> {
             Text('Nombre de semaines: ${cours['nombre_semaines']}'),
             Text('Nombre d\'élèves: ${cours['nombre_eleves']}'),
             Text('Prix: ${cours['prix']} MRU'),
-            Text(
-              'Type: ${estPackage ? 'Cours Package' : 'Cours Unité'}',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: estPackage ? Colors.blue : Colors.green,
-              ),
-            ),
-            const SizedBox(height: 10),
             Text(
               'Statut: ${cours['est_actif'] ? 'Actif' : 'Inactif'}',
               style: TextStyle(
@@ -126,29 +114,12 @@ class _PageCoursReservesState extends State<PageCoursReserves> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : hasError
-              ? const Center(
-                  child: Text('Erreur de chargement des cours réservés.'))
+              ? const Center(child: Text('Erreur de chargement des cours réservés.'))
               : ListView(
                   padding: const EdgeInsets.all(15),
-                  children: [
-                    const Text(
-                      'Cours Unité',
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-                    ...coursUnite
-                        .map((cours) => _buildCarteCours(cours, false))
-                        .toList(),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Cours Package',
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-                    ...coursPackage
-                        .map((cours) => _buildCarteCours(cours, true))
-                        .toList(),
-                  ],
+                  children: coursPackage
+                      .map((cours) => _buildCarteCours(cours))
+                      .toList(),
                 ),
     );
   }

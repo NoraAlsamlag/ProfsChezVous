@@ -5,125 +5,75 @@
 
 {% block content %}
 <div class="container-fluid">
-
     <!-- Titre de la page -->
     <h1 class="h3 mb-4 text-gray-800">Tableau de bord</h1>
 
-    <!-- Cartes -->
     <div class="row">
-
-        <!-- Carte du nombre total d'utilisateurs -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
+        <div class="col-md-4">
+            <div class="card border-primary mb-3">
+                <div class="card-header bg-primary text-white">Nombre d'Utilisateurs</div>
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total des utilisateurs</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ nombre_total_utilisateurs }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+                    <h5 class="card-title">Parents: {{ nombre_parents }}</h5>
+                    <h5 class="card-title">Professeurs: {{ nombre_professeurs }}</h5>
+                    <h5 class="card-title">Élèves: {{ nombre_eleves }}</h5>
+                    <h5 class="card-title">Total: {{ nombre_total_utilisateurs }}</h5>
                 </div>
             </div>
         </div>
 
-        <!-- Carte du revenu total mensuel -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
+        <div class="col-md-4">
+            <div class="card border-success mb-3">
+                <div class="card-header bg-success text-white">Revenu des Cours</div>
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Revenu total (Mensuel)</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">MRU{{ revenu_total_mensuel }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-money-bill-alt fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+                    <h5 class="card-title">Mensuel: {{ revenu_total_mensuel }} Mru</h5>
+                    <h5 class="card-title">Annuel: {{ revenu_total_annuel }} Mru</h5>
                 </div>
             </div>
         </div>
 
-        <!-- Carte du revenu total annuel -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
+        <div class="col-md-4">
+            <div class="card border-info mb-3">
+                <div class="card-header bg-info text-white">Statistiques des Cours</div>
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Revenu total (Annuel)</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">MRU{{ revenu_total_annuel }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-money-bill-wave fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+                    <h5 class="card-title">Cours Unités: {{ nombre_cours_unite }}</h5>
+                    <h5 class="card-title">Cours Packages: {{ nombre_cours_package }}</h5>
                 </div>
             </div>
         </div>
-
     </div>
 
-    <!-- Statistiques des cours -->
-    <div class="row">
-
-        <!-- Carte du nombre de cours des parents -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Nombre de cours des parents</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ nombre_cours_parents }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Carte du nombre de cours des professeurs -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-secondary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Nombre de cours des professeurs</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ nombre_cours_professeurs }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Carte du nombre de cours des élèves -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Nombre de cours des élèves</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ nombre_cours_eleves }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+    <h2>Statut des Utilisateurs</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Type</th>
+                    <th>Actifs</th>
+                    <th>Inactifs</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Parents</td>
+                    <td>{{ parents_actifs }}</td>
+                    <td>{{ parents_inactifs }}</td>
+                </tr>
+                <tr>
+                    <td>Professeurs</td>
+                    <td>{{ professeurs_actifs }}</td>
+                    <td>{{ professeurs_inactifs }}</td>
+                </tr>
+                <tr>
+                    <td>Élèves</td>
+                    <td>{{ eleves_actifs }}</td>
+                    <td>{{ eleves_inactifs }}</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-
 </div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 {% endblock %}
-
-
-
-

@@ -7,10 +7,10 @@ import '../../cours_reservation/cours_unite_reservation_page.dart';
 import '../../cours_reservation/cours_package_reservation_page.dart';
 
 class ProfesseurDetailPage extends StatefulWidget {
-  static String routeName = "/professor_detail_page";
-  final Professeur professor;
+  static String routeName = "/professeur_detail_page";
+  final Professeur professeur;
 
-  const ProfesseurDetailPage({Key? key, required this.professor}) : super(key: key);
+  const ProfesseurDetailPage({Key? key, required this.professeur}) : super(key: key);
 
   @override
   _ProfesseurDetailPageState createState() => _ProfesseurDetailPageState();
@@ -30,7 +30,7 @@ class _ProfesseurDetailPageState extends State<ProfesseurDetailPage> {
   Future<void> _fetchDisponibilites() async {
     try {
       final response = await http.get(
-        Uri.parse('$domaine/api/obtenir_disponibilites/${widget.professor.id}/'),
+        Uri.parse('$domaine/api/obtenir_disponibilites/${widget.professeur.id}/'),
       );
 
       if (response.statusCode == 200) {
@@ -60,7 +60,7 @@ class _ProfesseurDetailPageState extends State<ProfesseurDetailPage> {
       final response = await http.post(
         Uri.parse('$domaine/api/reserver_disponibilite/'),
         body: jsonEncode({
-          'professeur_id': widget.professor.id,
+          'professeur_id': widget.professeur.id,
           'date': day,
           'heure': heure,
         }),
@@ -74,7 +74,7 @@ class _ProfesseurDetailPageState extends State<ProfesseurDetailPage> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Réservation Confirmée'),
-            content: Text('Vous avez réservé un cours de $heure le $day avec ${widget.professor.nom}.'),
+            content: Text('Vous avez réservé un cours de $heure le $day avec ${widget.professeur.nom}.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -139,12 +139,12 @@ class _ProfesseurDetailPageState extends State<ProfesseurDetailPage> {
                     children: [
                       CircleAvatar(
                         radius: 90,
-                        backgroundImage: NetworkImage('${domaine}${widget.professor.imageProfile}'),
+                        backgroundImage: NetworkImage('${domaine}${widget.professeur.imageProfile}'),
                         backgroundColor: Colors.grey[200],
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        widget.professor.nom,
+                        widget.professeur.nom,
                         style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
@@ -153,11 +153,11 @@ class _ProfesseurDetailPageState extends State<ProfesseurDetailPage> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Matières à enseigner: ${widget.professor.matieresAenseigner.join(', ')}',
+                        'Matières à enseigner: ${widget.professeur.matieresAenseigner.join(', ')}',
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                       ),
                       Text(
-                        'Adresse: ${widget.professor.adresse}',
+                        'Adresse: ${widget.professeur.adresse}',
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                       ),
                       // const SizedBox(height: 30),
@@ -193,7 +193,7 @@ class _ProfesseurDetailPageState extends State<ProfesseurDetailPage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => CoursUniteReservationPage(professeurId: widget.professor.id),
+                                    builder: (context) => CoursUniteReservationPage(professeur: widget.professeur),
                                   ),
                                 );
                               },
@@ -208,7 +208,7 @@ class _ProfesseurDetailPageState extends State<ProfesseurDetailPage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => PageReservationCoursPackage(professeurId: widget.professor.id),
+                                    builder: (context) => PageReservationCoursPackage(professeur: widget.professeur),
                                   ),
                                 );
                               },
