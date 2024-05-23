@@ -83,28 +83,14 @@ class Cours_Unite(models.Model):
         ('C', 'Confirmé'),
         ('A', 'Annulé'),
     )
-      
+    prix = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
     matiere = models.ForeignKey(Matiere, on_delete=models.PROTECT, null=False)
     professeur = models.ForeignKey(Professeur, on_delete=models.SET_NULL, null=True, blank=True, related_name='cours_unite') 
-    parent = models.ForeignKey(Parent,on_delete=models.PROTECT, help_text="Parent",null=True,blank=True)
+    user = models.ForeignKey(User,on_delete=models.PROTECT,null=True,blank=True)
     statut = models.CharField(max_length=1, choices=STATUT_CHOICES, default='R')
 
-    def calculer_end_time(self):
-        heure_debut = self.heure_debut
-        duree = self.duree
-        heure_debut_datetime = timezone.datetime.combine(timezone.now().date(), heure_debut)
-        heure_fine_datetime = heure_debut_datetime + timezone.timedelta(minutes=duree)
-        heure_fine = heure_fine_datetime.time()
-        return heure_fine
 
-    @property
-    def heure_fine(self):
-        return self.calculer_end_time()
 
-    def get_duration(self):
-        """Return the duration of the course in HH:MM format."""
-        hours, minutes = divmod(self.duree, 60)
-        return f"{hours}:{minutes:02d}"
 
     def __str__(self):
         return f"{self.sujet}, le {self.date}, de {self.heure_debut} à {self.heure_fine}"
@@ -140,7 +126,7 @@ class Cours_Package(models.Model):
     prix = models.DecimalField(max_digits=10, decimal_places=2)
     selected_disponibilites = jsonfield.JSONField(help_text="Disponibilités sélectionnées" ,null=True,blank=True)
     professeur = models.ForeignKey(Professeur,on_delete=models.PROTECT, help_text="Professeur",null=True,blank=True)
-    parent = models.ForeignKey(Parent,on_delete=models.PROTECT, help_text="Parent",null=True,blank=True)
+    user = models.ForeignKey(User,on_delete=models.PROTECT, help_text="Parent",null=True,blank=True)
     def __str__(self):
         return f"{self.description} ({self.duree} jours), Début: {self.date_debut}, Fin: {self.date_fin}"
 

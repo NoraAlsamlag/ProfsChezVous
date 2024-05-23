@@ -24,13 +24,11 @@ class _CoursUniteReservationPageState
     extends State<CoursUniteReservationPage> {
   final _formKey = GlobalKey<FormState>();
 
-  TextEditingController descriptionController = TextEditingController();
-  TextEditingController dateDebutController = TextEditingController();
+  TextEditingController sujetController = TextEditingController();
+  TextEditingController dateController = TextEditingController();
   TextEditingController prixController = TextEditingController();
 
-  int? nombreSemaines;
-  int? nombreEleves;
-  String? heuresParSemaine;
+  String? statut;
   int? matiereId;
   int? duree;
   DateTime? dateFin;
@@ -39,7 +37,8 @@ class _CoursUniteReservationPageState
   bool isLoading = true;
   bool hasError = false;
   String errorMessage = '';
-  Map<String, List<String>> selectedDisponibilites = {};
+  String? selectedDay;
+  String? selectedHeure;
   List<Map<String, dynamic>> matieres = [];
 
   @override
@@ -111,29 +110,13 @@ class _CoursUniteReservationPageState
     }
   }
 
-  int? _calculeTotalHeures() {
-    if (selectedDisponibilites.isEmpty) {
-      return null;
-    }
-    int totalHours = 0;
-    selectedDisponibilites.forEach((day, hours) {
-      totalHours += hours.length * 2;
-    });
-    return totalHours;
-  }
-
   Future<void> _fetchPrix() async {
-    int? nomdreHeuresParSemaine = _calculeTotalHeures();
-    if (nombreSemaines != null &&
-        nombreEleves != null &&
-        nomdreHeuresParSemaine != null) {
+    if (matiereId != null) {
       try {
         final response = await http.post(
-          Uri.parse('$domaine/api/calculer-prix-cours-package/'),
+          Uri.parse('$domaine/api/calculer-prix-cours-unite/'),
           body: jsonEncode({
-            'nombre_semaines': nombreSemaines,
-            'heures_par_semaine': nomdreHeuresParSemaine,
-            'nombre_eleves': nombreEleves,
+            'matiere': matiereId,
           }),
           headers: {
             'Content-Type': 'application/json',
@@ -212,32 +195,20 @@ class _CoursUniteReservationPageState
   }
 
   Future<void> _reserveCoursForfait() async {
-    if (_formKey.currentState!.validate()) {
-      int? nomdreHeuresParSemaine = _calculeTotalHeures();
-      // Calculer la durée
-      duree = 7 * nombreSemaines!;
-
-      DateTime dateDebut =
-          DateFormat('yyyy-MM-dd').parse(dateDebutController.text);
-      dateFin = dateDebut.add(Duration(days: duree!));
-
+    if (_formKey.currentState!.validate() && selectedDay != null && selectedHeure != null) {
       try {
         User user = context.read<UserCubit>().state;
         final response = await http.post(
           Uri.parse('$domaine/api/cours-package/'),
           body: jsonEncode({
-            'description': descriptionController.text,
-            'duree': duree,
-            'date_debut': dateDebutController.text,
-            'date_fin': DateFormat('yyyy-MM-dd').format(dateFin!),
-            'nombre_semaines': nombreSemaines,
-            'nombre_eleves': nombreEleves,
-            'heures_par_semaine': nomdreHeuresParSemaine,
+            'sujet': sujetController.text,
+            'date': DateFormat('yyyy-MM-dd').format(_getNextDateForDay(selectedDay!)),
+            'statut': "R",
             'matiere': matiereId,
             'prix': prixController.text,
-            'selected_disponibilites': jsonEncode(selectedDisponibilites),
             'professeur': widget.professeur.id,
-            'parent': user.userDetails!.parent?.userId,
+            'user': user.id,
+            'selected_disponibilite': {'day': selectedDay, 'heure': selectedHeure},
           }),
           headers: {
             'Content-Type': 'application/json',
@@ -246,12 +217,7 @@ class _CoursUniteReservationPageState
         );
 
         if (response.statusCode == 201) {
-          // Supprimer les disponibilités sélectionnées après la confirmation
-          for (var day in selectedDisponibilites.keys) {
-            for (var heure in selectedDisponibilites[day]!) {
-              await _removeDisponibilite(day, heure);
-            }
-          }
+          await _removeDisponibilite(selectedDay!, selectedHeure!);
 
           showDialog(
             context: context,
@@ -308,7 +274,41 @@ class _CoursUniteReservationPageState
           ),
         );
       }
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Erreur'),
+          content: const Text('Veuillez sélectionner une disponibilité.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     }
+  }
+
+  DateTime _getNextDateForDay(String day) {
+    DateTime now = DateTime.now();
+    List<String> daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+    int todayIndex = now.weekday - 1;
+    int selectedIndex = daysOfWeek.indexOf(day);
+
+    int difference = (selectedIndex - todayIndex) % 7;
+    if (difference < 0) difference += 7;
+
+    return now.add(Duration(days: difference));
+  }
+
+  List<String> _getDaysOfWeekStartingToday() {
+    List<String> daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+    int todayIndex = DateTime.now().weekday - 1;
+    return [...daysOfWeek.sublist(todayIndex), ...daysOfWeek.sublist(0, todayIndex)];
   }
 
   @override
@@ -330,105 +330,17 @@ class _CoursUniteReservationPageState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         TextFormField(
-                          controller: descriptionController,
+                          controller: sujetController,
                           decoration: const InputDecoration(
-                              labelText: 'Description (Optionnel)'),
+                              labelText: 'Sujet (Optionnel)'),
                           validator: (value) {
-                            return null; // Make sure the validator does not enforce this field
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        TextFormField(
-                          controller: dateDebutController,
-                          decoration:
-                              const InputDecoration(labelText: 'Date de Début'),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Veuillez entrer la date de début';
-                            }
-                            return null;
-                          },
-                          onTap: () async {
-                            DateTime? pickedDate = await showDatePicker(
-                              context: context,
-                              initialDate: DateTime.now(),
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime(2101),
-                            );
-                            if (pickedDate != null) {
-                              setState(() {
-                                dateDebutController.text =
-                                    DateFormat('yyyy-MM-dd').format(pickedDate);
-                              });
-                            }
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        DropdownButtonFormField<int>(
-                          value: nombreSemaines,
-                          decoration: const InputDecoration(
-                              labelText: 'Nombre de Semaines'),
-                          items: const [
-                            DropdownMenuItem(
-                                value: 1, child: Text('1 semaine')),
-                            DropdownMenuItem(
-                                value: 2, child: Text('2 semaines')),
-                            DropdownMenuItem(
-                                value: 3, child: Text('3 semaines')),
-                            DropdownMenuItem(
-                                value: 4, child: Text('4 semaines')),
-                            DropdownMenuItem(
-                                value: 5, child: Text('5 semaines')),
-                            DropdownMenuItem(
-                                value: 6, child: Text('6 semaines')),
-                            DropdownMenuItem(
-                                value: 7, child: Text('7 semaines')),
-                            DropdownMenuItem(
-                                value: 8, child: Text('8 semaines')),
-                          ],
-                          onChanged: (value) {
-                            setState(() {
-                              nombreSemaines = value;
-                              _fetchPrix();
-                            });
-                          },
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Veuillez sélectionner le nombre de semaines';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        DropdownButtonFormField<int>(
-                          value: nombreEleves,
-                          decoration: const InputDecoration(
-                              labelText: 'Nombre d\'Élèves'),
-                          items: const [
-                            DropdownMenuItem(value: 1, child: Text('1 élève')),
-                            DropdownMenuItem(value: 2, child: Text('2 élèves')),
-                            DropdownMenuItem(value: 3, child: Text('3 élèves')),
-                            DropdownMenuItem(value: 4, child: Text('4 élèves')),
-                            DropdownMenuItem(value: 5, child: Text('5 élèves')),
-                          ],
-                          onChanged: (value) {
-                            setState(() {
-                              nombreEleves = value;
-                              _fetchPrix();
-                            });
-                          },
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Veuillez sélectionner le nombre d\'élèves';
-                            }
-                            return null;
+                            return null; // Le sujet est optionnel
                           },
                         ),
                         const SizedBox(height: 20),
                         DropdownButtonFormField<int>(
                           value: matiereId,
-                          decoration:
-                              const InputDecoration(labelText: 'Matière'),
+                          decoration: const InputDecoration(labelText: 'Matière'),
                           items: matieres.map<DropdownMenuItem<int>>((matiere) {
                             return DropdownMenuItem<int>(
                               value: matiere['id'],
@@ -438,6 +350,7 @@ class _CoursUniteReservationPageState
                           onChanged: (value) {
                             setState(() {
                               matiereId = value;
+                              _fetchPrix();
                             });
                           },
                           validator: (value) {
@@ -456,24 +369,13 @@ class _CoursUniteReservationPageState
                         const SizedBox(height: 20),
                         const Text(
                           'Disponibilités',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                         ),
-                        for (var day in [
-                          "Lundi",
-                          "Mardi",
-                          "Mercredi",
-                          "Jeudi",
-                          "Vendredi",
-                          "Samedi",
-                          "Dimanche"
-                        ])
+                        for (var day in _getDaysOfWeekStartingToday())
                           ExpansionTile(
                             title: Text(day),
                             children: (disponibilites[day] ?? []).map((heure) {
-                              bool isSelected = selectedDisponibilites[day]
-                                      ?.contains(heure) ??
-                                  false;
+                              bool isSelected = selectedDay == day && selectedHeure == heure;
                               return ListTile(
                                 title: Text(heure),
                                 trailing: Checkbox(
@@ -481,14 +383,11 @@ class _CoursUniteReservationPageState
                                   onChanged: (bool? value) {
                                     setState(() {
                                       if (value == true) {
-                                        if (selectedDisponibilites[day] ==
-                                            null) {
-                                          selectedDisponibilites[day] = [];
-                                        }
-                                        selectedDisponibilites[day]!.add(heure);
+                                        selectedDay = day;
+                                        selectedHeure = heure;
                                       } else {
-                                        selectedDisponibilites[day]
-                                            ?.remove(heure);
+                                        selectedDay = null;
+                                        selectedHeure = null;
                                       }
                                       _fetchPrix();
                                     });

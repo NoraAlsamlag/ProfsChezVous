@@ -56,17 +56,16 @@ class CoursPackageViewSet(viewsets.ModelViewSet):
 
 
 
-class VueCoursReservesUtilisateur(generics.GenericAPIView):
+class VueCoursPackageReservesUtilisateur(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        utilisateur = request.user
         try:
-            parent = Parent.objects.get(user_id=utilisateur.id)
-        except Parent.DoesNotExist:
-            return Response({"detail": "Parent non trouvé."}, status=404)
+            utilisateur = request.user
+        except utilisateur.DoesNotExist:
+            return Response({"detail": "Utilisateur non trouvé."}, status=404)
 
-        cours_package = Cours_Package.objects.filter(parent_id=parent.id)
+        cours_package = Cours_Package.objects.filter(user_id=utilisateur.id)
 
         serializeur_package = CoursPackageSerializer(cours_package, many=True)
 
@@ -74,7 +73,22 @@ class VueCoursReservesUtilisateur(generics.GenericAPIView):
             'cours_package': serializeur_package.data
         })
 
+class VueCoursUniteReservesUtilisateur(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
 
+    def get(self, request, *args, **kwargs):
+        try:
+            utilisateur = request.user
+        except utilisateur.DoesNotExist:
+            return Response({"detail": "Utilisateur non trouvé."}, status=404)
+
+        cours_unite = Cours_Unite.objects.filter(user_id=utilisateur.id)
+
+        serializeur_unite = CoursUniteSerializer(cours_unite, many=True)
+
+        return Response({
+            'cours_unite': serializeur_unite.data
+        })
 
 
 class CoursPackageNonConfirmesView(generics.ListAPIView):

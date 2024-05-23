@@ -297,10 +297,11 @@ def ajouter_ou_modifier_photo_profil(request,user_pk):
     return JsonResponse({'error': 'Méthode de requête invalide.'}, status=405)
 
 
-
+from rest_framework.permissions import AllowAny
 class EmailCheckAPIView(APIView):
+    permission_classes = [AllowAny]  # Permet à toute personne d'accéder à cette vue
+
     def get(self, request, email):
-        # Vérifie si l'email existe dans la base de données
         try:
             user = User.objects.get(email=email)
             return Response({'email_existe': True}, status=status.HTTP_200_OK)

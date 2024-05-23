@@ -24,7 +24,7 @@ class _PageCoursReservesState extends State<PageCoursReserves> {
     try {
       String? token = await getToken();
       final response = await http.get(
-        Uri.parse('$domaine/api/cours-reserves/'),
+        Uri.parse('$domaine/api/cours-package-reserves/'),
         headers: {
           'Authorization': 'Token $token',
         },

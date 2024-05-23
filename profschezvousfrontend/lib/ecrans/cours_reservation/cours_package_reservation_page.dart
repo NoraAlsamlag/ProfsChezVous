@@ -237,7 +237,7 @@ class _PageReservationCoursPackageState
             'prix': prixController.text,
             'selected_disponibilites': jsonEncode(selectedDisponibilites),
             'professeur': widget.professeur.id,
-            'parent': user.userDetails!.parent?.userId,
+            'user': user.id,
           }),
           headers: {
             'Content-Type': 'application/json',
