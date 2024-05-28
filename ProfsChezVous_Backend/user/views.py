@@ -10,33 +10,15 @@ from .models import Parent
 # import googlemaps
 # import googlemaps
 from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import generics
 from .models import Enfant
 from .serializers import *
-from django.shortcuts import get_object_or_404
-
-#from user.models import User
-
-
-#from .models import Transaction
-#from .serializers import TransactionSerializer
-
-
 from dj_rest_auth.registration.views import RegisterView
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.authtoken.models import Token
 
-from .serializers import EnfantSerializer 
-
-
-
-
-
-
-
-from dj_rest_auth.registration.views import RegisterView
 
 class ParentRegisterView(RegisterView):
     serializer_class = ParentRegisterSerializer
@@ -107,46 +89,6 @@ class ProfesseurViewSet(viewsets.ViewSet):
             return Response(serializer.data)
         else:
             return Response({"message": "L'utilisateur n'est pas un professeur."}, status=403)
-
-
-# @api_view(['GET'])
-# def geocode_parent_address(request, parent_id):
-#     parent = Parent.objects.get(id=parent_id)
-#     address = f"{parent.adresse}, {parent.ville}"  # Adresse complète à géocoder
-#     api_key = '0791-8482-2557'  # Clé API Google Maps Geocoding
-
-#     url = f'https://maps.googleapis.com/maps/api/geocode/json?address={address}&key={api_key}'
-#     response = requests.get(url)
-#     data = response.json()
-
-#     if data['status'] == 'OK':
-#         # Extraire les coordonnées de latitude et de longitude
-#         location = data['results'][0]['geometry']['location']
-#         latitude = location['lat']
-#         longitude = location['lng']
-#         # Mettre à jour les champs de géolocalisation du parent
-#         parent.latitude = latitude
-#         parent.longitude = longitude
-#         parent.save()
-#         return Response({'success': True})
-#     else:
-#         return Response({'success': False, 'message': 'Erreur de géocodage'})
-
-# def geocode_parent_address(parent):
-#     address = f"{parent.adresse}, {parent.ville}, {parent.pays}"  # Utilisez les champs appropriés de votre modèle Parent
-#     gmaps = googlemaps.Client(key=settings.GOOGLE_MAPS_API_KEY)
-#     geocode_result = gmaps.geocode(address)
-#     if geocode_result:
-#         location = geocode_result[0]['geometry']['location']
-#         latitude, longitude = location['lat'], location['lng']
-#         parent.latitude = latitude
-#         parent.longitude = longitude
-#         parent.save()
-#         return True
-#     else:
-#         return False
-    
-    
 
 
     
@@ -278,8 +220,7 @@ def obtenir_adresse_depuis_coordonnees(latitude, longitude):
     
 
 
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
+
 
 @csrf_exempt
 def ajouter_ou_modifier_photo_profil(request,user_pk):
@@ -298,7 +239,7 @@ def ajouter_ou_modifier_photo_profil(request,user_pk):
 
 
 from rest_framework.permissions import AllowAny
-class EmailCheckAPIView(APIView):
+class verifierEmailAPIView(APIView):
     permission_classes = [AllowAny]  # Permet à toute personne d'accéder à cette vue
 
     def get(self, request, email):
@@ -307,6 +248,24 @@ class EmailCheckAPIView(APIView):
             return Response({'email_existe': True}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'email_existe': False}, status=status.HTTP_200_OK)
+
+
+
+
+@api_view(['GET'])
+def verifier_statut_utilisateur(request):
+    token_key = request.headers.get('Authorization')
+    if not token_key:
+        return Response({"detail": "Token manquant."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        token = Token.objects.get(key=token_key.split(' ')[1])
+        user = token.user
+        est_actif = user.is_active
+        return Response({"est_actif": est_actif}, status=status.HTTP_200_OK)
+    except Token.DoesNotExist:
+        return Response({"detail": "Token invalide."}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 

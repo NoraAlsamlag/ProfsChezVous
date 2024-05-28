@@ -51,6 +51,7 @@ class _ParentCompteState extends State<ParentCompte> {
   @override
   Widget build(BuildContext context) {
     User user = context.read<UserCubit>().state;
+    print(user.userDetails?.parent?.dateNaissance);
 
     return Scaffold(
       appBar: AppBar(

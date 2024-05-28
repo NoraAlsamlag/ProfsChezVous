@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 const tokenBox = "ProfsChezVousTOKEN";
-
-const domaine = 'http://10.0.2.2:8000';
+const emulatordomaine = 'http://10.0.2.2:8000';
+const ipAddress = 'http://192.168.239.85:8000';
+const domaine = ipAddress;
 
 const userDefaultImage = '/media/default/user-default.png';
 

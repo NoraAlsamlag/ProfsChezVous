@@ -5,6 +5,7 @@ import 'package:profschezvousfrontend/Localisation/LocationPermissionPrompt.dart
 import '../../../../api/prof/prof_api.dart';
 import '../../../../components/custom_surfix_icon.dart';
 import '../../../../components/form_error.dart';
+import '../../../../components/loading_dialog.dart';
 import '../../../../constants.dart';
 import 'widgets/ecran_envoi_fichiers.dart';
 import 'widgets/niveau_etude_dropdown.dart';
@@ -38,7 +39,6 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
   String? cheminFichierDiplome;
   String? cheminFichierCV;
   List<int> selectedItems = [];
-  bool isLoading = false;
 
   void _updateSelectedItems(List<int> newSelectedItems) {
     setState(() {
@@ -408,9 +408,7 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
             onPressed: () async {
               print(selectedItems.toString());
               if (_formKey.currentState!.validate() && validateForm()) {
-                setState(() {
-                  isLoading = true;
-                });
+                montrerDialogChargement(context);
                 bool permissionGranted =
                     await requestLocationPermission(context);
                 if (permissionGranted) {
@@ -439,27 +437,23 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
                           duration: Duration(seconds: 2),
                         ),
                       );
-
                       Future.delayed(const Duration(seconds: 2), () {
                         Navigator.pushReplacementNamed(
                             context, SignInScreen.routeName);
                       });
                     }).catchError((error) {
+                      cacherDialogChargement(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                        const SnackBar(
                           content: Text(
-                              'Échec de l\'enregistrement. Veuillez réessayer.: $error'),
+                              'Échec de l\'enregistrement. Veuillez réessayer.'),
                         ),
                       );
                     }).whenComplete(() {
-                      setState(() {
-                        isLoading = false;
-                      });
+                      cacherDialogChargement(context);
                     });
                   } else {
-                    setState(() {
-                      isLoading = false;
-                    });
+                    cacherDialogChargement(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
@@ -468,9 +462,7 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
                     );
                   }
                 } else {
-                  setState(() {
-                    isLoading = false;
-                  });
+                  cacherDialogChargement(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Permission de localisation refusée.'),
@@ -481,10 +473,7 @@ class _PageInscriptionProfesseurState extends State<PageInscriptionProfesseur> {
             },
             child: const Text("Continue"),
           ),
-          Visibility(
-            visible: isLoading,
-            child: const CircularProgressIndicator(),
-          ),
+          const SizedBox(height: 20),
         ],
       ),
     );

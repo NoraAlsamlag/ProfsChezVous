@@ -5,6 +5,7 @@ import 'package:profschezvousfrontend/Localisation/LocationPermissionPrompt.dart
 import '../../../../api/eleve/eleve_api.dart';
 import '../../../../components/custom_surfix_icon.dart';
 import '../../../../components/form_error.dart';
+import '../../../../components/loading_dialog.dart';
 import '../../../../constants.dart';
 import 'widgets/niveau_scolaire_dropdown.dart';
 import 'widgets/ville_dropdown.dart';
@@ -280,7 +281,8 @@ class _PageInscriptionEleveState extends State<PageInscriptionEleve> {
               labelText: "Date de naissance",
               hintText: "Sélectionnez votre date de naissance",
               floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/calendar.svg"),
+              suffixIcon:
+                  CustomSurffixIcon(svgIcon: "assets/icons/calendar.svg"),
             ),
             validator: validateDateNaissance,
           ),
@@ -319,6 +321,7 @@ class _PageInscriptionEleveState extends State<PageInscriptionEleve> {
           ElevatedButton(
             onPressed: () async {
               if (_formKey.currentState!.validate()) {
+                montrerDialogChargement(context);
                 bool permissionGranted =
                     await requestLocationPermission(context);
                 if (permissionGranted) {
@@ -357,16 +360,18 @@ class _PageInscriptionEleveState extends State<PageInscriptionEleve> {
                               context, SignInScreen.routeName);
                         });
                       }).catchError((error) {
-                        // Afficher un message d'erreur en cas d'échec de l'inscription
+                        cacherDialogChargement(context);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
+                          const SnackBar(
                             content: Text(
-                                'Échec de l\'enregistrement. Veuillez réessayer.: $error'),
+                                'Échec de l\'enregistrement. Veuillez réessayer.'),
                           ),
                         );
+                      }).whenComplete(() {
+                        cacherDialogChargement(context);
                       });
                     } else {
-                      // Afficher un message d'erreur si des champs requis sont manquants
+                      cacherDialogChargement(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content:
@@ -375,7 +380,7 @@ class _PageInscriptionEleveState extends State<PageInscriptionEleve> {
                       );
                     }
                   } else {
-                    // Location data not obtained, show an error message
+                    cacherDialogChargement(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
@@ -384,7 +389,7 @@ class _PageInscriptionEleveState extends State<PageInscriptionEleve> {
                     );
                   }
                 } else {
-                  // Location permission was denied, handle accordingly
+                  cacherDialogChargement(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Permission de localisation refusée.'),
@@ -395,6 +400,7 @@ class _PageInscriptionEleveState extends State<PageInscriptionEleve> {
             },
             child: const Text("Continue"),
           ),
+          const SizedBox(height: 20),
         ],
       ),
     );

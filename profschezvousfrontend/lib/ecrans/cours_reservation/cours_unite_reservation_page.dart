@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../constants.dart';
 import '../../models/user_cubit.dart';
 import '../../models/user_models.dart';
-import '../professeurs_list/composent/professeur_detail_page.dart';
+
 import '../professeurs_list/composent/professeurs_list.dart';
 
 class CoursUniteReservationPage extends StatefulWidget {
@@ -20,8 +20,7 @@ class CoursUniteReservationPage extends StatefulWidget {
       _CoursUniteReservationPageState();
 }
 
-class _CoursUniteReservationPageState
-    extends State<CoursUniteReservationPage> {
+class _CoursUniteReservationPageState extends State<CoursUniteReservationPage> {
   final _formKey = GlobalKey<FormState>();
 
   TextEditingController sujetController = TextEditingController();
@@ -30,6 +29,7 @@ class _CoursUniteReservationPageState
 
   String? statut;
   int? matiereId;
+  int? nombreEleves;
   int? duree;
   DateTime? dateFin;
 
@@ -99,24 +99,25 @@ class _CoursUniteReservationPageState
         setState(() {
           hasError = true;
           errorMessage =
-              'Erreur de chargement des matières. Code: ${response.statusCode}';
+              'Erreur de chargement des matières.';
         });
       }
     } catch (e) {
       setState(() {
         hasError = true;
-        errorMessage = 'Erreur de chargement des matières : $e';
+        errorMessage = 'Erreur de chargement des matières.';
       });
     }
   }
 
   Future<void> _fetchPrix() async {
-    if (matiereId != null) {
+    if (matiereId != null && nombreEleves != null) {
       try {
         final response = await http.post(
           Uri.parse('$domaine/api/calculer-prix-cours-unite/'),
           body: jsonEncode({
             'matiere': matiereId,
+            'nombre_eleves': nombreEleves,
           }),
           headers: {
             'Content-Type': 'application/json',
@@ -140,7 +141,7 @@ class _CoursUniteReservationPageState
           builder: (context) => AlertDialog(
             title: const Text('Erreur'),
             content: Text(
-                'Erreur de calcul du prix. Veuillez réessayer.\n${e.toString()}'),
+                'Erreur de calcul du prix. Veuillez réessayer.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -194,75 +195,73 @@ class _CoursUniteReservationPageState
     }
   }
 
-  Future<void> _reserveCoursForfait() async {
-    if (_formKey.currentState!.validate() && selectedDay != null && selectedHeure != null) {
-      try {
-        User user = context.read<UserCubit>().state;
-        final response = await http.post(
-          Uri.parse('$domaine/api/cours-package/'),
-          body: jsonEncode({
-            'sujet': sujetController.text,
-            'date': DateFormat('yyyy-MM-dd').format(_getNextDateForDay(selectedDay!)),
-            'statut': "R",
-            'matiere': matiereId,
-            'prix': prixController.text,
-            'professeur': widget.professeur.id,
-            'user': user.id,
-            'selected_disponibilite': {'day': selectedDay, 'heure': selectedHeure},
+  String getSujetText() {
+    if (sujetController.text.isEmpty ||
+        sujetController.text == 'pas de sujet') {
+      return 'Pas de sujet disponible';
+    } else {
+      return sujetController.text;
+    }
+  }
+
+Future<void> _reserveCoursUnite() async {
+  if (_formKey.currentState!.validate() &&
+      selectedDay != null &&
+      selectedHeure != null) {
+    User user = context.read<UserCubit>().state;
+    List<String> heures = selectedHeure!.split(' - ');
+    String heureDebut = heures[0];
+    String heureFin = heures[1];
+    try {
+      final response = await http.post(
+        Uri.parse('$domaine/api/cours-unite/'),
+        body: jsonEncode({
+          'sujet': getSujetText(),
+          'date': DateFormat('yyyy-MM-dd')
+              .format(_getNextDateForDay(selectedDay!)),
+          'statut': "R",
+          'matiere': matiereId,
+          'prix': prixController.text,
+          'professeur': widget.professeur.id,
+          'nombre_eleves': nombreEleves,
+          'user': user.id,
+          'selected_disponibilites': jsonEncode({
+            "$selectedDay": ["$selectedHeure"]
           }),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Token ${user.token}',
-          },
+          'heure_debut': heureDebut,
+          'heure_fin': heureFin,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token ${user.token}',
+        },
+      );
+
+      if (response.statusCode == 201) {
+        await _removeDisponibilite(selectedDay!, selectedHeure!);
+
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Réservation Confirmée'),
+            content: const Text(
+                'Vous avez réservé un cours en Unite avec les disponibilités choisies.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         );
-
-        if (response.statusCode == 201) {
-          await _removeDisponibilite(selectedDay!, selectedHeure!);
-
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Réservation Confirmée'),
-              content: const Text(
-                  'Vous avez réservé un cours en forfait avec les disponibilités choisies.'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProfesseurDetailPage(professeur: widget.professeur),
-                      ),
-                    );
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
-        } else {
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Erreur'),
-              content: const Text('Échec de la réservation.'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
-        }
-      } catch (e) {
+      } else {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Erreur'),
-            content: const Text('Échec de la réservation. Veuillez réessayer.'),
+            content: const Text('Échec de la réservation.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -274,12 +273,12 @@ class _CoursUniteReservationPageState
           ),
         );
       }
-    } else {
+    } catch (e) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Erreur'),
-          content: const Text('Veuillez sélectionner une disponibilité.'),
+          content: const Text('Échec de la réservation. Veuillez réessayer.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -291,11 +290,37 @@ class _CoursUniteReservationPageState
         ),
       );
     }
+  } else {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Erreur'),
+        content: const Text('Veuillez sélectionner une disponibilité.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
+}
+
 
   DateTime _getNextDateForDay(String day) {
     DateTime now = DateTime.now();
-    List<String> daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+    List<String> daysOfWeek = [
+      "lundi",
+      "mardi",
+      "mercredi",
+      "jeudi",
+      "vendredi",
+      "samedi",
+      "dimanche"
+    ];
     int todayIndex = now.weekday - 1;
     int selectedIndex = daysOfWeek.indexOf(day);
 
@@ -306,16 +331,27 @@ class _CoursUniteReservationPageState
   }
 
   List<String> _getDaysOfWeekStartingToday() {
-    List<String> daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+    List<String> daysOfWeek = [
+      "lundi",
+      "mardi",
+      "mercredi",
+      "jeudi",
+      "vendredi",
+      "samedi",
+      "dimanche"
+    ];
     int todayIndex = DateTime.now().weekday - 1;
-    return [...daysOfWeek.sublist(todayIndex), ...daysOfWeek.sublist(0, todayIndex)];
+    return [
+      ...daysOfWeek.sublist(todayIndex),
+      ...daysOfWeek.sublist(0, todayIndex)
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Réserver un Cours en Forfait'),
+        title: const Text('Réserver un Cours en Unite'),
         backgroundColor: kPrimaryColor,
       ),
       body: isLoading
@@ -334,13 +370,39 @@ class _CoursUniteReservationPageState
                           decoration: const InputDecoration(
                               labelText: 'Sujet (Optionnel)'),
                           validator: (value) {
-                            return null; // Le sujet est optionnel
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        DropdownButtonFormField<int>(
+                          value: nombreEleves,
+                          decoration: const InputDecoration(
+                              labelText: 'Nombre d\'Élèves'),
+                          items: const [
+                            DropdownMenuItem(value: 1, child: Text('1 élève')),
+                            DropdownMenuItem(value: 2, child: Text('2 élèves')),
+                            DropdownMenuItem(value: 3, child: Text('3 élèves')),
+                            DropdownMenuItem(value: 4, child: Text('4 élèves')),
+                            DropdownMenuItem(value: 5, child: Text('5 élèves')),
+                          ],
+                          onChanged: (value) {
+                            setState(() {
+                              nombreEleves = value;
+                              _fetchPrix();
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Veuillez sélectionner le nombre d\'élèves';
+                            }
+                            return null;
                           },
                         ),
                         const SizedBox(height: 20),
                         DropdownButtonFormField<int>(
                           value: matiereId,
-                          decoration: const InputDecoration(labelText: 'Matière'),
+                          decoration:
+                              const InputDecoration(labelText: 'Matière'),
                           items: matieres.map<DropdownMenuItem<int>>((matiere) {
                             return DropdownMenuItem<int>(
                               value: matiere['id'],
@@ -369,13 +431,15 @@ class _CoursUniteReservationPageState
                         const SizedBox(height: 20),
                         const Text(
                           'Disponibilités',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                         for (var day in _getDaysOfWeekStartingToday())
                           ExpansionTile(
                             title: Text(day),
                             children: (disponibilites[day] ?? []).map((heure) {
-                              bool isSelected = selectedDay == day && selectedHeure == heure;
+                              bool isSelected =
+                                  selectedDay == day && selectedHeure == heure;
                               return ListTile(
                                 title: Text(heure),
                                 trailing: Checkbox(
@@ -402,8 +466,8 @@ class _CoursUniteReservationPageState
                             style: ElevatedButton.styleFrom(
                               backgroundColor: kPrimaryColor,
                             ),
-                            onPressed: _reserveCoursForfait,
-                            child: const Text('Réserver le Forfait'),
+                            onPressed: _reserveCoursUnite,
+                            child: const Text('Réserver le Unite'),
                           ),
                         ),
                       ],

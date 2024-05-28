@@ -11,6 +11,7 @@ class User {
   String? imageProfile;
   String? firstName;
   String? lastName;
+  bool? isActive;
   bool? isProfesseur;
   bool? isEleve;
   bool? isParent;
@@ -23,6 +24,7 @@ class User {
     this.id,
     this.username,
     this.imageProfile,
+    this.isActive,
     this.isParent,
     this.isEleve,
     this.isProfesseur,
@@ -37,6 +39,7 @@ class User {
     int? id,
     String? username,
     String? imageProfile,
+    bool? isActive,
     bool? isParent,
     bool? isEleve,
     bool? isProfesseur,
@@ -50,6 +53,7 @@ class User {
       id: id ?? this.id,
       username: username ?? this.username,
       imageProfile: imageProfile ?? this.imageProfile,
+      isActive: isActive ?? this.isActive,
       isParent: isParent ?? this.isParent,
       isEleve: isEleve ?? this.isEleve,
       isProfesseur: isProfesseur ?? this.isProfesseur,
@@ -66,6 +70,7 @@ class User {
       lastName: json["last_name"],
       username: json["username"],
       imageProfile: json["image_profil"],
+      isActive: json["is_active"],
       isParent: json["is_parent"],
       isEleve: json["is_eleve"],
       isProfesseur: json["is_professeur"],

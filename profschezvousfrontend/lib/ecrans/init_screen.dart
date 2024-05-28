@@ -7,6 +7,7 @@ import 'package:profschezvousfrontend/ecrans/accueil/accueil_ecrant.dart';
 import 'package:profschezvousfrontend/ecrans/profile/profile_screen.dart';
 
 
+import 'discussion/discussion_page.dart';
 import 'professeur_ecrans/confirmation_cours.dart';
 import '../models/user_cubit.dart';
 import '../models/user_models.dart';
@@ -37,15 +38,11 @@ class _InitScreenState extends State<InitScreen> {
     User user = context.read<UserCubit>().state;
 
     final pages = [
-      const AccueilEcrant(),
+      AccueilEcrant(),
       user.isProfesseur == true
-        ? const PageConfirmationCours()
-        : user.isEleve == true
-          ? NotificationEcrant()
-          : const ProfesseursListEcrant(),
-      const Center(
-        child: Text("Discussion"),
-      ),
+        ? PageConfirmationCours()
+          : ProfesseursListEcrant(),
+      DiscussionPage(adminId:1, adminName:'Admin'),
       const ProfileScreen()
     ];
 
@@ -79,8 +76,6 @@ class _InitScreenState extends State<InitScreen> {
             icon: SvgPicture.asset(
               user.isProfesseur == true
                   ? "assets/icons/List.svg"
-                  : user.isEleve == true
-                    ? "assets/icons/Bell.svg"
                     : "assets/icons/Professeure.svg",
               colorFilter: const ColorFilter.mode(
                 inActiveIconColor,
@@ -90,8 +85,6 @@ class _InitScreenState extends State<InitScreen> {
             activeIcon: SvgPicture.asset(
               user.isProfesseur == true
                   ? "assets/icons/List.svg"
-                  : user.isEleve == true
-                    ? "assets/icons/Bell.svg"
                     : "assets/icons/Professeure.svg",
               colorFilter: const ColorFilter.mode(
                 kPrimaryColor,
@@ -100,8 +93,6 @@ class _InitScreenState extends State<InitScreen> {
             ),
             label: user.isProfesseur == true
               ? "Cours"
-              : user.isEleve == true
-                ? "Notifications"
                 : "Professeurs",
           ),
           BottomNavigationBarItem(

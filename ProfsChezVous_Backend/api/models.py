@@ -8,9 +8,11 @@ from django.db import models
 #from api.models import Cours_Package
 timezone.now
 import jsonfield
+from django.core.exceptions import ValidationError
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+import datetime
 
-
-# models.py
 
 
 class Categorie(models.Model):
@@ -23,7 +25,7 @@ class Matiere(models.Model):
     nom_complet = models.CharField(max_length=150, help_text="Nom complet de la matière")
     symbole = models.CharField(max_length=50, help_text="Symbole de la matière")
     categorie = models.ForeignKey(Categorie, on_delete=models.CASCADE, related_name='matieres')
-
+    prix = models.FloatField(null=True, blank=True)
     # def to_json(self):
     #     return {
     #         'nom_complet': self.nom_complet,
@@ -40,7 +42,7 @@ class Matiere(models.Model):
 
 
 class PrixDeBasePackage(models.Model):
-    type = models.CharField(max_length=50, unique=True)
+    type = models.CharField(default='package',max_length=50, unique=True)
     prix_base = models.FloatField(default=100.0,null=True,blank=True)
     prix_par_heure = models.FloatField(default=100.0)
     prix_par_eleve = models.FloatField(default=50.0)
@@ -61,34 +63,32 @@ class PrixDeBaseUnite(models.Model):
 
 
 
-class CommentaireCours(models.Model):
-    contenu = models.TextField()
-    date = models.DateTimeField(auto_now_add=True)
-    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE, related_name='commentaires_professeur')
-    parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='commentaires_parent')
-    matiere = models.ForeignKey(Matiere, on_delete=models.CASCADE, related_name='commentaires')
-    Cours_Unite = models.BooleanField()
-    Cours_Package = models.BooleanField()
 
-    def __str__(self):
-        return f"Commentaire de {self.professeur.nom} {self.professeur.prenom} pour {self.matiere.nom_complet}"
 
 
 class Cours_Unite(models.Model):
     sujet = models.TextField(max_length=100,null=True,blank=True)
     date = models.DateField()
-    heure_debut = models.TimeField(default='00:00', blank=False)
+    heure_debut = models.TimeField(null=True,blank=False)
+    heure_fine = models.TimeField(null=True, blank=False)
     STATUT_CHOICES = (
         ('R', 'Réservé'),
         ('C', 'Confirmé'),
         ('A', 'Annulé'),
     )
+    nombre_eleves = models.PositiveIntegerField(choices=(
+        (1, '1 élève'),
+        (2, '2 élèves'),
+        (3, '3 élèves'),
+        (4, '4 élèves'),
+        (5, '5 élèves'),
+    ), help_text="Nombre d'élèves",null=True, blank=True)
     prix = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
     matiere = models.ForeignKey(Matiere, on_delete=models.PROTECT, null=False)
     professeur = models.ForeignKey(Professeur, on_delete=models.SET_NULL, null=True, blank=True, related_name='cours_unite') 
     user = models.ForeignKey(User,on_delete=models.PROTECT,null=True,blank=True)
     statut = models.CharField(max_length=1, choices=STATUT_CHOICES, default='R')
-
+    selected_disponibilites = jsonfield.JSONField(help_text="Disponibilités sélectionnées" ,null=True,blank=True)
 
 
 
@@ -190,19 +190,45 @@ class Transaction(models.Model):
 # def __str__(self):
 #         return f"Diplôme de {self.professeur.user.username}"
 
-class Cours(models.Model):
+
+class Cour(models.Model):
     professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
-    eleve = models.ForeignKey(Eleve, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     date = models.DateField()
     heure_debut = models.TimeField()
     heure_fin = models.TimeField()
     present = models.BooleanField(default=False)
+    STATUT_CHOICES = (
+        ('EC', 'En cours'),
+        ('AV', 'A venir'),
+        ('T', 'Terminer'),
+        ('A', 'Annulé'),
+    )
+    statut = models.CharField(max_length=2, choices=STATUT_CHOICES, default='AV')
     dispense = models.BooleanField(default=False)
     commentaire = models.TextField(blank=True, null=True)
-    montant = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"Cours de {self.professeur} avec {self.eleve} le {self.date}"
+        return f"Cours avec {self.professeur} le {self.date.strftime('%d %B %Y')}"
+    
+    @property
+    def commentaires(self):
+        return self.commentairecours_set.all()
+
+# @receiver(pre_save, sender=Cour)
+# def mettre_a_jour_statut_cours(sender, instance, **kwargs):
+#     maintenant = timezone.now()
+#     heure_debut = datetime.datetime.combine(instance.date, instance.heure_debut)
+#     heure_fin = datetime.datetime.combine(instance.date, instance.heure_fin)
+    
+#     heure_debut = timezone.make_aware(heure_debut, timezone.get_current_timezone())
+#     heure_fin = timezone.make_aware(heure_fin, timezone.get_current_timezone())
+    
+#     if heure_debut <= maintenant <= heure_fin and instance.statut == 'AV':
+#         instance.statut = 'EC'
+#     elif maintenant > heure_fin and instance.statut == 'EC':
+#         instance.statut = 'T'
+
     
 class SuiviProfesseur(models.Model):
     professeur = models.OneToOneField(Professeur, on_delete=models.CASCADE)
@@ -213,8 +239,28 @@ class SuiviProfesseur(models.Model):
     def __str__(self):
         return f"Suivi de {self.professeur}" 
 
+class CommentaireCours(models.Model):
+    contenu = models.TextField(help_text="Entrez le contenu du commentaire (entre 10 et 5000 caractères).")
+    date = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='commentaires_user', null=True, blank=True)
+    cour = models.ForeignKey(Cour, on_delete=models.CASCADE, null=True, blank=True)
 
+    def __str__(self):
+        return f"Commentaire de {self.user.get_full_name()} sur {self.cour} - {self.date.strftime('%d %B %Y')}"
 
+    def get_short_content(self):
+        """Retourne une version raccourcie du contenu du commentaire."""
+        return self.contenu[:75] + ('...' if len(self.contenu) > 75 else '')
+
+    # def clean(self):
+    #     # Validation pour s'assurer qu'un utilisateur ne peut laisser qu'un commentaire par cours
+    #     if CommentaireCours.objects.filter(user=self.user, cour=self.cour).exists():
+    #         raise ValidationError("Vous avez déjà laissé un commentaire pour ce cours.")
+
+    # def save(self, *args, **kwargs):
+    #     # Appel de la méthode clean avant de sauvegarder
+    #     self.clean()
+    #     super(CommentaireCours, self).save(*args, **kwargs)
 
 class CoursReserve(models.Model):
     professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
@@ -230,14 +276,14 @@ class Absence(models.Model):
 
 class Remboursement(models.Model):
     eleve = models.ForeignKey(User, on_delete=models.CASCADE)
-    cours_manque = models.ForeignKey(Cours, on_delete=models.CASCADE)
+    cours_manque = models.ForeignKey(Cour, on_delete=models.CASCADE)
     motif = models.TextField()
     montant_rembourse = models.DecimalField(max_digits=10, decimal_places=2)
     date_demande = models.DateField(auto_now_add=True)
 
 class CoursRattrapage(models.Model):
     eleve = models.ForeignKey(User, on_delete=models.CASCADE)
-    cours_manque = models.ForeignKey(Cours, on_delete=models.CASCADE)
+    cours_manque = models.ForeignKey(Cour, on_delete=models.CASCADE)
     date_rattrapage = models.DateField()
     motif = models.TextField() 
 

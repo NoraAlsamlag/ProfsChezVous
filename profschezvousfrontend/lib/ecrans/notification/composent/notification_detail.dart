@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:profschezvousfrontend/models/notification_model.dart' as model;
 
 import '../../../api/notification/notification_api.dart';
+import '../../../components/format_date.dart';
 
 class NotificationDetailPage extends StatelessWidget {
   final model.Notification notification;
@@ -42,7 +43,7 @@ class NotificationDetailPage extends StatelessWidget {
             ),
             SizedBox(height: 16),
             Text(
-              'Date: ${notification.date}',
+              'Date: ${formatDate(notification.date)}',
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],

@@ -12,4 +12,9 @@ class UserCubit extends Cubit<User> {
     User updatedUser = state.copyWith(userDetails: userDetails);
     emit(updatedUser);
   }
+
+  void updateUserImage(String imageUrl) {
+    User updatedUser = state.copyWith(imageProfile: imageUrl);
+    emit(updatedUser);
+  }
 }

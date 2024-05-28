@@ -8,9 +8,9 @@ from user.models import  Parent
 def envoyer_notification_reservation(sender, instance, created, **kwargs):
     if created:
         professeur = instance.professeur.user
-        parent = instance.parent
+        user = instance.user
         titre = "Nouvelle Réservation de Cours Forfait"
-        message = f"Le parent {parent.prenom} {parent.nom} a réservé un cours forfait avec vous."
+        message = f"{user.first_name} {user.last_name} a réservé un cours forfait avec vous."
         Notification.objects.create(user=professeur, title=titre, message=message)
 
 

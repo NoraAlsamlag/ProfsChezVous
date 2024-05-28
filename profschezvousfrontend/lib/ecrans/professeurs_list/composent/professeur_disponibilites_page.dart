@@ -6,21 +6,24 @@ import '../../../constants.dart';
 class ProfesseurDisponibilitesPage extends StatefulWidget {
   final int? professeurId;
 
-  const ProfesseurDisponibilitesPage({Key? key, required this.professeurId}) : super(key: key);
+  const ProfesseurDisponibilitesPage({Key? key, required this.professeurId})
+      : super(key: key);
 
   @override
-  _ProfesseurDisponibilitesPageState createState() => _ProfesseurDisponibilitesPageState();
+  _ProfesseurDisponibilitesPageState createState() =>
+      _ProfesseurDisponibilitesPageState();
 }
 
-class _ProfesseurDisponibilitesPageState extends State<ProfesseurDisponibilitesPage> {
+class _ProfesseurDisponibilitesPageState
+    extends State<ProfesseurDisponibilitesPage> {
   Map<String, List<String>> disponibilites = {
-    "Lundi": [],
-    "Mardi": [],
-    "Mercredi": [],
-    "Jeudi": [],
-    "Vendredi": [],
-    "Samedi": [],
-    "Dimanche": []
+    "lundi": [],
+    "mardi": [],
+    "mercredi": [],
+    "jeudi": [],
+    "vendredi": [],
+    "samedi": [],
+    "dimanche": []
   };
 
   List<String> heures = [
@@ -112,7 +115,15 @@ class _ProfesseurDisponibilitesPageState extends State<ProfesseurDisponibilitesP
               'Ajouter les créneaux horaires de disponibilité',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            for (var day in ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"])
+            for (var day in [
+              "lundi",
+              "mardi",
+              "mercredi",
+              "jeudi",
+              "vendredi",
+              "samedi",
+              "dimanche"
+            ])
               ExpansionTile(
                 title: Text(day),
                 children: heures.map((heure) {

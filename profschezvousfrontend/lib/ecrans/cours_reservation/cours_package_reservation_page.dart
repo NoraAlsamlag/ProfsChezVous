@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import '../../../constants.dart';
 import '../../models/user_cubit.dart';
 import '../../models/user_models.dart';
-import '../professeurs_list/composent/professeur_detail_page.dart';
 import '../professeurs_list/composent/professeurs_list.dart';
 
 class PageReservationCoursPackage extends StatefulWidget {
@@ -211,12 +210,39 @@ class _PageReservationCoursPackageState
     }
   }
 
+  String getDescriptionText() {
+    if (descriptionController.text.isEmpty ||
+        descriptionController.text == 'pas de description') {
+      return 'Pas de description disponible';
+    } else {
+      return descriptionController.text;
+    }
+  }
+
   Future<void> _reserveCoursForfait() async {
     if (_formKey.currentState!.validate()) {
       int? nomdreHeuresParSemaine = _calculeTotalHeures();
-      // Calculer la durée
-      duree = 7 * nombreSemaines!;
+      if (nomdreHeuresParSemaine == null || nomdreHeuresParSemaine == 0) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Erreur'),
+            content:
+                const Text('Veuillez sélectionner au moins une disponibilité.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
 
+      duree = 7 * nombreSemaines!;
       DateTime dateDebut =
           DateFormat('yyyy-MM-dd').parse(dateDebutController.text);
       dateFin = dateDebut.add(Duration(days: duree!));
@@ -226,7 +252,7 @@ class _PageReservationCoursPackageState
         final response = await http.post(
           Uri.parse('$domaine/api/cours-package/'),
           body: jsonEncode({
-            'description': descriptionController.text,
+            'description': getDescriptionText(),
             'duree': duree,
             'date_debut': dateDebutController.text,
             'date_fin': DateFormat('yyyy-MM-dd').format(dateFin!),
@@ -246,7 +272,6 @@ class _PageReservationCoursPackageState
         );
 
         if (response.statusCode == 201) {
-          // Supprimer les disponibilités sélectionnées après la confirmation
           for (var day in selectedDisponibilites.keys) {
             for (var heure in selectedDisponibilites[day]!) {
               await _removeDisponibilite(day, heure);
@@ -262,12 +287,7 @@ class _PageReservationCoursPackageState
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProfesseurDetailPage(professeur: widget.professeur),
-                      ),
-                    );
+                    Navigator.popUntil(context, (route) => route.isFirst);
                   },
                   child: const Text('OK'),
                 ),
@@ -438,6 +458,7 @@ class _PageReservationCoursPackageState
                           onChanged: (value) {
                             setState(() {
                               matiereId = value;
+                              _fetchPrix();
                             });
                           },
                           validator: (value) {
@@ -460,13 +481,13 @@ class _PageReservationCoursPackageState
                               fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                         for (var day in [
-                          "Lundi",
-                          "Mardi",
-                          "Mercredi",
-                          "Jeudi",
-                          "Vendredi",
-                          "Samedi",
-                          "Dimanche"
+                          "lundi",
+                          "mardi",
+                          "mercredi",
+                          "jeudi",
+                          "vendredi",
+                          "samedi",
+                          "dimanche"
                         ])
                           ExpansionTile(
                             title: Text(day),
