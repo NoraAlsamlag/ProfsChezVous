@@ -21,7 +21,8 @@ class CompletionProfilEcrant extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign Up'),
+        title: const Text("S'inscrire")
+,
       ),
       body: SafeArea(
         child: SizedBox(

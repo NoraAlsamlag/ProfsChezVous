@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../constants.dart';
 import '../../models/user_cubit.dart';
 import '../../models/user_models.dart';
-import '../professeurs_list/composent/professeur_detail_page.dart';
+
 import '../professeurs_list/composent/professeurs_list.dart';
 
 class CoursUniteReservationPage extends StatefulWidget {
@@ -20,18 +20,16 @@ class CoursUniteReservationPage extends StatefulWidget {
       _CoursUniteReservationPageState();
 }
 
-class _CoursUniteReservationPageState
-    extends State<CoursUniteReservationPage> {
+class _CoursUniteReservationPageState extends State<CoursUniteReservationPage> {
   final _formKey = GlobalKey<FormState>();
 
-  TextEditingController descriptionController = TextEditingController();
-  TextEditingController dateDebutController = TextEditingController();
+  TextEditingController sujetController = TextEditingController();
+  TextEditingController dateController = TextEditingController();
   TextEditingController prixController = TextEditingController();
 
-  int? nombreSemaines;
-  int? nombreEleves;
-  String? heuresParSemaine;
+  String? statut;
   int? matiereId;
+  int? nombreEleves;
   int? duree;
   DateTime? dateFin;
 
@@ -39,7 +37,8 @@ class _CoursUniteReservationPageState
   bool isLoading = true;
   bool hasError = false;
   String errorMessage = '';
-  Map<String, List<String>> selectedDisponibilites = {};
+  String? selectedDay;
+  String? selectedHeure;
   List<Map<String, dynamic>> matieres = [];
 
   @override
@@ -100,39 +99,24 @@ class _CoursUniteReservationPageState
         setState(() {
           hasError = true;
           errorMessage =
-              'Erreur de chargement des matières. Code: ${response.statusCode}';
+              'Erreur de chargement des matières.';
         });
       }
     } catch (e) {
       setState(() {
         hasError = true;
-        errorMessage = 'Erreur de chargement des matières : $e';
+        errorMessage = 'Erreur de chargement des matières.';
       });
     }
   }
 
-  int? _calculeTotalHeures() {
-    if (selectedDisponibilites.isEmpty) {
-      return null;
-    }
-    int totalHours = 0;
-    selectedDisponibilites.forEach((day, hours) {
-      totalHours += hours.length * 2;
-    });
-    return totalHours;
-  }
-
   Future<void> _fetchPrix() async {
-    int? nomdreHeuresParSemaine = _calculeTotalHeures();
-    if (nombreSemaines != null &&
-        nombreEleves != null &&
-        nomdreHeuresParSemaine != null) {
+    if (matiereId != null && nombreEleves != null) {
       try {
         final response = await http.post(
-          Uri.parse('$domaine/api/calculer-prix-cours-package/'),
+          Uri.parse('$domaine/api/calculer-prix-cours-unite/'),
           body: jsonEncode({
-            'nombre_semaines': nombreSemaines,
-            'heures_par_semaine': nomdreHeuresParSemaine,
+            'matiere': matiereId,
             'nombre_eleves': nombreEleves,
           }),
           headers: {
@@ -157,7 +141,7 @@ class _CoursUniteReservationPageState
           builder: (context) => AlertDialog(
             title: const Text('Erreur'),
             content: Text(
-                'Erreur de calcul du prix. Veuillez réessayer.\n${e.toString()}'),
+                'Erreur de calcul du prix. Veuillez réessayer.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -211,92 +195,73 @@ class _CoursUniteReservationPageState
     }
   }
 
-  Future<void> _reserveCoursForfait() async {
-    if (_formKey.currentState!.validate()) {
-      int? nomdreHeuresParSemaine = _calculeTotalHeures();
-      // Calculer la durée
-      duree = 7 * nombreSemaines!;
+  String getSujetText() {
+    if (sujetController.text.isEmpty ||
+        sujetController.text == 'pas de sujet') {
+      return 'Pas de sujet disponible';
+    } else {
+      return sujetController.text;
+    }
+  }
 
-      DateTime dateDebut =
-          DateFormat('yyyy-MM-dd').parse(dateDebutController.text);
-      dateFin = dateDebut.add(Duration(days: duree!));
-
-      try {
-        User user = context.read<UserCubit>().state;
-        final response = await http.post(
-          Uri.parse('$domaine/api/cours-package/'),
-          body: jsonEncode({
-            'description': descriptionController.text,
-            'duree': duree,
-            'date_debut': dateDebutController.text,
-            'date_fin': DateFormat('yyyy-MM-dd').format(dateFin!),
-            'nombre_semaines': nombreSemaines,
-            'nombre_eleves': nombreEleves,
-            'heures_par_semaine': nomdreHeuresParSemaine,
-            'matiere': matiereId,
-            'prix': prixController.text,
-            'selected_disponibilites': jsonEncode(selectedDisponibilites),
-            'professeur': widget.professeur.id,
-            'parent': user.userDetails!.parent?.userId,
+Future<void> _reserveCoursUnite() async {
+  if (_formKey.currentState!.validate() &&
+      selectedDay != null &&
+      selectedHeure != null) {
+    User user = context.read<UserCubit>().state;
+    List<String> heures = selectedHeure!.split(' - ');
+    String heureDebut = heures[0];
+    String heureFin = heures[1];
+    try {
+      final response = await http.post(
+        Uri.parse('$domaine/api/cours-unite/'),
+        body: jsonEncode({
+          'sujet': getSujetText(),
+          'date': DateFormat('yyyy-MM-dd')
+              .format(_getNextDateForDay(selectedDay!)),
+          'statut': "R",
+          'matiere': matiereId,
+          'prix': prixController.text,
+          'professeur': widget.professeur.id,
+          'nombre_eleves': nombreEleves,
+          'user': user.id,
+          'selected_disponibilites': jsonEncode({
+            "$selectedDay": ["$selectedHeure"]
           }),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Token ${user.token}',
-          },
+          'heure_debut': heureDebut,
+          'heure_fin': heureFin,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token ${user.token}',
+        },
+      );
+
+      if (response.statusCode == 201) {
+        await _removeDisponibilite(selectedDay!, selectedHeure!);
+
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Réservation Confirmée'),
+            content: const Text(
+                'Vous avez réservé un cours en Unite avec les disponibilités choisies.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         );
-
-        if (response.statusCode == 201) {
-          // Supprimer les disponibilités sélectionnées après la confirmation
-          for (var day in selectedDisponibilites.keys) {
-            for (var heure in selectedDisponibilites[day]!) {
-              await _removeDisponibilite(day, heure);
-            }
-          }
-
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Réservation Confirmée'),
-              content: const Text(
-                  'Vous avez réservé un cours en forfait avec les disponibilités choisies.'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProfesseurDetailPage(professeur: widget.professeur),
-                      ),
-                    );
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
-        } else {
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Erreur'),
-              content: const Text('Échec de la réservation.'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
-        }
-      } catch (e) {
+      } else {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Erreur'),
-            content: const Text('Échec de la réservation. Veuillez réessayer.'),
+            content: const Text('Échec de la réservation.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -308,14 +273,85 @@ class _CoursUniteReservationPageState
           ),
         );
       }
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Erreur'),
+          content: const Text('Échec de la réservation. Veuillez réessayer.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     }
+  } else {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Erreur'),
+        content: const Text('Veuillez sélectionner une disponibilité.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+  DateTime _getNextDateForDay(String day) {
+    DateTime now = DateTime.now();
+    List<String> daysOfWeek = [
+      "lundi",
+      "mardi",
+      "mercredi",
+      "jeudi",
+      "vendredi",
+      "samedi",
+      "dimanche"
+    ];
+    int todayIndex = now.weekday - 1;
+    int selectedIndex = daysOfWeek.indexOf(day);
+
+    int difference = (selectedIndex - todayIndex) % 7;
+    if (difference < 0) difference += 7;
+
+    return now.add(Duration(days: difference));
+  }
+
+  List<String> _getDaysOfWeekStartingToday() {
+    List<String> daysOfWeek = [
+      "lundi",
+      "mardi",
+      "mercredi",
+      "jeudi",
+      "vendredi",
+      "samedi",
+      "dimanche"
+    ];
+    int todayIndex = DateTime.now().weekday - 1;
+    return [
+      ...daysOfWeek.sublist(todayIndex),
+      ...daysOfWeek.sublist(0, todayIndex)
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Réserver un Cours en Forfait'),
+        title: const Text('Réserver un Cours en Unite'),
         backgroundColor: kPrimaryColor,
       ),
       body: isLoading
@@ -330,72 +366,10 @@ class _CoursUniteReservationPageState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         TextFormField(
-                          controller: descriptionController,
+                          controller: sujetController,
                           decoration: const InputDecoration(
-                              labelText: 'Description (Optionnel)'),
+                              labelText: 'Sujet (Optionnel)'),
                           validator: (value) {
-                            return null; // Make sure the validator does not enforce this field
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        TextFormField(
-                          controller: dateDebutController,
-                          decoration:
-                              const InputDecoration(labelText: 'Date de Début'),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Veuillez entrer la date de début';
-                            }
-                            return null;
-                          },
-                          onTap: () async {
-                            DateTime? pickedDate = await showDatePicker(
-                              context: context,
-                              initialDate: DateTime.now(),
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime(2101),
-                            );
-                            if (pickedDate != null) {
-                              setState(() {
-                                dateDebutController.text =
-                                    DateFormat('yyyy-MM-dd').format(pickedDate);
-                              });
-                            }
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        DropdownButtonFormField<int>(
-                          value: nombreSemaines,
-                          decoration: const InputDecoration(
-                              labelText: 'Nombre de Semaines'),
-                          items: const [
-                            DropdownMenuItem(
-                                value: 1, child: Text('1 semaine')),
-                            DropdownMenuItem(
-                                value: 2, child: Text('2 semaines')),
-                            DropdownMenuItem(
-                                value: 3, child: Text('3 semaines')),
-                            DropdownMenuItem(
-                                value: 4, child: Text('4 semaines')),
-                            DropdownMenuItem(
-                                value: 5, child: Text('5 semaines')),
-                            DropdownMenuItem(
-                                value: 6, child: Text('6 semaines')),
-                            DropdownMenuItem(
-                                value: 7, child: Text('7 semaines')),
-                            DropdownMenuItem(
-                                value: 8, child: Text('8 semaines')),
-                          ],
-                          onChanged: (value) {
-                            setState(() {
-                              nombreSemaines = value;
-                              _fetchPrix();
-                            });
-                          },
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Veuillez sélectionner le nombre de semaines';
-                            }
                             return null;
                           },
                         ),
@@ -438,6 +412,7 @@ class _CoursUniteReservationPageState
                           onChanged: (value) {
                             setState(() {
                               matiereId = value;
+                              _fetchPrix();
                             });
                           },
                           validator: (value) {
@@ -459,21 +434,12 @@ class _CoursUniteReservationPageState
                           style: TextStyle(
                               fontSize: 20, fontWeight: FontWeight.bold),
                         ),
-                        for (var day in [
-                          "Lundi",
-                          "Mardi",
-                          "Mercredi",
-                          "Jeudi",
-                          "Vendredi",
-                          "Samedi",
-                          "Dimanche"
-                        ])
+                        for (var day in _getDaysOfWeekStartingToday())
                           ExpansionTile(
                             title: Text(day),
                             children: (disponibilites[day] ?? []).map((heure) {
-                              bool isSelected = selectedDisponibilites[day]
-                                      ?.contains(heure) ??
-                                  false;
+                              bool isSelected =
+                                  selectedDay == day && selectedHeure == heure;
                               return ListTile(
                                 title: Text(heure),
                                 trailing: Checkbox(
@@ -481,14 +447,11 @@ class _CoursUniteReservationPageState
                                   onChanged: (bool? value) {
                                     setState(() {
                                       if (value == true) {
-                                        if (selectedDisponibilites[day] ==
-                                            null) {
-                                          selectedDisponibilites[day] = [];
-                                        }
-                                        selectedDisponibilites[day]!.add(heure);
+                                        selectedDay = day;
+                                        selectedHeure = heure;
                                       } else {
-                                        selectedDisponibilites[day]
-                                            ?.remove(heure);
+                                        selectedDay = null;
+                                        selectedHeure = null;
                                       }
                                       _fetchPrix();
                                     });
@@ -503,8 +466,8 @@ class _CoursUniteReservationPageState
                             style: ElevatedButton.styleFrom(
                               backgroundColor: kPrimaryColor,
                             ),
-                            onPressed: _reserveCoursForfait,
-                            child: const Text('Réserver le Forfait'),
+                            onPressed: _reserveCoursUnite,
+                            child: const Text('Réserver le Unite'),
                           ),
                         ),
                       ],

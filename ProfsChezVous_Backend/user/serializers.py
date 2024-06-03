@@ -25,8 +25,8 @@ class CustomUserDetailsSerializer(UserDetailsSerializer):
     info = serializers.SerializerMethodField()
 
     class Meta(UserDetailsSerializer.Meta):
-        fields = ('pk', 'username', 'email', 'first_name', 'last_name', 'last_login', 'is_parent', 'is_eleve', 'is_professeur', 'role', 'info')
-        read_only_fields = ('is_admin', 'is_parent', 'is_eleve', 'is_professeur', 'image_profil')
+        fields = ('pk', 'username', 'email', 'first_name', 'last_name', 'last_login','is_active', 'is_parent', 'is_eleve', 'is_professeur', 'role', 'info')
+        read_only_fields = ('is_active','is_admin', 'is_parent', 'is_eleve', 'is_professeur', 'image_profil')
 
     def get_role(self, instance):
         if instance.is_parent:
@@ -41,13 +41,13 @@ class CustomUserDetailsSerializer(UserDetailsSerializer):
     def get_info(self, instance):
         if instance.is_parent:
             parent = instance.parent
-            return parent.to_json()  # Assuming to_json() returns a dictionary
+            return parent.to_json()
         elif instance.is_professeur:
             professeur = instance.professeur
-            return professeur.to_json()  # Add professeur fields here
+            return professeur.to_json()
         elif instance.is_eleve:
             eleve = instance.eleve
-            return eleve.to_json()  # Add eleve fields here
+            return eleve.to_json()
         else:
             return {}
 

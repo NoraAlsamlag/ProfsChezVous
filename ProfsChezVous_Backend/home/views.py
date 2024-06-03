@@ -1,21 +1,17 @@
-from django.shortcuts import render, redirect,get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from admin_datta.forms import RegistrationForm, LoginForm, UserPasswordChangeForm, UserPasswordResetForm, UserSetPasswordForm
 from django.contrib.auth.views import LoginView, PasswordChangeView, PasswordResetConfirmView, PasswordResetView
 from django.views.generic import CreateView
 from django.contrib.auth import logout
-
 from django.contrib.auth.decorators import login_required
-
 from .models import *
-from django.shortcuts import render
-from user.models import User,Parent, Professeur, Eleve
+from user.models import User, Parent, Professeur, Eleve
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
-from django.db.models import  Sum , Count
+from django.db.models import Sum, Count
 from datetime import datetime
 from api.models import Cours_Unite, Cours_Package,Cours
-
 
 def index(request):
     # Nombre total d'utilisateurs de chaque type
@@ -30,8 +26,8 @@ def index(request):
     revenu_total_annuel = Cours_Unite.objects.filter(date__year=annee_actuelle).aggregate(Sum('prix'))['prix__sum'] or 0
 
     # Statistiques des cours pour chaque type d'utilisateur
-    nombre_cours_unite = Cours_Unite.objects.filter(parent__isnull=False).count()
-    nombre_cours_package = Cours_Package.objects.filter(parent__isnull=False).count()
+    nombre_cours_unite = Cours_Unite.objects.filter(user__isnull=False).count()
+    nombre_cours_package = Cours_Package.objects.filter(user__isnull=False).count()
 
     # Statistiques des cours par statut
     cours_en_cours = Cours.objects.filter(statut='EC').count()
@@ -72,6 +68,15 @@ def index(request):
     }
 
     return render(request, "pages/index.html", context)
+
+# @csrf_exempt
+# @require_POST
+# def toggle_user_status(request, user_id):
+#     user = get_object_or_404(User, id=user_id)
+#     user.is_active = not user.is_active
+#     user.save()
+#     return JsonResponse({'status': user.is_active})
+
 # def tables(request):
 #   # context = {
 #   #   'segment': 'tables'

@@ -13,6 +13,12 @@ from django.views.decorators.http import require_http_methods
 from .serializers import NotificationUpdateSerializer
 import json
 from django.contrib.auth.models import User
+from datetime import datetime, timedelta
+from datetime import date
+from django.db.models import Case, When, Value, IntegerField
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError
+
 
 class MatiereList(generics.ListCreateAPIView):
     queryset = Matiere.objects.all()
@@ -56,17 +62,16 @@ class CoursPackageViewSet(viewsets.ModelViewSet):
 
 
 
-class VueCoursReservesUtilisateur(generics.GenericAPIView):
+class VueCoursPackageReservesUtilisateur(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        utilisateur = request.user
         try:
-            parent = Parent.objects.get(user_id=utilisateur.id)
-        except Parent.DoesNotExist:
-            return Response({"detail": "Parent non trouvé."}, status=404)
+            utilisateur = request.user
+        except utilisateur.DoesNotExist:
+            return Response({"detail": "Utilisateur non trouvé."}, status=404)
 
-        cours_package = Cours_Package.objects.filter(parent_id=parent.id)
+        cours_package = Cours_Package.objects.filter(user_id=utilisateur.id)
 
         serializeur_package = CoursPackageSerializer(cours_package, many=True)
 
@@ -74,7 +79,22 @@ class VueCoursReservesUtilisateur(generics.GenericAPIView):
             'cours_package': serializeur_package.data
         })
 
+class VueCoursUniteReservesUtilisateur(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
 
+    def get(self, request, *args, **kwargs):
+        try:
+            utilisateur = request.user
+        except utilisateur.DoesNotExist:
+            return Response({"detail": "Utilisateur non trouvé."}, status=404)
+
+        cours_unite = Cours_Unite.objects.filter(user_id=utilisateur.id)
+
+        serializeur_unite = CoursUniteSerializer(cours_unite, many=True)
+
+        return Response({
+            'cours_unite': serializeur_unite.data
+        })
 
 
 class CoursPackageNonConfirmesView(generics.ListAPIView):
@@ -89,6 +109,20 @@ class CoursPackageNonConfirmesView(generics.ListAPIView):
         queryset = self.get_queryset()
         serializer = CoursPackageSerializer(queryset, many=True)
         return Response(serializer.data)
+    
+import json
+import logging
+import locale
+from datetime import datetime, timedelta
+from rest_framework import generics, permissions
+from rest_framework.response import Response
+from .models import Cours_Package, Cour
+from .serializers import CoursPackageSerializer
+
+logger = logging.getLogger(__name__)
+
+# S'assurer que les noms des jours sont en français
+locale.setlocale(locale.LC_TIME, 'fr_FR')
 
 class ConfirmerCoursPackageView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -99,8 +133,210 @@ class ConfirmerCoursPackageView(generics.UpdateAPIView):
         instance = self.get_object()
         instance.est_actif = True
         instance.save()
+        logger.debug("Instance est_actif mise à jour à True")
+        
+        # Parse les disponibilités sélectionnées
+        try:
+            disponibilites = json.loads(instance.selected_disponibilites)
+            logger.debug(f"Disponibilités: {disponibilites}")
+        except json.JSONDecodeError as e:
+            logger.error(f"Erreur de décodage JSON: {e}")
+            return Response({"error": "Format de disponibilités sélectionnées invalide"}, status=400)
+
+        # Créer des cours pour chaque jour de la semaine dans la plage de dates
+        current_date = instance.date_debut
+        end_date = instance.date_fin
+
+        while current_date <= end_date:
+            # Obtenir le nom du jour en français
+            day_name_fr = current_date.strftime('%A')
+            logger.debug(f"Traitement de la date: {current_date} ({day_name_fr})")
+            
+            if day_name_fr in disponibilites:
+                for time_range in disponibilites[day_name_fr]:
+                    start_time_str, end_time_str = time_range.split(' - ')
+                    start_time = datetime.strptime(start_time_str, '%H:%M').time()
+                    end_time = datetime.strptime(end_time_str, '%H:%M').time()
+                    logger.debug(f"Création du cours: {start_time} - {end_time} le {current_date}")
+
+                    try:
+                        created_course = Cour.objects.create(
+                            professeur=instance.professeur,
+                            user=instance.user,
+                            date=current_date,
+                            heure_debut=start_time,
+                            heure_fin=end_time,
+                            statut='AV',
+                            commentaire=f"Cours de {instance.matiere.symbole} pour le package {instance.description}"
+                        )
+                        logger.debug(f"Cours créé: {created_course}")
+                    except Exception as e:
+                        logger.error(f"Erreur lors de la création du cours: {e}")
+            else:
+                logger.debug(f"Aucun cours prévu pour {day_name_fr}")
+            current_date += timedelta(days=1)
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+
+
+class CoursUniteNonConfirmesView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        utilisateur = self.request.user
+        professeur = Professeur.objects.get(user_id=utilisateur.id)
+        return Cours_Unite.objects.filter(professeur=professeur, statut='R')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = CoursUniteSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class ConfirmerCoursUniteView(generics.UpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Cours_Unite.objects.all()
+    serializer_class = CoursUniteSerializer
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.statut = 'C'
+        instance.save()
+
+        # Création d'un objet Cours avec les données de Cours_Unite
+        Cour.objects.create(
+            professeur=instance.professeur,
+            user=instance.user,
+            date=instance.date,
+            heure_debut=instance.heure_debut,
+            heure_fin=instance.heure_fine,
+            commentaire=f"Cours confirmé à partir de Cours_Unite: {instance.sujet}"
+        )
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
+
+
+class TousLesCoursView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        utilisateur = request.user
+        queryset = Cour.objects.filter(user=utilisateur, statut__in=['AV', 'EC']).order_by('date', 'heure_debut')
+        serializer = CourSerializer(queryset, many=True, context={'request': request})
+        return JsonResponse(serializer.data, safe=False, json_dumps_params={'ensure_ascii': False})
+
+
+class CoursAVenirView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        utilisateur = request.user
+        queryset = Cour.objects.filter(user=utilisateur, statut='AV').order_by('date', 'heure_debut')
+        serializer = CourSerializer(queryset, many=True, context={'request': request})
+        return JsonResponse(serializer.data, safe=False, json_dumps_params={'ensure_ascii': False})
+
+
+class CoursTerminesOuAnnullesView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        utilisateur = request.user
+        queryset = Cour.objects.filter(user=utilisateur, statut__in=['T', 'A']).order_by('date', 'heure_debut')
+        serializer = CourSerializer(queryset, many=True, context={'request': request})
+        return JsonResponse(serializer.data, safe=False, json_dumps_params={'ensure_ascii': False})
+
+
+
+
+
+class EnvoyerMessageAdminView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = MessageSerializer
+
+    def perform_create(self, serializer):
+        admin = User.objects.filter(is_superuser=True).first()
+        if admin:
+            serializer.save(expediteur=self.request.user, destinataire=admin)
+        else:
+            raise serializers.ValidationError("Administrateur non trouvé")
+
+
+class ListeMessagesAvecAdminView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = MessageSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        admin = User.objects.filter(is_superuser=True).first()
+        if admin:
+            return Message.objects.filter(expediteur=user, destinataire=admin) | Message.objects.filter(expediteur=admin, destinataire=user)
+        return Message.objects.none()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return JsonResponse(serializer.data, safe=False, json_dumps_params={'ensure_ascii': False})
+
+class MettreAJourPresenceView(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CourSerializer
+    queryset = Cour.objects.all()
+
+    def patch(self, request, *args, **kwargs):
+        cours = self.get_object()
+        cours.present = request.data.get('present', cours.present)
+        cours.save()
+        return Response({'status': 'Présence mise à jour'}, status=status.HTTP_200_OK)
+
+class MettreAJourStatutView(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CourSerializer
+    queryset = Cour.objects.all()
+
+    def patch(self, request, *args, **kwargs):
+        cours = self.get_object()
+        statut = request.data.get('statut')
+        if statut:
+            cours.statut = statut
+            cours.save()
+            return Response({'status': 'Statut mis à jour'}, status=status.HTTP_200_OK)
+        return Response({'error': 'Statut non fourni'}, status=status.HTTP_400_BAD_REQUEST)
+
+class MettreAJourDispenseView(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CourSerializer
+    queryset = Cour.objects.all()
+
+    def patch(self, request, *args, **kwargs):
+        cours = self.get_object()
+        cours.dispense = request.data.get('dispense', cours.dispense)
+        cours.save()
+        return Response({'status': 'Dispense mise à jour'}, status=status.HTTP_200_OK)
+
+
+class AjouterCommentaireView(generics.CreateAPIView):
+    serializer_class = CommentaireCoursSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        cour_id = request.data.get('cour')
+        if not cour_id:
+            return JsonResponse({"detail": "Le champ 'cour' est requis."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if CommentaireCours.objects.filter(user=user, cour_id=cour_id).exists():
+            return JsonResponse({"detail": "Vous avez déjà laissé un commentaire pour ce cours."}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=user)
+            return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MessageViewSet(viewsets.ModelViewSet):
@@ -139,12 +375,12 @@ class EvaluationRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIVi
 #     permission_classes = [IsAuthenticated]
 
 class CoursListCreateAPIView(generics.ListCreateAPIView):
-    queryset = Cours.objects.all()
-    serializer_class = CoursSerializer
+    queryset = Cour.objects.all()
+    serializer_class = CourSerializer
 
 class CoursRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Cours.objects.all()
-    serializer_class = CoursSerializer
+    queryset = Cour.objects.all()
+    serializer_class = CourSerializer
 
 class SuiviProfesseurRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
     queryset = SuiviProfesseur.objects.all()
@@ -401,6 +637,54 @@ def calculer_prix_cours_package(request):
         prix = nombre_semaines * (prix_de_base.prix_base + (prix_de_base.prix_par_heure * heures_par_semaine) + (prix_de_base.prix_par_eleve * nombre_eleves))
         return JsonResponse({'prix': prix}, status=200)
     except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+
+
+import logging
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from .models import Matiere, PrixDeBaseUnite
+
+logger = logging.getLogger(__name__)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def calculer_prix_cours_unite(request):
+    try:
+        logger.debug("Request body: %s", request.body)
+        data = json.loads(request.body)
+        matiere_id = data.get('matiere')
+        nombre_eleves = data.get('nombre_eleves')
+
+        if matiere_id is None or nombre_eleves is None:
+            logger.error("Données manquantes: matiere_id=%s, nombre_eleves=%s", matiere_id, nombre_eleves)
+            return JsonResponse({'error': 'Données manquantes'}, status=400)
+
+        try:
+            matiere = Matiere.objects.get(id=matiere_id)
+        except Matiere.DoesNotExist:
+            logger.error("Matière non trouvée: %s", matiere_id)
+            return JsonResponse({'error': 'Matière non trouvée'}, status=404)
+
+        try:
+            prix_de_base = PrixDeBaseUnite.objects.get(type="unite")
+        except PrixDeBaseUnite.DoesNotExist:
+            logger.error("Prix de base non trouvé")
+            return JsonResponse({'error': 'Prix de base non trouvé'}, status=404)
+
+        prix = prix_de_base.prix_base + matiere.prix + (prix_de_base.prix_par_eleve * nombre_eleves)
+        logger.debug("Calculated price: %s", prix)
+        return JsonResponse({'prix': prix}, status=200)
+
+    except json.JSONDecodeError as e:
+        logger.exception("JSON decode error")
+        return JsonResponse({'error': 'Requête invalide'}, status=400)
+    except Exception as e:
+        logger.exception("An error occurred")
         return JsonResponse({'error': str(e)}, status=500)
 
 

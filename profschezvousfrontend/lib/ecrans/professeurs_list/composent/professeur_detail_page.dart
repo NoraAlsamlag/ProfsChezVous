@@ -165,7 +165,7 @@ class _ProfesseurDetailPageState extends State<ProfesseurDetailPage> {
                       //   'Disponibilités',
                       //   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       // ),
-                      // for (var day in ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"])
+                      // for (var day in ["lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"])
                       //   ExpansionTile(
                       //     title: Text(day),
                       //     children: (disponibilites[day] ?? []).map((heure) {

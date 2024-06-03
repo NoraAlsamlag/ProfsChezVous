@@ -46,7 +46,7 @@ class _EnTeteAccueilState extends State<EnTeteAccueil> {
         children: [
           const Expanded(child: ChampRecherche()),
           const SizedBox(width: 16),
-          if (user.isParent == true)
+          if (user.isProfesseur != true )
             IconBtnAvecCompteur(
               svgSrc: "assets/icons/List.svg",
               press: () => Navigator.push(
@@ -66,7 +66,7 @@ class _EnTeteAccueilState extends State<EnTeteAccueil> {
                 MaterialPageRoute(
                   builder: (context) => NotificationEcrant(),
                 ),
-              ).then((_) => _chargerNombreNotificationsNonLues()); // Refresh the count after returning
+              ).then((_) => _chargerNombreNotificationsNonLues());
             },
           ),
         ],

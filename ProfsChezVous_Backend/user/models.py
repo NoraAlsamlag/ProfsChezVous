@@ -61,6 +61,7 @@ class Parent(models.Model):
             'prenom': self.prenom,
             'nom': self.nom,
             'numero_telephone': self.numero_telephone,
+            'date_naissance': self.date_naissance.strftime('%Y-%m-%d'),
             'adresse': self.adresse,
             'latitude': self.latitude,
             'longitude': self.longitude,

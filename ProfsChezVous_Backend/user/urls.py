@@ -29,6 +29,7 @@ urlpatterns = [
     # path('obtenir-adresse/', views.obtenir_adresse_a_partir_des_coordonnees, name='obtenir_adresse'),
     path('ajouter-ou-modifier-photo-profil/<int:user_pk>/', views.ajouter_ou_modifier_photo_profil, name='ajouter_ou_modifier_photo_profil'),
     path('obtenir_informations_utilisateur/', fetch_user, name='fetch_user'),
-    path('verifier-email/<str:email>/', EmailCheckAPIView.as_view(), name='verifier_email'),
+    path('verifier-email/<str:email>/', verifierEmailAPIView.as_view(), name='verifier_email'),
     path('professeurs/', get_professeur, name='professeurs'),
+    path('verifier_statut_utilisateur/', verifier_statut_utilisateur, name='verifier_statut_utilisateur'),
 ]

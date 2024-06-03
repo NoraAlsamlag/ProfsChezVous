@@ -5,6 +5,7 @@ import 'package:profschezvousfrontend/Localisation/utilusateur_localisation.dart
 import 'package:profschezvousfrontend/Localisation/LocationPermissionPrompt.dart';
 import '../../../../components/custom_surfix_icon.dart';
 import '../../../../components/form_error.dart';
+import '../../../../components/loading_dialog.dart';
 import '../../../../constants.dart';
 import 'widgets/enfent_form.dart';
 import 'widgets/ville_dropdown.dart';
@@ -32,7 +33,6 @@ class _PageInscriptionParentState extends State<PageInscriptionParent> {
   String? dateNaissance;
   String? ville;
   String? enfantJson;
-  bool isLoading = false;
 
   @override
   void initState() {
@@ -357,10 +357,7 @@ class _PageInscriptionParentState extends State<PageInscriptionParent> {
           ElevatedButton(
             onPressed: () async {
               if (_formKey.currentState!.validate()) {
-                setState(() {
-                  isLoading =
-                      true; // Définit isLoading à true avant l'appel à enregistrerProfesseur
-                });
+                montrerDialogChargement(context);
                 bool permissionGranted =
                     await requestLocationPermission(context);
                 if (permissionGranted) {
@@ -398,21 +395,18 @@ class _PageInscriptionParentState extends State<PageInscriptionParent> {
                               context, SignInScreen.routeName);
                         });
                       }).catchError((error) {
-                        // Afficher un message d'erreur en cas d'échec de l'inscription
+                        cacherDialogChargement(context);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
+                          const SnackBar(
                             content: Text(
-                                'Échec de l\'enregistrement. Veuillez réessayer.: $error'),
+                                'Échec de l\'enregistrement. Veuillez réessayer.'),
                           ),
                         );
                       }).whenComplete(() {
-                        setState(() {
-                          isLoading =
-                              false; // Définit isLoading à false après l'appel à enregistrerProfesseur
-                        });
+                        cacherDialogChargement(context);
                       });
                     } else {
-                      // Afficher un message d'erreur si des champs requis sont manquants
+                      cacherDialogChargement(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content:
@@ -421,7 +415,7 @@ class _PageInscriptionParentState extends State<PageInscriptionParent> {
                       );
                     }
                   } else {
-                    // Location data not obtained, show an error message
+                    cacherDialogChargement(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
@@ -430,7 +424,7 @@ class _PageInscriptionParentState extends State<PageInscriptionParent> {
                     );
                   }
                 } else {
-                  // Location permission was denied, handle accordingly
+                  cacherDialogChargement(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Permission de localisation refusée.'),
@@ -441,12 +435,7 @@ class _PageInscriptionParentState extends State<PageInscriptionParent> {
             },
             child: const Text("Continue"),
           ),
-          Visibility(
-            visible:
-                isLoading, // Contrôle la visibilité de l'indicateur de chargement
-            child:
-                CircularProgressIndicator(), // Indicateur de chargement circulaire
-          ),
+          const SizedBox(height: 20),
         ],
       ),
     );

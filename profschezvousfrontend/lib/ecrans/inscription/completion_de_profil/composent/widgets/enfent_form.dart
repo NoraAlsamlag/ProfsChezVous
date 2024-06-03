@@ -20,7 +20,7 @@ class _EnfantFormState extends State<EnfantForm> {
   String? _dateNaissance;
   String? _niveauScolaire;
   String _etablissement = '';
-  
+
   Future<void> _selectDate(BuildContext context) async {
     DateTime? _picked = await showDatePicker(
         context: context,
@@ -34,7 +34,6 @@ class _EnfantFormState extends State<EnfantForm> {
       });
     }
   }
-
 
   String? validateDateNaissance(String? value) {
     if (value == null || value.isEmpty) {
@@ -58,88 +57,90 @@ class _EnfantFormState extends State<EnfantForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        children: [
-          TextFormField(
-            decoration: InputDecoration(labelText: 'Prénom'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Veuillez entrer un prénom';
-              }
-              return null;
-            },
-            onSaved: (value) {
-              _prenom = value!;
-            },
-          ),
-          const SizedBox(height: 20),
-          TextFormField(
-            decoration: InputDecoration(labelText: 'Nom'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Veuillez entrer un nom';
-              }
-              return null;
-            },
-            onSaved: (value) {
-              _nom = value!;
-            },
-          ),
-          const SizedBox(height: 20),
-          TextFormField(
-            onTap: () {
-              _selectDate(context);
-            },
-            readOnly: true,
-            controller: TextEditingController(
-              text: _dateNaissance != null ? _dateNaissance : '',
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(16.0),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          children: [
+            TextFormField(
+              decoration: InputDecoration(labelText: 'Prénom'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Veuillez entrer un prénom';
+                }
+                return null;
+              },
+              onSaved: (value) {
+                _prenom = value!;
+              },
             ),
-            decoration: const InputDecoration(
-              labelText: "Date de naissance",
-              hintText: "aaaa-mm-jj",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon:
-                  CustomSurffixIcon(svgIcon: "assets/icons/calendar.svg"),
+            const SizedBox(height: 20),
+            TextFormField(
+              decoration: InputDecoration(labelText: 'Nom'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Veuillez entrer un nom';
+                }
+                return null;
+              },
+              onSaved: (value) {
+                _nom = value!;
+              },
             ),
-            validator: validateDateNaissance,
-          ),
-          const SizedBox(height: 20),
-          NiveauScolaireDropdown(
-            onNiveauScolaireSelected: _handleNiveauScolaireSelected,
-          ),
-          const SizedBox(height: 20),
-          TextFormField(
-            decoration: InputDecoration(labelText: 'Établissement'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Veuillez entrer un établissement';
-              }
-              return null;
-            },
-            onSaved: (value) {
-              _etablissement = value!;
-            },
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
-                widget.onEnfantForm(
-                  _prenom,
-                  _nom,
-                  _dateNaissance,
-                  _niveauScolaire,
-                  _etablissement,
-                );
-                Navigator.of(context).pop();
-              }
-            },
-            child: Text('Soumettre'),
-          ),
-        ],
+            const SizedBox(height: 20),
+            TextFormField(
+              onTap: () {
+                _selectDate(context);
+              },
+              readOnly: true,
+              controller: TextEditingController(
+                text: _dateNaissance != null ? _dateNaissance : '',
+              ),
+              decoration: const InputDecoration(
+                labelText: "Date de naissance",
+                hintText: "aaaa-mm-jj",
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+                suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/calendar.svg"),
+              ),
+              validator: validateDateNaissance,
+            ),
+            const SizedBox(height: 20),
+            NiveauScolaireDropdown(
+              onNiveauScolaireSelected: _handleNiveauScolaireSelected,
+            ),
+            const SizedBox(height: 20),
+            TextFormField(
+              decoration: InputDecoration(labelText: 'Établissement'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Veuillez entrer un établissement';
+                }
+                return null;
+              },
+              onSaved: (value) {
+                _etablissement = value!;
+              },
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  _formKey.currentState!.save();
+                  widget.onEnfantForm(
+                    _prenom,
+                    _nom,
+                    _dateNaissance,
+                    _niveauScolaire,
+                    _etablissement,
+                  );
+                  Navigator.of(context).pop();
+                }
+              },
+              child: Text('Soumettre'),
+            ),
+          ],
+        ),
       ),
     );
   }
