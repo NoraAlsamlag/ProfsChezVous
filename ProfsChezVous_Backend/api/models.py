@@ -211,6 +211,14 @@ class Cours(models.Model):
     heure_debut = models.TimeField()
     heure_fin = models.TimeField()
     present = models.BooleanField(default=False)
+    present = models.BooleanField(default=False)
+    STATUT_CHOICES = (
+        ('EC', 'En cours'),
+        ('AV', 'A venir'),
+        ('T', 'Terminer'),
+        ('A', 'Annulé'),
+    )
+    statut = models.CharField(max_length=2, choices=STATUT_CHOICES, default='AV')
     dispense = models.BooleanField(default=False)
     commentaire = models.TextField(blank=True, null=True)
     montant = models.DecimalField(max_digits=10, decimal_places=2)

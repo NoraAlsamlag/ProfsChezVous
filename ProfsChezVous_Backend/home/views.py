@@ -14,7 +14,7 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import  Sum , Count
 from datetime import datetime
-from api.models import Cours_Unite, Cours_Package
+from api.models import Cours_Unite, Cours_Package,Cours
 
 
 def index(request):
@@ -32,6 +32,12 @@ def index(request):
     # Statistiques des cours pour chaque type d'utilisateur
     nombre_cours_unite = Cours_Unite.objects.filter(parent__isnull=False).count()
     nombre_cours_package = Cours_Package.objects.filter(parent__isnull=False).count()
+
+    # Statistiques des cours par statut
+    cours_en_cours = Cours.objects.filter(statut='EC').count()
+    cours_a_venir = Cours.objects.filter(statut='AV').count()
+    cours_termines = Cours.objects.filter(statut='T').count()
+    cours_annules = Cours.objects.filter(statut='A').count()
 
     # Calculer le nombre total d'utilisateurs
     nombre_total_utilisateurs = nombre_parents + nombre_professeurs + nombre_eleves
@@ -59,6 +65,10 @@ def index(request):
         'professeurs_inactifs': professeurs_inactifs,
         'eleves_actifs': eleves_actifs,
         'eleves_inactifs': eleves_inactifs,
+        'cours_en_cours': cours_en_cours,
+        'cours_a_venir': cours_a_venir,
+        'cours_termines': cours_termines,
+        'cours_annules': cours_annules,
     }
 
     return render(request, "pages/index.html", context)

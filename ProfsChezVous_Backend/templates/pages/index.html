@@ -8,68 +8,119 @@
     <!-- Titre de la page -->
     <h1 class="h3 mb-4 text-gray-800">Tableau de bord</h1>
 
+    <!-- Section Utilisateurs -->
     <div class="row">
-        <div class="col-md-4">
-            <div class="card border-primary mb-3">
-                <div class="card-header bg-primary text-white">Nombre d'Utilisateurs</div>
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100 py-2 bg-primary">
                 <div class="card-body">
-                    <h5 class="card-title">Parents: {{ nombre_parents }}</h5>
-                    <h5 class="card-title">Professeurs: {{ nombre_professeurs }}</h5>
-                    <h5 class="card-title">Élèves: {{ nombre_eleves }}</h5>
-                    <h5 class="card-title">Total: {{ nombre_total_utilisateurs }}</h5>
+                    <div class="text-xs font-weight-bold text-uppercase text-light mb-2">Nombre d'Utilisateurs</div>
+                    <div class="h5 mb-0 font-weight-bold text-light">{{ nombre_total_utilisateurs }}</div>
+                    <i class="fas fa-users fa-2x text-light"></i>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card border-success mb-3">
-                <div class="card-header bg-success text-white">Revenu des Cours</div>
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100 py-2 bg-success">
                 <div class="card-body">
-                    <h5 class="card-title">Mensuel: {{ revenu_total_mensuel }} Mru</h5>
-                    <h5 class="card-title">Annuel: {{ revenu_total_annuel }} Mru</h5>
+                    <div class="text-xs font-weight-bold text-uppercase text-light mb-2">Revenu des Cours</div>
+                    <div class="h5 mb-0 font-weight-bold text-light">{{ revenu_total_mensuel }} Mru (Mensuel)</div>
+                    <div class="h5 mb-0 font-weight-bold text-light">{{ revenu_total_annuel }} Mru (Annuel)</div>
+                    <i class="fas fa-money-bill-wave fa-2x text-light"></i>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card border-info mb-3">
-                <div class="card-header bg-info text-white">Statistiques des Cours</div>
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100 py-2 bg-info">
                 <div class="card-body">
-                    <h5 class="card-title">Cours Unités: {{ nombre_cours_unite }}</h5>
-                    <h5 class="card-title">Cours Packages: {{ nombre_cours_package }}</h5>
+                    <div class="text-xs font-weight-bold text-uppercase text-light mb-2">Statistiques des Cours</div>
+                    <div class="h5 mb-0 font-weight-bold text-light">{{ nombre_cours_unite }} (Cours Unités)</div>
+                    <div class="h5 mb-0 font-weight-bold text-light">{{ nombre_cours_package }} (Cours Packages)</div>
+                    <i class="fas fa-chart-bar fa-2x text-light"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <h2>Statut des Utilisateurs</h2>
-    <div class="table-responsive">
-        <table class="table table-bordered">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Type</th>
-                    <th>Actifs</th>
-                    <th>Inactifs</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Parents</td>
-                    <td>{{ parents_actifs }}</td>
-                    <td>{{ parents_inactifs }}</td>
-                </tr>
-                <tr>
-                    <td>Professeurs</td>
-                    <td>{{ professeurs_actifs }}</td>
-                    <td>{{ professeurs_inactifs }}</td>
-                </tr>
-                <tr>
-                    <td>Élèves</td>
-                    <td>{{ eleves_actifs }}</td>
-                    <td>{{ eleves_inactifs }}</td>
-                </tr>
-            </tbody>
-        </table>
+    <!-- Section Statut des Utilisateurs -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Statut des Utilisateurs</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Actifs</th>
+                                    <th>Inactifs</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Parents</td>
+                                    <td>{{ parents_actifs }}</td>
+                                    <td>{{ parents_inactifs }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Professeurs</td>
+                                    <td>{{ professeurs_actifs }}</td>
+                                    <td>{{ professeurs_inactifs }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Élèves</td>
+                                    <td>{{ eleves_actifs }}</td>
+                                    <td>{{ eleves_inactifs }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Statut des Cours -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Statut des Cours</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Statut</th>
+                                    <th>Nombre</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>En cours</td>
+                                    <td>{{ cours_en_cours }}</td>
+                                </tr>
+                                <tr>
+                                    <td>A venir</td>
+                                    <td>{{ cours_a_venir }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Terminé</td>
+                                    <td>{{ cours_termines }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Annulé</td>
+                                    <td>{{ cours_annules }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -77,3 +128,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 {% endblock %}
+
+
+
+
+
+
+
+
