@@ -26,6 +26,9 @@ urlpatterns = [
     path('cours/', TousLesCoursView.as_view(), name='tous-les-cours'),
     path('cours-a-venir/', CoursAVenirView.as_view(), name='cours-a-venir'),
     path('cours-termines-ou-annules/', CoursTerminesOuAnnullesView.as_view(), name='cours-termines-ou-annules'),
+    path('professeur/cours/', ProfesseurTousLesCoursView.as_view(), name='tous-les-cours'),
+    path('professeur/cours-a-venir/', ProfesseurCoursAVenirView.as_view(), name='cours-a-venir'),
+    path('professeur/cours-termines-ou-annules/', ProfesseurCoursTerminesOuAnnullesView.as_view(), name='cours-termines-ou-annules'),
     path('mettre-a-jour-presence/<int:pk>/', MettreAJourPresenceView.as_view(), name='mettre-a-jour-presence'),
     path('mettre-a-jour-statut/<int:pk>/', MettreAJourStatutView.as_view(), name='mettre-a-jour-statut'),
     path('mettre-a-jour-dispense/<int:pk>/', MettreAJourDispenseView.as_view(), name='mettre-a-jour-dispense'),
@@ -64,6 +67,11 @@ urlpatterns = [
     path('supprimer_disponibilite/', views.supprimer_disponibilite, name='supprimer_disponibilite'),
     # path('reserver_cours_package/', views.reserver_cours_package, name='reserver_cours_package'),
     path('obtenir_categories_et_matieres/', obtenir_categories_et_matieres, name='obtenir_categories_et_matieres'),
+    path('payment/<str:cours_type>/<int:cours_id>/', payment_page, name='payer'),
+    path('fake-payment/', fake_payment, name='fake_payment'),
+    path('success/', success_page, name='success'),
+    path('cancel/', cancel_page, name='cancel'),
+    path('deja-paye/', deja_paye_page, name='deja_paye_page'),
 
 
     # re_path("product/((?P<pk>\d+)/)?", csrf_exempt(ParentView.as_view())),

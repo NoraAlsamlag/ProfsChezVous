@@ -98,8 +98,7 @@ class _CoursUniteReservationPageState extends State<CoursUniteReservationPage> {
       } else {
         setState(() {
           hasError = true;
-          errorMessage =
-              'Erreur de chargement des matières.';
+          errorMessage = 'Erreur de chargement des matières.';
         });
       }
     } catch (e) {
@@ -140,8 +139,7 @@ class _CoursUniteReservationPageState extends State<CoursUniteReservationPage> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Erreur'),
-            content: Text(
-                'Erreur de calcul du prix. Veuillez réessayer.'),
+            content: Text('Erreur de calcul du prix. Veuillez réessayer.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -204,64 +202,83 @@ class _CoursUniteReservationPageState extends State<CoursUniteReservationPage> {
     }
   }
 
-Future<void> _reserveCoursUnite() async {
-  if (_formKey.currentState!.validate() &&
-      selectedDay != null &&
-      selectedHeure != null) {
-    User user = context.read<UserCubit>().state;
-    List<String> heures = selectedHeure!.split(' - ');
-    String heureDebut = heures[0];
-    String heureFin = heures[1];
-    try {
-      final response = await http.post(
-        Uri.parse('$domaine/api/cours-unite/'),
-        body: jsonEncode({
-          'sujet': getSujetText(),
-          'date': DateFormat('yyyy-MM-dd')
-              .format(_getNextDateForDay(selectedDay!)),
-          'statut': "R",
-          'matiere': matiereId,
-          'prix': prixController.text,
-          'professeur': widget.professeur.id,
-          'nombre_eleves': nombreEleves,
-          'user': user.id,
-          'selected_disponibilites': jsonEncode({
-            "$selectedDay": ["$selectedHeure"]
+  Future<void> _reserveCoursUnite() async {
+    if (_formKey.currentState!.validate() &&
+        selectedDay != null &&
+        selectedHeure != null) {
+      User user = context.read<UserCubit>().state;
+      List<String> heures = selectedHeure!.split(' - ');
+      String heureDebut = heures[0];
+      String heureFin = heures[1];
+      print(heureDebut);
+      print(heureFin);
+      try {
+        final response = await http.post(
+          Uri.parse('$domaine/api/cours-unite/'),
+          body: jsonEncode({
+            'sujet': getSujetText(),
+            'date': DateFormat('yyyy-MM-dd')
+                .format(_getNextDateForDay(selectedDay!)),
+            'statut': "R",
+            'matiere': matiereId,
+            'prix': prixController.text,
+            'professeur': widget.professeur.id,
+            'nombre_eleves': nombreEleves,
+            'user': user.id,
+            'selected_disponibilites': jsonEncode({
+              "$selectedDay": ["$selectedHeure"]
+            }),
+            'heure_debut': heureDebut,
+            'heure_fine': heureFin,
           }),
-          'heure_debut': heureDebut,
-          'heure_fin': heureFin,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Token ${user.token}',
-        },
-      );
-
-      if (response.statusCode == 201) {
-        await _removeDisponibilite(selectedDay!, selectedHeure!);
-
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Réservation Confirmée'),
-            content: const Text(
-                'Vous avez réservé un cours en Unite avec les disponibilités choisies.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.popUntil(context, (route) => route.isFirst);
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          ),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Token ${user.token}',
+          },
         );
-      } else {
+
+        if (response.statusCode == 201) {
+          await _removeDisponibilite(selectedDay!, selectedHeure!);
+
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Réservation Confirmée'),
+              content: const Text(
+                  'Vous avez réservé un cours en Unite avec les disponibilités choisies.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Erreur'),
+              content: const Text('Échec de la réservation.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+      } catch (e) {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Erreur'),
-            content: const Text('Échec de la réservation.'),
+            content: const Text('Échec de la réservation. Veuillez réessayer.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -273,12 +290,12 @@ Future<void> _reserveCoursUnite() async {
           ),
         );
       }
-    } catch (e) {
+    } else {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Erreur'),
-          content: const Text('Échec de la réservation. Veuillez réessayer.'),
+          content: const Text('Veuillez sélectionner une disponibilité.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -290,25 +307,7 @@ Future<void> _reserveCoursUnite() async {
         ),
       );
     }
-  } else {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Erreur'),
-        content: const Text('Veuillez sélectionner une disponibilité.'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
   }
-}
-
 
   DateTime _getNextDateForDay(String day) {
     DateTime now = DateTime.now();

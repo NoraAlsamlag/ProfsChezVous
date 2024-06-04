@@ -1,7 +1,8 @@
-from rest_framework import generics , permissions
+from rest_framework import generics, permissions
 from rest_framework import viewsets
 from .models import *
 from .serializers import *
+from .signals import envoyer_notification_confirmation
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -10,15 +11,25 @@ from rest_framework.permissions import IsAuthenticated
 from django.core.mail import send_mail
 from rest_framework import status
 from django.views.decorators.http import require_http_methods
-from .serializers import NotificationUpdateSerializer
 import json
-from django.contrib.auth.models import User
+from django.shortcuts import render, get_object_or_404, redirect
+from django.conf import settings
+from django.urls import reverse
+import logging
+import locale
 from datetime import datetime, timedelta
-from datetime import date
-from django.db.models import Case, When, Value, IntegerField
-from django.core.exceptions import ValidationError as DjangoValidationError
-from rest_framework.exceptions import ValidationError as DRFValidationError
+from rest_framework.response import Response
+from django.shortcuts import render
+from django.contrib.contenttypes.models import ContentType
+import uuid
+from django.contrib.auth.decorators import login_required
+# from django.shortcuts import redirect
 
+
+logger = logging.getLogger(__name__)
+
+# S'assurer que les noms des jours sont en français
+locale.setlocale(locale.LC_TIME, 'fr_FR')
 
 class MatiereList(generics.ListCreateAPIView):
     queryset = Matiere.objects.all()
@@ -71,7 +82,7 @@ class VueCoursPackageReservesUtilisateur(generics.GenericAPIView):
         except utilisateur.DoesNotExist:
             return Response({"detail": "Utilisateur non trouvé."}, status=404)
 
-        cours_package = Cours_Package.objects.filter(user_id=utilisateur.id)
+        cours_package = Cours_Package.objects.filter(user_id=utilisateur.id).order_by('date', 'heure_debut')
 
         serializeur_package = CoursPackageSerializer(cours_package, many=True)
 
@@ -103,81 +114,14 @@ class CoursPackageNonConfirmesView(generics.ListAPIView):
     def get_queryset(self):
         utilisateur = self.request.user
         professeur = Professeur.objects.get(user_id=utilisateur.id)
-        return Cours_Package.objects.filter(professeur=professeur, est_actif=False)
+        return Cours_Package.objects.filter(professeur=professeur, statut='R')
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = CoursPackageSerializer(queryset, many=True)
         return Response(serializer.data)
-    
-import json
-import logging
-import locale
-from datetime import datetime, timedelta
-from rest_framework import generics, permissions
-from rest_framework.response import Response
-from .models import Cours_Package, Cour
-from .serializers import CoursPackageSerializer
 
-logger = logging.getLogger(__name__)
 
-# S'assurer que les noms des jours sont en français
-locale.setlocale(locale.LC_TIME, 'fr_FR')
-
-class ConfirmerCoursPackageView(generics.UpdateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-    queryset = Cours_Package.objects.all()
-    serializer_class = CoursPackageSerializer
-
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.est_actif = True
-        instance.save()
-        logger.debug("Instance est_actif mise à jour à True")
-        
-        # Parse les disponibilités sélectionnées
-        try:
-            disponibilites = json.loads(instance.selected_disponibilites)
-            logger.debug(f"Disponibilités: {disponibilites}")
-        except json.JSONDecodeError as e:
-            logger.error(f"Erreur de décodage JSON: {e}")
-            return Response({"error": "Format de disponibilités sélectionnées invalide"}, status=400)
-
-        # Créer des cours pour chaque jour de la semaine dans la plage de dates
-        current_date = instance.date_debut
-        end_date = instance.date_fin
-
-        while current_date <= end_date:
-            # Obtenir le nom du jour en français
-            day_name_fr = current_date.strftime('%A')
-            logger.debug(f"Traitement de la date: {current_date} ({day_name_fr})")
-            
-            if day_name_fr in disponibilites:
-                for time_range in disponibilites[day_name_fr]:
-                    start_time_str, end_time_str = time_range.split(' - ')
-                    start_time = datetime.strptime(start_time_str, '%H:%M').time()
-                    end_time = datetime.strptime(end_time_str, '%H:%M').time()
-                    logger.debug(f"Création du cours: {start_time} - {end_time} le {current_date}")
-
-                    try:
-                        created_course = Cour.objects.create(
-                            professeur=instance.professeur,
-                            user=instance.user,
-                            date=current_date,
-                            heure_debut=start_time,
-                            heure_fin=end_time,
-                            statut='AV',
-                            commentaire=f"Cours de {instance.matiere.symbole} pour le package {instance.description}"
-                        )
-                        logger.debug(f"Cours créé: {created_course}")
-                    except Exception as e:
-                        logger.error(f"Erreur lors de la création du cours: {e}")
-            else:
-                logger.debug(f"Aucun cours prévu pour {day_name_fr}")
-            current_date += timedelta(days=1)
-
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
 
 
 
@@ -195,6 +139,13 @@ class CoursUniteNonConfirmesView(generics.ListAPIView):
         return Response(serializer.data)
 
 
+from django.conf import settings
+from django.urls import reverse
+from rest_framework import generics, permissions
+from rest_framework.response import Response
+from .models import Cours_Unite, Cours_Package, Notification, Parent
+from .serializers import CoursUniteSerializer, CoursPackageSerializer
+
 class ConfirmerCoursUniteView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     queryset = Cours_Unite.objects.all()
@@ -205,18 +156,35 @@ class ConfirmerCoursUniteView(generics.UpdateAPIView):
         instance.statut = 'C'
         instance.save()
 
-        # Création d'un objet Cours avec les données de Cours_Unite
-        Cour.objects.create(
-            professeur=instance.professeur,
-            user=instance.user,
-            date=instance.date,
-            heure_debut=instance.heure_debut,
-            heure_fin=instance.heure_fine,
-            commentaire=f"Cours confirmé à partir de Cours_Unite: {instance.sujet}"
-        )
+        # Générer le lien de paiement
+        lien_paiement = f'{settings.SITE_URL}{reverse("payer", args=["unite", instance.id])}'
+
+        # Envoyer une notification après la confirmation du cours
+        envoyer_notification_confirmation(instance.professeur, instance.user.id, instance.sujet, lien_paiement)
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+class ConfirmerCoursPackageView(generics.UpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Cours_Package.objects.all()
+    serializer_class = CoursPackageSerializer
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.est_actif = True
+        instance.save()
+
+        # Générer le lien de paiement
+        lien_paiement = f'{settings.SITE_URL}{reverse("payer", args=["package", instance.id])}'
+
+        # Envoyer une notification après la confirmation du cours
+        envoyer_notification_confirmation(instance.professeur, instance.user.id, instance.description, lien_paiement)
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
 
 
 
@@ -250,7 +218,37 @@ class CoursTerminesOuAnnullesView(generics.ListAPIView):
         serializer = CourSerializer(queryset, many=True, context={'request': request})
         return JsonResponse(serializer.data, safe=False, json_dumps_params={'ensure_ascii': False})
 
+class ProfesseurTousLesCoursView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request, *args, **kwargs):
+        utilisateur = request.user
+        professeur = Professeur.objects.get(user=utilisateur)
+        queryset = Cour.objects.filter(professeur=professeur, statut__in=['AV', 'EC']).order_by('date', 'heure_debut')
+        serializer = CourSerializer(queryset, many=True, context={'request': request})
+        return JsonResponse(serializer.data, safe=False, json_dumps_params={'ensure_ascii': False})
+
+
+class ProfesseurCoursAVenirView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        utilisateur = request.user
+        professeur = Professeur.objects.get(user=utilisateur)
+        queryset = Cour.objects.filter(professeur=professeur, statut='AV').order_by('date', 'heure_debut')
+        serializer = CourSerializer(queryset, many=True, context={'request': request})
+        return JsonResponse(serializer.data, safe=False, json_dumps_params={'ensure_ascii': False})
+
+
+class ProfesseurCoursTerminesOuAnnullesView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        utilisateur = request.user
+        professeur = Professeur.objects.get(user=utilisateur)
+        queryset = Cour.objects.filter(professeur=professeur, statut__in=['T', 'A']).order_by('date', 'heure_debut')
+        serializer = CourSerializer(queryset, many=True, context={'request': request})
+        return JsonResponse(serializer.data, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
 
@@ -346,6 +344,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 class TransactionListView(generics.ListCreateAPIView):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
+    permission_classes = [IsAuthenticated]
 
 class TransactionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Transaction.objects.all()
@@ -360,19 +359,6 @@ class EvaluationRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIVi
     queryset = Evaluation.objects.all()
     serializer_class = EvaluationSerializer
 
-
-# class DiplomeListCreateAPIView(generics.ListCreateAPIView):
-#     queryset = Diplome.objects.all()
-#     serializer_class = DiplomeSerializer
-#     permission_classes = [IsAuthenticated]
-
-#     def perform_create(self, serializer):
-#         serializer.save(professeur=self.request.user.professeur)
-
-# class DiplomeRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = Diplome.objects.all()
-#     serializer_class = DiplomeSerializer
-#     permission_classes = [IsAuthenticated]
 
 class CoursListCreateAPIView(generics.ListCreateAPIView):
     queryset = Cour.objects.all()
@@ -642,14 +628,9 @@ def calculer_prix_cours_package(request):
 
 
 
-import logging
-import json
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-from .models import Matiere, PrixDeBaseUnite
 
-logger = logging.getLogger(__name__)
+
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -697,91 +678,161 @@ def obtenir_categories_et_matieres(request):
     data = {categorie.nom: list(categorie.matieres.values('id', 'nom_complet', 'symbole')) for categorie in categories}
     return JsonResponse(data, safe=False)
 
-
-from http import HTTPStatus
-from django.http import Http404
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+@login_required
+def deja_paye_page(request):
+    return render(request, 'deja_paye.html')
 
 
-from user.serializers import *
 
 
-try:
 
-    from home.models import Parent
 
-except:
-    pass
+@login_required
+def payment_page(request, cours_id, cours_type):
+    if cours_type == 'unite':
+        cours = get_object_or_404(Cours_Unite, id=cours_id)
+    elif cours_type == 'package':
+        cours = get_object_or_404(Cours_Package, id=cours_id)
+    else:
+        return JsonResponse({'erreur': 'Type de cours invalide'}, status=400)
 
-class ParentView(APIView):
+    # Vérifier si le paiement a déjà été effectué
+    transaction_exists = Transaction.objects.filter(
+        user=request.user,
+        content_type=ContentType.objects.get_for_model(cours),
+        object_id=cours_id,
+        statut='success'
+    ).exists()
 
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    if transaction_exists:
+        return redirect('deja_paye_page')
 
-    def post(self, request):
-        serializer = ParentSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(data={
-                **serializer.errors,
-                'success': False
-            }, status=HTTPStatus.BAD_REQUEST)
-        serializer.save()
-        return Response(data={
-            'message': 'Record Created.',
-            'success': True
-        }, status=HTTPStatus.OK)
+    auth_token = request.user.auth_token.key  # Assuming you are using token authentication
 
-    def get(self, request, pk=None):
-        if not pk:
-            return Response({
-                'data': [ParentSerializer(instance=obj).data for obj in Parent.objects.all()],
-                'success': True
-            }, status=HTTPStatus.OK)
+    return render(request, 'payment.html', {'cours': cours, 'cours_type': cours_type, 'auth_token': auth_token})
+
+
+
+
+
+@csrf_exempt
+@login_required
+def fake_payment(request):
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            return JsonResponse({'erreur': 'Utilisateur non authentifié'}, status=400)
+        
         try:
-            obj = get_object_or_404(Parent, pk=pk)
-        except Http404:
-            return Response(data={
-                'message': 'object with given id not found.',
-                'success': False
-            }, status=HTTPStatus.NOT_FOUND)
-        return Response({
-            'data': ParentSerializer(instance=obj).data,
-            'success': True
-        }, status=HTTPStatus.OK)
+            data = json.loads(request.body)
+            print("Data received:", data)  # Journaliser les données reçues
 
-    def put(self, request, pk):
-        try:
-            obj = get_object_or_404(Parent, pk=pk)
-        except Http404:
-            return Response(data={
-                'message': 'object with given id not found.',
-                'success': False
-            }, status=HTTPStatus.NOT_FOUND)
-        serializer = ParentSerializer(instance=obj, data=request.data, partial=True)
-        if not serializer.is_valid():
-            return Response(data={
-                **serializer.errors,
-                'success': False
-            }, status=HTTPStatus.BAD_REQUEST)
-        serializer.save()
-        return Response(data={
-            'message': 'Record Updated.',
-            'success': True
-        }, status=HTTPStatus.OK)
+            montant = data['montant']
+            professeur_id = data['professeur_id']
+            user = request.user  # Utiliser l'utilisateur authentifié
+            professeur = User.objects.get(id=professeur_id)
+            cours_type = data['cours_type']  # 'unite' ou 'package'
+            cours_id = data['cours_id']
 
-    def delete(self, request, pk):
-        try:
-            obj = get_object_or_404(Parent, pk=pk)
-        except Http404:
-            return Response(data={
-                'message': 'object with given id not found.',
-                'success': False
-            }, status=HTTPStatus.NOT_FOUND)
-        obj.delete()
-        return Response(data={
-            'message': 'Record Deleted.',
-            'success': True
-        }, status=HTTPStatus.OK)
+            # Générer un identifiant unique et professionnel pour la transaction
+            now = datetime.now()
+            unique_id = uuid.uuid4().hex[:6].upper()
+            id_transaction = f'TXN-{now.strftime("%Y%m%d%H%M%S")}-{unique_id}'
+            statut = 'success'  # Le paiement est réussi
 
+            # Calculer la répartition du montant
+            pourcentage_admin = 0.05  # Exemple : 5% pour l'admin
+            montant_admin = montant * pourcentage_admin
+            montant_prof = montant - montant_admin
+
+            # Obtenir le contenu de l'objet cours (unité ou package)
+            if cours_type == 'unite':
+                content_type = ContentType.objects.get_for_model(Cours_Unite)
+                cours = Cours_Unite.objects.get(id=cours_id)
+                cours.statut = 'C'
+                cours.et_payer = True
+                cours.save()
+
+                # Création d'un objet Cour avec les données de Cours_Unite
+                Cour.objects.create(
+                    professeur=cours.professeur,
+                    user=cours.user,
+                    date=cours.date,
+                    heure_debut=cours.heure_debut,
+                    heure_fin=cours.heure_fine,
+                    statut='AV',
+                    commentaire=f"Cours confirmé à partir de Cours_Unite: {cours.sujet}"
+                )
+            elif cours_type == 'package':
+                content_type = ContentType.objects.get_for_model(Cours_Package)
+                cours = Cours_Package.objects.get(id=cours_id)
+                cours.est_actif = True
+                cours.et_payer = True
+                cours.save()
+                
+                # Parse les disponibilités sélectionnées
+                try:
+                    disponibilites = json.loads(cours.selected_disponibilites)
+                except json.JSONDecodeError as e:
+                    return JsonResponse({"error": "Format de disponibilités sélectionnées invalide"}, status=400)
+
+                # Créer des cours pour chaque jour de la semaine dans la plage de dates
+                current_date = cours.date_debut
+                end_date = cours.date_fin
+
+                while current_date <= end_date:
+                    # Obtenir le nom du jour en français
+                    day_name_fr = current_date.strftime('%A')
+                    
+                    if day_name_fr in disponibilites:
+                        for time_range in disponibilites[day_name_fr]:
+                            start_time_str, end_time_str = time_range.split(' - ')
+                            start_time = datetime.strptime(start_time_str, '%H:%M').time()
+                            end_time = datetime.strptime(end_time_str, '%H:%M').time()
+
+                            try:
+                                Cour.objects.create(
+                                    professeur=cours.professeur,
+                                    user=cours.user,
+                                    date=current_date,
+                                    heure_debut=start_time,
+                                    heure_fin=end_time,
+                                    statut='AV',
+                                    commentaire=f"Cours de {cours.matiere.symbole} pour le package {cours.description}"
+                                )
+                            except Exception as e:
+                                return JsonResponse({"erreur": str(e)}, status=400)
+                    current_date += timedelta(days=1)
+
+            else:
+                return JsonResponse({'erreur': 'Type de cours invalide'}, status=400)
+
+            # Enregistrer la transaction dans la base de données
+            transaction = Transaction.objects.create(
+                user=user,
+                professeur=professeur,
+                montant=montant,
+                id_transaction=id_transaction,
+                montant_prof=montant_prof,
+                montant_admin=montant_admin,
+                statut=statut,
+                content_type=content_type,
+                object_id=cours.id,
+            )
+
+            return JsonResponse({'message': 'Paiement réussi', 'id_transaction': id_transaction})
+        except Exception as e:
+            print("Error:", e)  # Journaliser l'erreur
+            return JsonResponse({'erreur': str(e)}, status=400)
+
+
+
+
+
+
+
+
+def success_page(request):
+    return render(request, 'success.html')
+
+def cancel_page(request):
+    return render(request, 'cancel.html')

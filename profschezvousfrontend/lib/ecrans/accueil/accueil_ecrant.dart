@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/user_cubit.dart';
 import '../../models/user_models.dart';
+import '../professeur_ecrans/prof_cours.dart';
 import 'components/cours_tab_view.dart';
 import 'components/en_tete_accueil.dart';
 
@@ -23,7 +24,7 @@ class AccueilEcrant extends StatelessWidget {
               EnTeteAccueil(),
               Expanded(
                 child: user.isProfesseur == true
-                    ? Center(child: Text("Accueil"))
+                    ? ProfesseurCoursTabView(scaffoldMessengerKey: scaffoldMessengerKey)
                     : CoursTabView(scaffoldMessengerKey: scaffoldMessengerKey),
               ),
             ],

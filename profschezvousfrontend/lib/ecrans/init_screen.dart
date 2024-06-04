@@ -11,7 +11,6 @@ import 'discussion/discussion_page.dart';
 import 'professeur_ecrans/confirmation_cours.dart';
 import '../models/user_cubit.dart';
 import '../models/user_models.dart';
-import 'notification/notification_ecrant.dart';
 
 const Color inActiveIconColor = Color(0xFFB6B6B6);
 

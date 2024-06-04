@@ -32,8 +32,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
+# URL de base de votre site
+SITE_URL = 'http://192.168.6.85:8000'
 # Add here your deployment HOSTS
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://localhost:5085', 'http://127.0.0.1:8000', 'http://127.0.0.1:5085','http://192.168.239.85:8000']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://localhost:5085', 'http://127.0.0.1:8000', 'http://127.0.0.1:5085',SITE_URL]
 
 # Application definition
 
@@ -88,6 +90,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
 
     "corsheaders.middleware.CorsMiddleware",
+    'api.middleware.CourseStatusUpdaterMiddleware',
 
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

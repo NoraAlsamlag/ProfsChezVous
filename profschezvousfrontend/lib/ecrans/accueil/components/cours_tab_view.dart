@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:profschezvousfrontend/api/cours/cours_api.dart';
-import 'package:profschezvousfrontend/models/user_models.dart';
 import '../../../components/format_date.dart';
 import '../../../models/cour_model.dart';
 import 'package:intl/intl.dart';
 
-import '../../../models/user_cubit.dart';
 
 class CoursTabView extends StatefulWidget {
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey;
@@ -17,20 +14,13 @@ class CoursTabView extends StatefulWidget {
   _CoursTabViewState createState() => _CoursTabViewState();
 }
 
-class _CoursTabViewState extends State<CoursTabView>
-    with SingleTickerProviderStateMixin {
+class _CoursTabViewState extends State<CoursTabView> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  late Future<List<Cour>> futureTousLesCours;
-  late Future<List<Cour>> futureCoursAVenir;
-  late Future<List<Cour>> futureCoursHistoires;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    futureTousLesCours = CourApi().fetchCours('cours');
-    futureCoursAVenir = CourApi().fetchCours('cours-a-venir');
-    futureCoursHistoires = CourApi().fetchCours('cours-termines-ou-annules');
   }
 
   @override
@@ -52,13 +42,12 @@ class _CoursTabViewState extends State<CoursTabView>
           ],
         ),
         Expanded(
-          // Use Expanded here to ensure the TabBarView takes up available space
           child: TabBarView(
             controller: _tabController,
             children: [
-              CoursList(futureCours: futureTousLesCours, scaffoldMessengerKey: widget.scaffoldMessengerKey),
-              CoursList(futureCours: futureCoursAVenir, scaffoldMessengerKey: widget.scaffoldMessengerKey),
-              CoursList(futureCours: futureCoursHistoires, scaffoldMessengerKey: widget.scaffoldMessengerKey),
+              CoursList(endpoint: 'cours', scaffoldMessengerKey: widget.scaffoldMessengerKey),
+              CoursList(endpoint: 'cours-a-venir', scaffoldMessengerKey: widget.scaffoldMessengerKey),
+              CoursList(endpoint: 'cours-termines-ou-annules', scaffoldMessengerKey: widget.scaffoldMessengerKey),
             ],
           ),
         ),
@@ -67,11 +56,31 @@ class _CoursTabViewState extends State<CoursTabView>
   }
 }
 
-class CoursList extends StatelessWidget {
-  final Future<List<Cour>> futureCours;
+
+class CoursList extends StatefulWidget {
+  final String endpoint;
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey;
 
-  CoursList({required this.futureCours, required this.scaffoldMessengerKey});
+  CoursList({required this.endpoint, required this.scaffoldMessengerKey});
+
+  @override
+  _CoursListState createState() => _CoursListState();
+}
+
+class _CoursListState extends State<CoursList> {
+  late Future<List<Cour>> futureCours;
+  bool isLoaded = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!isLoaded) {
+      futureCours = CourApi().fetchCours(widget.endpoint);
+      setState(() {
+        isLoaded = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +98,7 @@ class CoursList extends StatelessWidget {
             itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
               Cour cour = snapshot.data![index];
-              return CourCard(cour: cour, scaffoldMessengerKey: scaffoldMessengerKey);
+              return CourCard(cour: cour, scaffoldMessengerKey: widget.scaffoldMessengerKey);
             },
           );
         }
@@ -97,6 +106,8 @@ class CoursList extends StatelessWidget {
     );
   }
 }
+
+
 
 class CourCard extends StatelessWidget {
   final Cour cour;
@@ -139,94 +150,91 @@ class CourCard extends StatelessWidget {
       _mettreAJourDispense(context, cour.id, true);
     }
 
-      String formatTime(String time) {
-    final DateTime parsedTime = DateFormat("HH:mm:ss").parse(time);
-    return DateFormat("HH:mm").format(parsedTime);
-  }
+    String formatTime(String time) {
+      final DateTime parsedTime = DateFormat("HH:mm:ss").parse(time);
+      return DateFormat("HH:mm").format(parsedTime);
+    }
 
-String status = "Inconnu"; // Valeur par défaut
-Color statusColor = Colors.grey; // Couleur par défaut pour le statut inconnu
+    String status = "Inconnu"; // Valeur par défaut
+    Color statusColor = Colors.grey; // Couleur par défaut pour le statut inconnu
 
-switch (cour.statut) {
-  case 'A':
-    status = "Annulé";
-    statusColor = Colors.red;
-    break;
-  case 'EC':
-    status = "En cours";
-    statusColor = Colors.orange;
-    break;
-  case 'AV':
-    status = "À venir";
-    statusColor = Colors.green;
-    break;
-  case 'T':
-    status = "Terminé";
-    statusColor = Colors.grey;
-    break;
-}
+    switch (cour.statut) {
+      case 'A':
+        status = "Annulé";
+        statusColor = Colors.red;
+        break;
+      case 'EC':
+        status = "En cours";
+        statusColor = Colors.orange;
+        break;
+      case 'AV':
+        status = "À venir";
+        statusColor = Colors.green;
+        break;
+      case 'T':
+        status = "Terminé";
+        statusColor = Colors.grey;
+        break;
+    }
 
-return Card(
-  margin: EdgeInsets.all(10),
-  child: Padding(
-    padding: EdgeInsets.all(15),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Card(
+      margin: EdgeInsets.all(10),
+      child: Padding(
+        padding: EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              cour.professeurNomComplet,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  cour.professeurNomComplet,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                CircleAvatar(
+                  backgroundColor: statusColor,
+                  radius: 5,
+                ),
+              ],
             ),
-            CircleAvatar(
-              backgroundColor: statusColor,
-              radius: 5,
+            SizedBox(height: 5),
+            Text('Date: ${formatDate(courseDate)}'),
+            Text('Heure: ${formatTime(cour.heureDebut)} - ${formatTime(cour.heureFin)}'),
+            SizedBox(height: 10),
+            if (cour.commentaire != null) Text('Commentaire: ${cour.commentaire}'),
+            if (cour.commentaireUser != null) Text('Votre Commentaire: ${cour.commentaireUser}'),
+            SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  status,
+                  style: TextStyle(color: statusColor, fontWeight: FontWeight.bold),
+                ),
+                if (status == "En cours") ...[
+                  IconButton(
+                    icon: Icon(Icons.comment),
+                    onPressed: () {
+                      _montrerDialogCommentaire(context, cour);
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.check_circle),
+                    onPressed: () {
+                      _montrerDialogPresence(context, cour);
+                    },
+                  ),
+                ],
+              ],
             ),
           ],
         ),
-        SizedBox(height: 5),
-        Text('Date: ${formatDate(courseDate)}'),
-        Text('Heure: ${formatTime(cour.heureDebut)} - ${formatTime(cour.heureFin)}'),
-        SizedBox(height: 10),
-        if (cour.commentaire != null) Text('Commentaire: ${cour.commentaire}'),
-        if (cour.commentaireUser != null) Text('Votre Commentaire: ${cour.commentaireUser}'),
-        SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              status,
-              style: TextStyle(
-                  color: statusColor, fontWeight: FontWeight.bold),
-            ),
-            if (status == "En cours") ...[
-              IconButton(
-                icon: Icon(Icons.comment),
-                onPressed: () {
-                  _montrerDialogCommentaire(context, cour);
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.check_circle),
-                onPressed: () {
-                  _montrerDialogPresence(context, cour);
-                },
-              ),
-            ],
-          ],
-        ),
-      ],
-    ),
-  ),
-);
-
+      ),
+    );
   }
 
   void _montrerDialogCommentaire(BuildContext context, Cour cour) {
     final TextEditingController _controller = TextEditingController();
-    final User user = context.read<UserCubit>().state;
 
     showDialog(
       context: context,
@@ -248,7 +256,7 @@ return Card(
               child: Text('Envoyer'),
               onPressed: () async {
                 try {
-                  await CourApi().ajouterCommentaire(cour.id, _controller.text, user.token);
+                  await CourApi().ajouterCommentaire(cour.id, _controller.text);
                   Navigator.of(context).pop();
                   scaffoldMessengerKey.currentState?.showSnackBar(
                     SnackBar(content: Text('Commentaire ajouté avec succès')),
