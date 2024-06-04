@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1086579416660",
+    "project_id": "profschezvous-622d8",
+    "storage_bucket": "profschezvous-622d8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1086579416660:android:45b41321d4a36f237957c1",
+        "android_client_info": {
+          "package_name": "com.profschezvous.profschezvous"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-p3cTdl5ANfci_D1Ltgo0zr37P4vvJ2U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

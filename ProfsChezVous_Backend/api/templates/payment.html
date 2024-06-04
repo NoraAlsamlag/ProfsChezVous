@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page de Paiement</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #error-message {
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Payer pour votre cours</h1>
+    {% if cours_type == 'unite' %}
+        <p>Cours: {{ cours.sujet }}</p>
+    {% else %}
+        <p>Cours: {{ cours.description }}</p>
+    {% endif %}
+    <p>Prix: {{ cours.prix }} €</p>
+    <form id="payment-form">
+        <label for="card-number">Numéro de carte</label>
+        <input type="text" id="card-number" name="card-number" placeholder="1234 5678 9012 3456" required><br><br>
+        <label for="expiry-date">Date d'expiration</label>
+        <input type="text" id="expiry-date" name="expiry-date" placeholder="MM/YY" required><br><br>
+        <label for="cvc">CVC</label>
+        <input type="text" id="cvc" name="cvc" placeholder="123" required><br><br>
+        <button type="button" onclick="submitPayment()">Payer</button>
+    </form>
+    <div id="error-message" style="color: red;"></div>
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function submitPayment() {
+            const csrfToken = getCookie('csrftoken');
+            const authToken = '{{ auth_token }}';
+
+            fetch('/api/fake-payment/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                    'Authorization': `Token ${authToken}`
+                },
+                body: JSON.stringify({
+                    montant: {{ cours.prix }},
+                    professeur_id: {{ cours.professeur.id }},
+                    cours_type: '{{ cours_type }}',
+                    cours_id: {{ cours.id }}
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => { throw new Error(data.erreur || 'Erreur inconnue'); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                    window.location.href = '/api/success/';
+                } else {
+                    document.getElementById('error-message').innerText = data.erreur;
+                }
+            })
+            .catch(error => {
+                document.getElementById('error-message').innerText = 'Erreur: ' + error.message;
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>

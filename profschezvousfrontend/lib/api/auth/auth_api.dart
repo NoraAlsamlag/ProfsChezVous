@@ -4,14 +4,26 @@ import 'package:http/http.dart' as http;
 import '../../constants.dart';
 import '../../models/user_models.dart';
 
-const String tokenBox = 'tokenBox';
+const String tokenBoxName = 'tokenBox';
+const String tokenKey = 'token';
 
-Future<String?> getToken() async {
-  var box = await Hive.openBox(tokenBox);
-  return box.get('token');
+Future<void> storeToken(String token) async {
+  var box = await Hive.openBox(tokenBoxName);
+  await box.put(tokenKey, token);
 }
 
-Future<dynamic> authentificationUtilisateur(String? email, String? password) async {
+Future<void> deleteToken() async {
+  var box = await Hive.openBox(tokenBoxName);
+  await box.delete(tokenKey);
+}
+
+Future<String?> getToken() async {
+  var box = await Hive.openBox(tokenBoxName);
+  return box.get(tokenKey);
+}
+
+Future<dynamic> authentificationUtilisateur(
+    String? email, String? password) async {
   Map<String, String> body = {
     "email": email!,
     "password": password!,
@@ -26,8 +38,7 @@ Future<dynamic> authentificationUtilisateur(String? email, String? password) asy
   if (res.statusCode == 200) {
     Map<String, dynamic> json = jsonDecode(res.body);
     String token = json['key'];
-    var box = await Hive.openBox(tokenBox);
-    await box.put("token", token);
+    await storeToken(token);
     User? user = await getUser(token);
     return user;
   } else {
@@ -70,8 +81,8 @@ Future<void> deconnexion(String token) async {
   );
 
   if (response.statusCode == 200) {
-    var box = await Hive.openBox(tokenBox);
-    await box.delete("token");
+
+    await deleteToken();
   } else {
     print('Failed to deconnexion: ${response.statusCode}');
   }

@@ -4,6 +4,7 @@ import 'package:profschezvousfrontend/api/auth/auth_api.dart';
 import 'package:profschezvousfrontend/ecrans/sign_in/sign_in_screen.dart';
 import '../notification/notification_ecrant.dart';
 import '../professeurs_list/composent/professeur_disponibilites_page.dart';
+import '../transactions/transactions_ecran.dart';
 import 'profile_type/eleve_compte.dart';
 import 'profile_type/parent_compte.dart';
 import 'profile_type/prof_compte.dart';
@@ -79,6 +80,13 @@ class ProfileScreen extends StatelessWidget {
                   press: () {
                     print("Navigating to settings");
                     // Navigate to the Settings screen
+                  },
+                ),
+                ProfileMenu(
+                  text: "Transactions",
+                  icon: "assets/icons/Bell.svg",
+                  press: () {
+                    Navigator.pushNamed(context, TransactionsEcran.routeName);
                   },
                 ),
                 ProfileMenu(

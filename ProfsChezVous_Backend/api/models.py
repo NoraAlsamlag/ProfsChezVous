@@ -68,6 +68,7 @@ class PrixDeBaseUnite(models.Model):
 
 class Cours_Unite(models.Model):
     sujet = models.TextField(max_length=100,null=True,blank=True)
+    date_creation = models.DateTimeField(auto_now_add=True,null=True,blank=True)
     date = models.DateField()
     heure_debut = models.TimeField(null=True,blank=False)
     heure_fine = models.TimeField(null=True, blank=False)
@@ -88,6 +89,7 @@ class Cours_Unite(models.Model):
     professeur = models.ForeignKey(Professeur, on_delete=models.SET_NULL, null=True, blank=True, related_name='cours_unite') 
     user = models.ForeignKey(User,on_delete=models.PROTECT,null=True,blank=True)
     statut = models.CharField(max_length=1, choices=STATUT_CHOICES, default='R')
+    et_payer = models.BooleanField(default=False,null=True, blank=True)
     selected_disponibilites = jsonfield.JSONField(help_text="Disponibilités sélectionnées" ,null=True,blank=True)
 
 
@@ -100,9 +102,11 @@ class Cours_Unite(models.Model):
 class Cours_Package(models.Model):
     description = models.TextField(null=True,blank=True)
     duree = models.PositiveIntegerField(help_text="Durée du forfait en jours")
+    date_creation = models.DateTimeField(auto_now_add=True,null=True,blank=True)
     date_debut = models.DateField(help_text="Date de début de la validité du forfait")
     date_fin = models.DateField(help_text="Date de fin de la validité du forfait")
     est_actif = models.BooleanField(default=False, help_text="Le forfait est-il actuellement actif ?")
+    et_payer = models.BooleanField(default=False,null=True, blank=True)
     SEMAINES_CHOICES = (
         (1, '1 semaine'),
         (2, '2 semaines'),
@@ -121,6 +125,12 @@ class Cours_Package(models.Model):
         (4, '4 élèves'),
         (5, '5 élèves'),
     ), help_text="Nombre d'élèves")
+    STATUT_CHOICES = (
+        ('R', 'Réservé'),
+        ('C', 'Confirmé'),
+        ('A', 'Annulé'),
+    )
+    statut = models.CharField(max_length=1, choices=STATUT_CHOICES, default='R')
     heures_par_semaine = models.PositiveIntegerField(help_text="Nombre d'heures par semaine", default=0)
     matiere = models.ForeignKey('Matiere', on_delete=models.PROTECT, help_text="Matière du cours")
     prix = models.DecimalField(max_digits=10, decimal_places=2)
@@ -159,17 +169,28 @@ class Evaluation(models.Model):
     def __str__(self):
         return f"Évaluation de {self.eleve} en {self.matiere} : {self.note}" 
     
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
 class Transaction(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    parent = models.ForeignKey(Parent, on_delete=models.CASCADE)
-    professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    percentage = models.DecimalField(max_digits=5, decimal_places=2)
-    date_time = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('success', 'Success'), ('failed', 'Failed')])
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    professeur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions_prof', null=True, blank=True)
+    montant = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    id_transaction = models.CharField(max_length=100, null=True, blank=True)
+    montant_prof = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    montant_admin = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    date_creation = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    statut = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('success', 'Success'), ('failed', 'Failed')], null=True, blank=True)
+    
+    # Champs pour les relations génériques
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     def __str__(self):
-        return f"Transaction of {self.amount} by {self.user.username} at {self.date_time}" 
+        return f"Transaction of {self.montant} by {self.user.username} at {self.date_creation}"
+
+
 
 
 
@@ -214,6 +235,20 @@ class Cour(models.Model):
     @property
     def commentaires(self):
         return self.commentairecours_set.all()
+    
+    def update_statut(self):
+        now = timezone.now()
+        course_start = timezone.make_aware(datetime.datetime.combine(self.date, self.heure_debut), timezone.get_current_timezone())
+        course_end = timezone.make_aware(datetime.datetime.combine(self.date, self.heure_fin), timezone.get_current_timezone())
+
+        if course_start <= now <= course_end:
+            if self.statut != 'EC':
+                self.statut = 'EC'
+                self.save(update_fields=['statut'])
+        elif now > course_end:
+            if self.statut != 'T':
+                self.statut = 'T'
+                self.save(update_fields=['statut'])
 
 # @receiver(pre_save, sender=Cour)
 # def mettre_a_jour_statut_cours(sender, instance, **kwargs):
@@ -264,18 +299,18 @@ class CommentaireCours(models.Model):
 
 class CoursReserve(models.Model):
     professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
-    eleve = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateField()
     heure_debut = models.TimeField()
     heure_fin = models.TimeField() 
 
 class Absence(models.Model):
-    eleve = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     date_absence = models.DateField()
     raison = models.TextField()
 
 class Remboursement(models.Model):
-    eleve = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     cours_manque = models.ForeignKey(Cour, on_delete=models.CASCADE)
     motif = models.TextField()
     montant_rembourse = models.DecimalField(max_digits=10, decimal_places=2)
@@ -306,7 +341,7 @@ class Notification(models.Model):
 
 
     def __str__(self):
-        return f"{self.title} - {self.message}"  # Modification de la méthode __str__
+        return f"{self.title} - {self.message}"
 
 
 

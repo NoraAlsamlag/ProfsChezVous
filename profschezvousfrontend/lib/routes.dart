@@ -16,6 +16,7 @@ import 'ecrans/otp/otp_screen.dart';
 import 'ecrans/profile/profile_screen.dart';
 import 'ecrans/sign_in/sign_in_screen.dart';
 import 'ecrans/splash/splash_screen.dart';
+import 'ecrans/transactions/transactions_ecran.dart';
 
 // We use name route
 // All our routes will be available here
@@ -37,5 +38,5 @@ final Map<String, WidgetBuilder> routes = {
   ProfCompte.routeName: (context) => const ProfCompte(),
   EleveCompte.routeName: (context) => const EleveCompte(),
   PageInscription.routeName: (context) => const PageInscription(),
-  // ProfesseurDetailPage.routeName: (context) => const ProfesseurDetailPage(),
+  TransactionsEcran.routeName: (context) => TransactionsEcran(),
 };
