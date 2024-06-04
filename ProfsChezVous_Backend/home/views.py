@@ -11,7 +11,7 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import Sum, Count
 from datetime import datetime
-from api.models import Cours_Unite, Cours_Package,Cours
+from api.models import Cours_Unite, Cours_Package,Cour
 
 def index(request):
     # Nombre total d'utilisateurs de chaque type
