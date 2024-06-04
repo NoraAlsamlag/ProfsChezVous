@@ -5,7 +5,8 @@
     <div class="navbar-brand header-logo">
       <a href="{% url 'index' %}" class="b-brand">
         <div class="b-bg">
-          <i class="feather icon-trending-up"></i>
+          {% comment %} <i class="feather icon-trending-up"></i> {% endcomment %}
+          <img class="{% static 'assets/images/Prof.jpg' %}">
         </div>
         <span class="b-title">Datta Able</span>
       </a>
