@@ -108,10 +108,12 @@ flutter run
 
 
 -  **Parent Profiles**
-  - ![Parent Profile](https://github.com/user-attachments/assets/95e08f1b-802d-4dc5-94eb-3c6f5dc511e5)
+  - ![Parent Profile](https://github.com/user-attachments/assets/1eb82bfe-206e-470f-8efa-89b46402c770)
+
  
 -  **Professor Profiles**
-  - ![Professor Profile](https://github.com/user-attachments/assets/7e69b108-7a46-46e5-8c67-79294b380d14)
+  - ![Professor Profile](https://github.com/user-attachments/assets/84440a5c-0228-4720-a241-5c689ebff804)
+
 
   
 
@@ -133,7 +135,8 @@ flutter run
 
 -  **Additional Screenshots**
 
-  - ![Contact Us](https://github.com/user-attachments/assets/94453cfa-ca4c-4ce5-be27-75ee67213318)
+  - ![Contact Us](https://github.com/user-attachments/assets/a884445a-0ca7-4bc2-8c97-8b0b460aee7f)
+
   - ![Confirm](https://github.com/user-attachments/assets/4d4289bc-280c-447a-8600-f113a64fa995)
   - ![4](https://github.com/user-attachments/assets/36c9b8cc-2aef-4d11-a2f3-4f8657f33b2a)
   - ![image](https://github.com/user-attachments/assets/8c9edca8-3054-4b7e-980e-bae75ea856b2)
