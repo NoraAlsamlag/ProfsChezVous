@@ -1,4 +1,4 @@
-# 📚 ProfsChezVous
+# ProfsChezVous
 
 A **mobile app for booking tutoring sessions**, developed with **Flutter** (frontend) and **Django** (backend).
 
@@ -9,20 +9,20 @@ A **mobile app for booking tutoring sessions**, developed with **Flutter** (fron
 
 ---
 
-## 📌 Table of Contents
+## Table of Contents
 
-- [📂 Project Structure](#-project-structure)
-- [🚀 Getting Started](#-getting-started)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
   - [Backend Setup (Django)](#backend-setup-django)
   - [Frontend Setup (Flutter)](#frontend-setup-flutter)
-- [📱 Screenshots](#-screenshots)
-- [✨ Features](#-features)
-- [🛠 Technologies Used](#-technologies-used)
-- [📜 License](#-license)
+- [Screenshots](#-screenshots)
+- [Features](#-features)
+- [Technologies Used](#-technologies-used)
+- [License](#-license)
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 .
@@ -58,16 +58,16 @@ A **mobile app for booking tutoring sessions**, developed with **Flutter** (fron
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Backend Setup (Django)
 
-#### 📌 Prerequisites:
+#### Prerequisites:
 - Python 3.x
 - Pip
 - Virtual Environment (recommended)
 
-#### 🔧 Installation:
+#### Installation:
 ```bash
 cd ProfsChezVous_Backend
 python -m venv venv
@@ -80,11 +80,11 @@ python manage.py runserver
 
 ### Frontend Setup (Flutter)
 
-#### 📌 Prerequisites:
+#### Prerequisites:
 - Flutter SDK
 - Dart
 
-#### 🔧 Installation:
+#### Installation:
 ```bash
 cd profschezvousfrontend
 flutter pub get
@@ -93,14 +93,12 @@ flutter run
 
 ---
 
-## 📱 Screenshots
+## Screenshots
 
-- 🔐 **Authentication & forgot password**
+-  **Authentication & forgot password**
   - ![Login Page (Mobile) & forgot password](https://github.com/user-attachments/assets/12434615-4381-407b-885d-1337ad00f57e)
 
-
-  - 
-- 🏠 **Welcome Screen & Registration**
+-  **Welcome Screen & Registration**
   - ![Home Screen](https://github.com/user-attachments/assets/8eea363d-d134-49f8-89da-ba8b8b81d10d)
   - ![Parent's Child](https://github.com/user-attachments/assets/6b42bbb9-cf8c-4401-86bb-0c6821f1e160)
   - ![image](https://github.com/user-attachments/assets/df64e8e9-aa8c-488b-acd4-76e6d36498c7)
@@ -109,31 +107,31 @@ flutter run
 
 
 
-- 👤 **Parent Profiles**
+-  **Parent Profiles**
   - ![Parent Profile](https://github.com/user-attachments/assets/95e08f1b-802d-4dc5-94eb-3c6f5dc511e5)
  
-- 👤 **Professor Profiles**
+-  **Professor Profiles**
   - ![Professor Profile](https://github.com/user-attachments/assets/7e69b108-7a46-46e5-8c67-79294b380d14)
 
   
 
-- 💰 **Transactions**
+-  **Transactions**
   - ![Transactions](https://github.com/user-attachments/assets/de8eb302-a2be-4670-bffc-be22c25f3209)
 
 
 
-- 📢 **Notifications**
+-  **Notifications**
   - ![Notifications](https://github.com/user-attachments/assets/cc48b36e-a186-40b5-a66e-9061fc4adda9)
     
-- 🗓️ **Scheduling**
+-  **Scheduling**
   - ![Add Availability](https://github.com/user-attachments/assets/53fdd167-2cfe-4c3b-8ade-3c05d4cc319a)
 
 
-- 🎓 **Course Management**
+-  **Course Management**
   - ![Student Sign-up](https://github.com/user-attachments/assets/fce73358-8817-43f3-9067-d74d66396eb7)
 
 
-- 📸 **Additional Screenshots**
+-  **Additional Screenshots**
 
   - ![Contact Us](https://github.com/user-attachments/assets/94453cfa-ca4c-4ce5-be27-75ee67213318)
   - ![Confirm](https://github.com/user-attachments/assets/4d4289bc-280c-447a-8600-f113a64fa995)
@@ -145,7 +143,7 @@ flutter run
   - ![Subject Selection](https://github.com/user-attachments/assets/264693f5-22c5-4b18-bb33-b8ff1b8945c9)
 
 ---
-**🖥️ Backend**
+**Backend**
   - ![Backend Login](https://github.com/user-attachments/assets/9b68fb8a-58a8-44b0-a71a-e54c5b8e2e82)
   - ![Backend Dashboard](https://github.com/user-attachments/assets/a4398253-68ee-49a8-b526-19b60aca3bca)
   - ![image](https://github.com/user-attachments/assets/d2ce66ef-9896-438a-8a10-ffc5f3de9475)
@@ -153,7 +151,7 @@ flutter run
 
 
 
-## ✨ Features
+## Features
 - **User Authentication:** Secure login and registration system.
 - **Profile Management:** Separate profiles for parents and professors.
 - **Course Management:** Easy management of booked and available classes.
@@ -163,7 +161,7 @@ flutter run
 - **Backend Admin:** Admin interface for managing the application backend.
 
 
-## 🛠 Technologies Used
+## Technologies Used
 
 - **Frontend:** Flutter, Dart
 - **Backend:** Django, Django REST Framework
@@ -173,7 +171,7 @@ flutter run
 
 ---
 
-## 📜 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
